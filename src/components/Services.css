@@ -1,0 +1,115 @@
+.services-grid-section {
+  background: #f5f6fb;
+  padding: 3.5rem 0 3rem;
+}
+
+.services-grid-heading {
+  text-align: center;
+  font-size: clamp(2rem, 2vw + 1rem, 3rem);
+  margin: 0 0 2rem 0;
+  color: #121428;
+}
+
+.services-grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.service-tile {
+  background: #ffffff;
+  border: 1px solid #eef0f6;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(15, 18, 28, 0.06);
+  padding: 1.4rem 1.6rem;
+  min-height: 220px;
+  display: flex;
+  align-items: stretch;
+}
+
+.service-tile__body {
+  display: grid;
+  grid-template-columns: 1.7fr 0.6fr;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.service-tile h3 {
+  margin: 0 0 0.7rem 0;
+  font-size: 1.4rem;
+  color: #121428;
+}
+
+.service-tile p {
+  margin: 0 0 0.9rem 0;
+  color: #2f3246;
+  line-height: 1.5;
+  font-size: 1rem;
+}
+
+.service-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.service-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: #f2f3f8;
+  color: #161a2d;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.service-illus {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+}
+
+.service-illus .illus-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #fef3c7, #fdf2ff);
+  border-radius: 14px;
+  opacity: 0.65;
+}
+
+.service-illus svg {
+  position: relative;
+  color: #4b4f69;
+}
+
+@media (max-width: 900px) {
+  .services-grid-cards {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  .service-tile__body {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .service-illus {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .services-grid-section {
+    padding: 3rem 0 2.5rem;
+  }
+
+  .service-tile {
+    padding: 1.2rem 1.3rem;
+  }
+
+  .service-tile h3 {
+    font-size: 1.2rem;
+  }
+}

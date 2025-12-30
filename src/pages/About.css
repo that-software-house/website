@@ -1,0 +1,243 @@
+.about-page {
+  background: #f7f8fc;
+  color: #0f162b;
+}
+
+.about-page .about-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.about-page .about-hero {
+  padding: 6rem 0 4rem;
+  text-align: left;
+}
+
+.about-page .about-hero-title {
+  font-size: clamp(2.8rem, 4vw + 1rem, 4rem);
+  font-weight: 800;
+  color: #0f162b;
+  margin-bottom: 1.5rem;
+}
+
+.about-page .about-hero-description {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #4c5270;
+  margin: 0 0 1rem 0;
+}
+
+.about-page .about-stats {
+  padding: 3.5rem 0;
+}
+
+.about-page .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 2rem;
+}
+
+.about-page .stat-card {
+  background: #ffffff;
+  border: 1px solid rgba(12, 18, 34, 0.08);
+  border-radius: 14px;
+  padding: 1.4rem 1.3rem;
+  box-shadow: 0 14px 36px rgba(12, 18, 34, 0.06);
+}
+
+.about-page .stat-label {
+  color: #7a8096;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+}
+
+.about-page .stat-number {
+  font-size: 2.4rem;
+  font-weight: 800;
+}
+
+.about-page .about-values,
+.about-page .about-capabilities,
+.about-page .about-leadership {
+  padding: 4rem 0;
+}
+
+.about-page .section-title {
+  font-size: clamp(2rem, 2vw + 1rem, 2.6rem);
+  color: #0f162b;
+  margin-bottom: 2.5rem;
+  font-weight: 800;
+}
+
+.about-page .values-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.4rem;
+}
+
+.about-page .value-card {
+  background: #ffffff;
+  border: 1px solid rgba(12, 18, 34, 0.08);
+  border-radius: 14px;
+  padding: 1.2rem 1.25rem;
+  box-shadow: 0 14px 36px rgba(12, 18, 34, 0.05);
+}
+
+.about-page .value-title {
+  margin: 0 0 0.5rem 0;
+  color: #0f162b;
+}
+
+.about-page .value-description {
+  margin: 0;
+  color: #4c5270;
+  line-height: 1.6;
+}
+
+.about-page .capabilities-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.about-page .capability-item {
+  background: #ffffff;
+  border: 1px solid rgba(12, 18, 34, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 14px 36px rgba(12, 18, 34, 0.05);
+}
+
+.about-page .capability-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: #f2f4ff;
+  border: none;
+  color: #0f162b;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.about-page .capability-content {
+  padding: 1rem 1.25rem 1.25rem;
+  color: #4c5270;
+  line-height: 1.6;
+}
+
+.about-page .capability-details {
+  padding-left: 1.25rem;
+  margin: 0.75rem 0 0;
+  color: #4c5270;
+}
+
+.about-page .capability-details li {
+  margin-bottom: 0.35rem;
+}
+
+.about-page .about-leadership {
+  background: #ffffff;
+  border-top: 1px solid rgba(12, 18, 34, 0.08);
+  border-bottom: 1px solid rgba(12, 18, 34, 0.08);
+}
+
+.about-page .leadership-grid {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  flex-wrap: wrap;
+}
+
+.about-page .leader-card {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.about-page .leader-avatar {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background-color: #eef0f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: #0f162b;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.about-page .leader-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0f162b;
+  margin: 0;
+}
+
+.about-page .leader-title {
+  font-size: 1rem;
+  color: #4c5270;
+  margin: 0;
+}
+
+.about-page .leader-linkedin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #0f162b;
+  color: #ffffff;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  margin-top: 0.5rem;
+}
+
+.about-page .leader-linkedin:hover {
+  transform: scale(1.08);
+  background-color: #1c2340;
+}
+
+@media (max-width: 1024px) {
+  .about-page .about-container {
+    padding: 0 1.5rem;
+  }
+
+  .about-page .stats-grid {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .about-page .about-hero {
+    padding: 5rem 0 3rem;
+  }
+
+  .about-page .about-container {
+    padding: 0 1.25rem;
+  }
+
+  .about-page .about-hero-title {
+    font-size: 3rem;
+  }
+
+  .about-page .about-hero-description {
+    font-size: 1rem;
+  }
+
+  .about-page .values-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-page .leadership-grid {
+    gap: 2rem;
+  }
+}

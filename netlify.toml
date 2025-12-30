@@ -1,0 +1,32 @@
+[build]
+  command = "yarn build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[functions]
+  # Use ES modules
+  node_bundler = "esbuild"
+  # Increase timeout for AI generation (default is 10s, max is 26s on free tier)
+  external_node_modules = ["@openai/agents"]
+
+[[redirects]]
+  from = "/api/content/generate"
+  to = "/.netlify/functions/content"
+  status = 200
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# SPA fallback - must be last
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[dev]
+  command = "yarn dev"
+  targetPort = 5173
+  port = 8888
+  autoLaunch = false

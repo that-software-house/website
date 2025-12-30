@@ -1,0 +1,151 @@
+.rocket-animation-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.stars-container {
+  position: absolute;
+  inset: 0;
+}
+
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background-color: white;
+  border-radius: 50%;
+  animation: star-pulse 3s ease-in-out infinite;
+}
+
+@keyframes star-pulse {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+}
+
+.launch-track {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: translateY(6%);
+}
+
+.track-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.rocket {
+  position: absolute;
+  transform: translate(-50%, -50%) rotate(10deg);
+  transition: all 0.1s linear;
+  z-index: 10;
+}
+
+.rocket-emoji {
+  font-size: 3rem;
+  filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5));
+}
+
+.rocket-trail {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(125deg);
+  width: 4px;
+  height: 40px;
+  background: linear-gradient(to bottom, rgba(249, 115, 22, 0.8), rgba(234, 179, 8, 0.6), transparent);
+  opacity: 0.6;
+}
+
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: rgba(249, 115, 22, 0.8);
+  border-radius: 50%;
+  z-index: 0;
+  animation: fall-diagonal linear forwards;
+}
+
+@keyframes fall-diagonal {
+  to {
+    transform: translate(-30px, 30px);
+    opacity: 0;
+  }
+}
+
+.launch-pad {
+  position: absolute;
+  bottom: 10%;
+  left: 10%;
+  transform: translate(-50%, 50%);
+  width: 60px;
+  height: 8px;
+  background: linear-gradient(to right, rgba(71, 85, 105, 0.7), rgba(100, 116, 139, 0.7), rgba(71, 85, 105, 0.7));
+  border-radius: 999px;
+}
+
+.success-target {
+  position: absolute;
+  top: 10%;
+  right: 10%;
+  transform: translate(50%, -50%);
+}
+
+.target-star {
+  font-size: 3rem;
+  opacity: 0.3;
+  transition: all 0.5s ease;
+}
+
+.target-star.active {
+  transform: scale(1.5);
+  opacity: 1;
+  animation: pulse-star 1s ease-in-out infinite;
+}
+
+@keyframes pulse-star {
+  0%, 100% {
+    transform: scale(1.5);
+  }
+  50% {
+    transform: scale(1.8);
+  }
+}
+
+@media (max-width: 768px) {
+  .rocket-emoji {
+    font-size: 2rem;
+  }
+
+  .rocket-trail {
+    height: 30px;
+    width: 3px;
+  }
+
+  .particle {
+    width: 4px;
+    height: 4px;
+  }
+
+  .launch-pad {
+    width: 40px;
+    height: 6px;
+  }
+
+  .target-star {
+    font-size: 2rem;
+  }
+}

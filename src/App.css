@@ -1,0 +1,8 @@
+.app {
+  width: 100%;
+  min-height: 100vh;
+  color: var(--text-primary);
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+}

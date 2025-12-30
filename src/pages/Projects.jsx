@@ -1,0 +1,142 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Sparkles, ArrowRight, Zap, Bot, FileText, BarChart3 } from 'lucide-react';
+import './Projects.css';
+import SectionCta from '@/components/SectionCta';
+
+// Project data - in a real app this would come from an API/database
+const projects = [
+  {
+    id: 'contentforge',
+    title: 'ContentForge',
+    subtitle: 'AI Content Transformation',
+    description: 'Transform long-form content into engaging social media posts. Generate LinkedIn posts, Twitter threads, and carousel slides instantly.',
+    icon: Sparkles,
+    gradient: 'from-blue-500 to-purple-600',
+    tags: ['AI', 'Content', 'Social Media'],
+    apps: [
+      { id: 'content-transformer', name: 'Content Transformer', description: 'Convert articles to social posts' }
+    ]
+  },
+  {
+    id: 'aiassistant',
+    title: 'AI Assistant',
+    subtitle: 'Intelligent Chat Support',
+    description: 'An intelligent conversational AI that helps answer questions, provide support, and assist with various tasks using natural language.',
+    icon: Bot,
+    gradient: 'from-emerald-500 to-teal-600',
+    tags: ['AI', 'Chat', 'Support'],
+    apps: [
+      { id: 'chat-assistant', name: 'Chat Assistant', description: 'AI-powered conversation' }
+    ]
+  },
+  {
+    id: 'docanalyzer',
+    title: 'DocAnalyzer',
+    subtitle: 'Document Intelligence',
+    description: 'Extract insights, summaries, and key information from documents using advanced AI analysis capabilities.',
+    icon: FileText,
+    gradient: 'from-orange-500 to-red-600',
+    tags: ['AI', 'Documents', 'Analysis'],
+    apps: [
+      { id: 'doc-summary', name: 'Document Summarizer', description: 'Summarize long documents' }
+    ]
+  },
+  {
+    id: 'datainsights',
+    title: 'DataInsights',
+    subtitle: 'Business Analytics',
+    description: 'Turn raw data into actionable insights with AI-powered analytics and visualization tools.',
+    icon: BarChart3,
+    gradient: 'from-violet-500 to-pink-600',
+    tags: ['AI', 'Analytics', 'Data'],
+    apps: [
+      { id: 'data-viz', name: 'Data Visualizer', description: 'Create charts from data' }
+    ]
+  }
+];
+
+function ProjectCard({ project, index }) {
+  const Icon = project.icon;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+    >
+      <Link to={`/projects/${project.id}`} className="project-card-link">
+        <div className="project-card">
+          <div className={`project-card-icon bg-gradient-to-br ${project.gradient}`}>
+            <Icon className="w-8 h-8 text-white" />
+          </div>
+
+          <div className="project-card-content">
+            <div className="project-card-header">
+              <h3 className="project-card-title">{project.title}</h3>
+              <span className="project-card-subtitle">{project.subtitle}</span>
+            </div>
+
+            <p className="project-card-description">{project.description}</p>
+
+            <div className="project-card-tags">
+              {project.tags.map((tag) => (
+                <span key={tag} className="project-tag">{tag}</span>
+              ))}
+            </div>
+
+            <div className="project-card-footer">
+              <span className="project-apps-count">
+                {project.apps.length} {project.apps.length === 1 ? 'App' : 'Apps'} Available
+              </span>
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+            </div>
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
+
+function Projects() {
+  return (
+    <div className="projects-page">
+      {/* Hero Section */}
+      <section className="projects-hero">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="projects-hero-content"
+        >
+          <div className="projects-hero-badge">
+            <Zap className="w-4 h-4" />
+            <span>AI-Powered Solutions</span>
+          </div>
+
+          <h1 className="projects-hero-title">Our Projects</h1>
+
+          <p className="projects-hero-subtitle">
+            Explore our collection of AI-powered applications and tools. Each project showcases
+            innovative solutions built with cutting-edge technology.
+          </p>
+        </motion.div>
+      </section>
+
+      {/* Projects Grid */}
+      <section className="projects-grid-section">
+        <div className="projects-grid">
+          {projects.map((project, index) => (
+            <ProjectCard key={project.id} project={project} index={index} />
+          ))}
+        </div>
+      </section>
+
+      <SectionCta />
+    </div>
+  );
+}
+
+export { projects };
+export default Projects;

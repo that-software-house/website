@@ -1,0 +1,384 @@
+.services-page {
+  width: 100%;
+}
+
+/* Hero Section */
+.services-hero {
+  position: relative;
+  width: 100%;
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+.services-hero-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.services-hero-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.services-hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+}
+
+.services-hero-title {
+  font-size: 4rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+  max-width: 800px;
+  text-align: left;
+  margin: 0;
+}
+
+/* Value Proposition Section */
+.services-value {
+  padding: 6rem 0;
+  background-color: #fff;
+}
+
+.services-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.services-value-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #000;
+  line-height: 1.3;
+  margin-bottom: 3rem;
+}
+
+.services-value-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.services-value-content p {
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: #333;
+  margin: 0;
+}
+
+/* Why Work With Us Section */
+.services-why {
+  padding: 6rem 0;
+  background-color: #000;
+}
+
+.services-why-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2rem;
+}
+
+.services-why-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.services-why-list li {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.list-bullet {
+  font-size: 1.5rem;
+  color: #fff;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.services-why-list strong {
+  font-weight: 700;
+  color: #fff;
+}
+
+/* Contact Form Section */
+.services-contact {
+  padding: 6rem 0;
+  background-color: #fff;
+}
+
+.services-contact-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.services-contact-image {
+  width: 100%;
+  height: 600px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.services-contact-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.services-contact-form-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.services-contact-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #000;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.services-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  width: 100%;
+}
+
+.form-input {
+  width: 100%;
+  padding: 1rem 1.1rem;
+  font-size: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  font-family: inherit;
+  transition: border-color 0.3s ease, box-shadow 0.2s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #7c8cff;
+  box-shadow: 0 0 0 3px rgba(124, 140, 255, 0.18);
+}
+
+.form-input::placeholder {
+  color: #8f96ae;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.services-submit {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  border: none;
+  background: #f4ad0d;
+  color: #0f162b;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 12px 30px rgba(244, 173, 13, 0.28);
+}
+
+.services-submit:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 36px rgba(244, 173, 13, 0.34);
+}
+
+.services-submit:active {
+  transform: translateY(0);
+  box-shadow: 0 10px 24px rgba(244, 173, 13, 0.24);
+}
+
+/* Footer CTA Section */
+.services-footer-cta {
+  padding: 6rem 0 3rem;
+  background-color: #000;
+  color: #fff;
+}
+
+.services-footer-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.3;
+  margin-bottom: 4rem;
+  max-width: 800px;
+}
+
+.services-locations {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3rem;
+  margin-bottom: 4rem;
+}
+
+.location-group h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
+.location-group p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #ccc;
+  margin: 0.5rem 0;
+}
+
+.services-footer-bottom {
+  padding-top: 2rem;
+  border-top: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #999;
+}
+
+.services-footer-bottom a {
+  color: #999;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.services-footer-bottom a:hover {
+  color: #fff;
+}
+
+.social-links {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .services-hero-title {
+    font-size: 3rem;
+  }
+
+  .services-value-title,
+  .services-why-title,
+  .services-footer-title {
+    font-size: 2rem;
+  }
+
+  .services-contact-container {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .services-contact-image {
+    height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .services-hero {
+    min-height: 400px;
+  }
+
+  .services-hero-title {
+    font-size: 2.5rem;
+  }
+
+  .services-hero-content {
+    padding: 3rem 1.5rem;
+  }
+
+  .services-value,
+  .services-why,
+  .services-contact,
+  .services-footer-cta {
+    padding: 4rem 0;
+  }
+
+  .services-container,
+  .services-contact-container {
+    padding: 0 1.5rem;
+  }
+
+  .services-value-title,
+  .services-why-title,
+  .services-contact-title {
+    font-size: 1.75rem;
+  }
+
+  .services-footer-title {
+    font-size: 1.75rem;
+    margin-bottom: 3rem;
+  }
+
+  .services-value-content p,
+  .services-why-list li {
+    font-size: 1rem;
+  }
+
+  .services-locations {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .services-contact-image {
+    height: 300px;
+  }
+
+}
+
+@media (max-width: 480px) {
+  .services-hero-title {
+    font-size: 2rem;
+  }
+
+  .services-value-title,
+  .services-why-title,
+  .services-contact-title,
+  .services-footer-title {
+    font-size: 1.5rem;
+  }
+
+  .services-hero {
+    min-height: 350px;
+  }
+
+  .services-contact-image {
+    height: 250px;
+  }
+}

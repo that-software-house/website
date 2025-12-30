@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-label="CodeMinder logo">
+  <defs>
+    <style>
+      .word {
+        font-family: Poppins, Inter, Arial, Helvetica, sans-serif;
+        font-weight: 700;
+        font-size: 200px;
+        letter-spacing: 0.5px;
+      }
+    </style>
+  </defs>
+  <text x="50" y="210" class="word" fill="#6C42E3">CodeMinder</text>
+</svg>
