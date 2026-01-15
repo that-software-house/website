@@ -9,12 +9,11 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const navItems = [
-    { to: '/about', label: 'About us' },
+    { to: '/ai-software', label: 'AI Solutions' },
+    { to: '/custom-software', label: 'Custom Software' },
     { to: '/projects', label: 'Cases' },
     { to: '/services', label: 'Services' },
-    { to: '/custom-software', label: 'Custom Software' },
-    { to: '/ai-software', label: 'AI Solutions' },
-    { to: '/contact', label: 'Contact Us' }
+    { to: '/about', label: 'About us' },
   ];
 
   useEffect(() => {
