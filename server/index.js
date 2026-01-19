@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { contentRouter } from './routes/content.js';
+import { docAnalyzerRouter } from './routes/docAnalyzer.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -11,6 +12,7 @@ app.use(express.json({ limit: '10mb' }));
 
 // Routes
 app.use('/api/content', contentRouter);
+app.use('/api/doc-analyzer', docAnalyzerRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

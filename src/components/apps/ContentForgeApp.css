@@ -118,6 +118,48 @@
   line-height: 1.6;
 }
 
+.contentforge-primary-btn {
+  background: #f4ad0d !important;
+  color: #0f162b !important;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 14px 30px rgba(244, 173, 13, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.contentforge-primary-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 36px rgba(244, 173, 13, 0.34);
+}
+
+.contentforge-primary-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 10px 22px rgba(244, 173, 13, 0.22);
+}
+
+.contentforge-primary-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.contentforge-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #0f162b;
+  border-top-color: transparent;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Main Content */
 .contentforge-main {
   display: grid;

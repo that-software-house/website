@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Link, Upload, Youtube, Sparkles } from 'lucide-react';
+import { FileText, Link, Upload, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs';
 import { Button } from '../../ui/button';
@@ -10,7 +10,6 @@ import { Label } from '../../ui/label';
 function ContentInput({ sourceType, setSourceType, onGenerate, isGenerating }) {
   const [textContent, setTextContent] = useState('');
   const [urlContent, setUrlContent] = useState('');
-  const [youtubeUrl, setYoutubeUrl] = useState('');
   const [fileName, setFileName] = useState('');
 
   const handleFileUpload = (e) => {
@@ -25,6 +24,11 @@ function ContentInput({ sourceType, setSourceType, onGenerate, isGenerating }) {
       };
       reader.readAsText(file);
     }
+  };
+
+  const showErrorToast = (message) => {
+    // lightweight fallback toast; could be replaced with a proper toast lib
+    window.alert(message || 'We could not generate content. Please try again.');
   };
 
   const handleGenerate = () => {
@@ -44,9 +48,14 @@ function ContentInput({ sourceType, setSourceType, onGenerate, isGenerating }) {
         break;
     }
 
-    if (content) {
-      onGenerate(content, fileName, sourceType);
+    if (!content) {
+      showErrorToast('Please enter some content first.');
+      return;
     }
+
+    onGenerate(content, fileName, sourceType)?.catch?.((err) => {
+      showErrorToast(err?.message || 'Unable to generate content right now.');
+    });
   };
 
   const canGenerate = () => {
@@ -68,7 +77,7 @@ function ContentInput({ sourceType, setSourceType, onGenerate, isGenerating }) {
   return (
     <div className="space-y-5">
       <Tabs value={sourceType} onValueChange={setSourceType}>
-        <TabsList className="grid w-full grid-cols-4 bg-gray-100 p-1 rounded-xl">
+        <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1 rounded-xl">
           <TabsTrigger
             value="text"
             className="flex items-center gap-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg"
@@ -89,13 +98,6 @@ function ContentInput({ sourceType, setSourceType, onGenerate, isGenerating }) {
           >
             <Upload className="h-4 w-4" />
             <span className="hidden sm:inline">File</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="youtube"
-            className="flex items-center gap-1.5 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-lg"
-          >
-            <Youtube className="h-4 w-4" />
-            <span className="hidden sm:inline">YouTube</span>
           </TabsTrigger>
         </TabsList>
 
@@ -192,31 +194,6 @@ The more detailed your content, the better the results!"
           </motion.div>
         </TabsContent>
 
-        <TabsContent value="youtube" className="space-y-4 mt-5">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Label htmlFor="youtube-input" className="flex items-center gap-2 mb-2">
-              <Youtube className="h-4 w-4 text-red-600" />
-              YouTube Video URL
-            </Label>
-            <Input
-              id="youtube-input"
-              type="url"
-              placeholder="https://www.youtube.com/watch?v=..."
-              className="h-12"
-              value={youtubeUrl}
-              onChange={(e) => setYoutubeUrl(e.target.value)}
-            />
-            <div className="bg-red-50 border border-red-100 rounded-lg p-3 mt-3">
-              <p className="text-sm text-red-700">
-                We'll extract the video transcript and transform it into social posts
-              </p>
-            </div>
-          </motion.div>
-        </TabsContent>
       </Tabs>
 
       {sourceType !== 'file' && (
@@ -228,12 +205,12 @@ The more detailed your content, the better the results!"
           <Button
             onClick={handleGenerate}
             disabled={!canGenerate() || isGenerating}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 h-12"
+            className="w-full contentforge-primary-btn h-12"
             size="lg"
           >
             {isGenerating ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                <div className="contentforge-spinner mr-2" />
                 Generating...
               </>
             ) : (

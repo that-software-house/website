@@ -5,6 +5,59 @@ import { z } from 'zod';
 setOpenAIAPI('chat_completions');
 
 /**
+ * Tool to fetch content from a URL
+ */
+const fetchUrlTool = tool({
+  name: 'fetch_url',
+  description: 'Fetches the content of a webpage given its URL and returns the text content',
+  parameters: z.object({
+    url: z.string().url().describe('The URL to fetch content from'),
+  }),
+  execute: async ({ url }) => {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; ContentExtractor/1.0)',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        },
+        signal: AbortSignal.timeout(10000),
+      });
+
+      if (!response.ok) {
+        return { error: `Failed to fetch URL: ${response.status} ${response.statusText}` };
+      }
+
+      const html = await response.text();
+
+      // Basic HTML to text extraction
+      const text = html
+        // Remove scripts and styles
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+        // Remove HTML tags
+        .replace(/<[^>]+>/g, ' ')
+        // Decode common HTML entities
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        // Clean up whitespace
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      // Limit content length
+      const content = text.slice(0, 8000);
+
+      return { content, url };
+    } catch (err) {
+      return { error: `Failed to fetch URL: ${err.message}` };
+    }
+  },
+});
+
+/**
  * LinkedIn Content Agent
  * Transforms content into engaging LinkedIn posts
  */
@@ -124,24 +177,23 @@ Return a bulleted list of key points, one insight per line. Each point should be
 
 /**
  * URL Content Extractor Agent
- * Simulates extracting content from URLs (for demo purposes)
+ * Extracts and summarizes content from URLs
  */
 export const urlExtractorAgent = new Agent({
   name: 'URL Content Extractor',
   model: 'gpt-4o',
-  instructions: `You are a content extractor. Given a URL, generate realistic sample article content that might be found at that URL.
+  instructions: `You are a content extractor. Given a URL, use the fetch_url tool to retrieve the webpage content, then extract and return the main article content.
 
 GUIDELINES:
-- Generate 300-500 words of realistic content
-- Include insights about the topic implied by the URL
-- Make it informative and well-structured
-- Include a mix of facts, insights, and examples
-- Make it feel like real blog/article content
-
-NOTE: This is a simulation for demo purposes. In production, actual web scraping would be used.
+- Always use the fetch_url tool to get the actual page content
+- Extract the main article/body content from the fetched text
+- Remove navigation, ads, footers, and other non-content elements
+- Clean up and structure the content for readability
+- If the fetch fails, explain the error to the user
 
 OUTPUT FORMAT:
-Return only the article content, as if extracted from the webpage.`,
+Return the extracted article content in a clean, readable format.`,
+  tools: [fetchUrlTool],
 });
 
 /**
@@ -164,6 +216,34 @@ NOTE: This is a simulation for demo purposes. In production, the YouTube API wou
 
 OUTPUT FORMAT:
 Return only the transcript content, as if extracted from the video.`,
+});
+
+/**
+ * Document Analyzer Agent
+ * Summarizes and extracts key points from documents
+ */
+export const docAnalyzerAgent = new Agent({
+  name: 'Document Analyzer',
+  model: 'gpt-4o-mini',
+  instructions: `You are a precise document analyst.
+
+Given any text, produce:
+1) A concise summary (3-5 sentences)
+2) 5-7 bullet key points
+3) (Optional) One suggested title
+
+Keep it factual and structured. Return in the following format:
+
+Title: <optional title>
+Summary:
+- sentence 1
+- sentence 2
+Key Points:
+- point 1
+- point 2
+- point 3
+- point 4
+- point 5`,
 });
 
 /**

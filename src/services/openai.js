@@ -4,6 +4,15 @@
  */
 
 const API_BASE = '/api/content';
+const DOC_API_BASE = '/api/doc-analyzer';
+
+async function parseJsonSafe(response) {
+  try {
+    return await response.json();
+  } catch (err) {
+    return null;
+  }
+}
 
 /**
  * Generate content for multiple platforms
@@ -21,12 +30,13 @@ export async function generateContent(content, formats, sourceType = 'text') {
     body: JSON.stringify({ content, formats, sourceType }),
   });
 
+  const data = await parseJsonSafe(response);
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to generate content');
+    const message = data?.message || data?.error || 'Failed to generate content';
+    throw new Error(message);
   }
 
-  return response.json();
+  return data || {};
 }
 
 /**
@@ -43,13 +53,13 @@ export async function generateLinkedInPost(content) {
     body: JSON.stringify({ content }),
   });
 
+  const data = await parseJsonSafe(response);
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to generate LinkedIn post');
+    const message = data?.message || data?.error || 'Failed to generate LinkedIn post';
+    throw new Error(message);
   }
 
-  const data = await response.json();
-  return data.post;
+  return data?.post || '';
 }
 
 /**
@@ -66,13 +76,13 @@ export async function generateTwitterThread(content) {
     body: JSON.stringify({ content }),
   });
 
+  const data = await parseJsonSafe(response);
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to generate Twitter thread');
+    const message = data?.message || data?.error || 'Failed to generate Twitter thread';
+    throw new Error(message);
   }
 
-  const data = await response.json();
-  return data.thread;
+  return data?.thread || [];
 }
 
 /**
@@ -89,13 +99,13 @@ export async function generateCarouselSlides(content) {
     body: JSON.stringify({ content }),
   });
 
+  const data = await parseJsonSafe(response);
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to generate carousel slides');
+    const message = data?.message || data?.error || 'Failed to generate carousel slides';
+    throw new Error(message);
   }
 
-  const data = await response.json();
-  return data.slides;
+  return data?.slides || [];
 }
 
 /**
@@ -113,13 +123,31 @@ export async function summarizeContent(content, maxPoints = 5) {
     body: JSON.stringify({ content, maxPoints }),
   });
 
+  const data = await parseJsonSafe(response);
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to summarize content');
+    const message = data?.message || data?.error || 'Failed to summarize content';
+    throw new Error(message);
   }
 
-  const data = await response.json();
-  return data.summary;
+  return data?.summary || '';
+}
+
+export async function analyzeDocument(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetch(`${DOC_API_BASE}/analyze`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  const data = await parseJsonSafe(response);
+  if (!response.ok) {
+    const message = data?.message || data?.error || 'Failed to analyze document';
+    throw new Error(message);
+  }
+
+  return data || {};
 }
 
 /**
