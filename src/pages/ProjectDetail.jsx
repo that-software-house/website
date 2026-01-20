@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Sparkles, Bot, FileText, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Sparkles, Bot, FileText, BarChart3, Eraser } from 'lucide-react';
 import { projects } from './Projects';
 import ContentForgeApp from '../components/apps/ContentForgeApp';
 import DocAnalyzerApp from '../components/apps/DocAnalyzerApp';
+import TextCleanerApp from '../components/apps/TextCleanerApp';
 import './ProjectDetail.css';
 
 function ProjectDetail() {
@@ -65,6 +66,8 @@ function ProjectDetail() {
             <p>This app is coming soon. Stay tuned!</p>
           </div>
         );
+      case 'textcleaner':
+        return <TextCleanerApp />;
       default:
         return null;
     }

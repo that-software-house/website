@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Zap, Bot, FileText, BarChart3 } from 'lucide-react';
+import { Sparkles, ArrowRight, Zap, Bot, FileText, BarChart3, Eraser } from 'lucide-react';
 import './Projects.css';
 import SectionCta from '@/components/SectionCta';
 
@@ -9,7 +9,7 @@ import SectionCta from '@/components/SectionCta';
 const projects = [
   {
     id: 'contentforge',
-    title: 'ContentForge',
+    title: 'Content Extractor',
     subtitle: 'AI Content Transformation',
     description: 'Transform long-form content into engaging social media posts. Generate LinkedIn posts, Twitter threads, and carousel slides instantly.',
     icon: Sparkles,
@@ -33,7 +33,7 @@ const projects = [
   },
   {
     id: 'docanalyzer',
-    title: 'DocAnalyzer',
+    title: 'Document Analyzer',
     subtitle: 'Document Intelligence',
     description: 'Extract insights, summaries, and key information from documents using advanced AI analysis capabilities.',
     icon: FileText,
@@ -45,7 +45,7 @@ const projects = [
   },
   {
     id: 'datainsights',
-    title: 'DataInsights',
+    title: 'Data Insights',
     subtitle: 'Business Analytics',
     description: 'Turn raw data into actionable insights with AI-powered analytics and visualization tools.',
     icon: BarChart3,
@@ -53,6 +53,18 @@ const projects = [
     tags: ['AI', 'Analytics', 'Data'],
     apps: [
       { id: 'data-viz', name: 'Data Visualizer', description: 'Create charts from data' }
+    ]
+  },
+  {
+    id: 'textcleaner',
+    title: 'Text Cleaner',
+    subtitle: 'AI Text Standardization',
+    description: 'Free AI text cleaner to remove hidden characters, normalize quotes, and fix formatting from ChatGPT, Claude, and LLM outputs.',
+    icon: Eraser,
+    gradient: 'from-yellow-500 to-amber-600',
+    tags: ['AI', 'Text', 'ChatGPT', 'LLM'],
+    apps: [
+      { id: 'text-cleaner', name: 'Text Cleaner', description: 'Clean ChatGPT and AI text' }
     ]
   }
 ];
@@ -84,13 +96,6 @@ function ProjectCard({ project, index }) {
               {project.tags.map((tag) => (
                 <span key={tag} className="project-tag">{tag}</span>
               ))}
-            </div>
-
-            <div className="project-card-footer">
-              <span className="project-apps-count">
-                {project.apps.length} {project.apps.length === 1 ? 'App' : 'Apps'} Available
-              </span>
-              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
             </div>
           </div>
         </div>
