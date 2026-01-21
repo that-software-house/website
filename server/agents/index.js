@@ -247,6 +247,27 @@ Key Points:
 });
 
 /**
+ * Tone Converter Agent
+ * Converts text to different tones and writing styles
+ */
+export const toneConverterAgent = new Agent({
+  name: 'Tone Converter',
+  model: 'gpt-4o-mini',
+  instructions: `You are an expert writing style converter. Your job is to rewrite text in a specific tone while preserving the original meaning and key information.
+
+GUIDELINES:
+- Maintain the core message and all important details
+- Adapt vocabulary, sentence structure, and phrasing to match the target tone
+- Keep roughly the same length as the original (don't overly expand or condense)
+- Ensure the output is natural and fluent
+- Do not add new information that wasn't in the original
+- Do not include any explanations or meta-commentary
+
+OUTPUT FORMAT:
+Return ONLY the rewritten text. Do not include phrases like "Here's the rewritten text:" or any other preamble.`,
+});
+
+/**
  * Master Content Agent with Tools
  * Can delegate to other agents as tools
  */

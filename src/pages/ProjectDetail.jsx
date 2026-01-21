@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Sparkles, Bot, FileText, BarChart3, Eraser } from 'lucide-react';
+import { ArrowLeft, Sparkles, Bot, FileText, BarChart3, Eraser, RefreshCw } from 'lucide-react';
 import { projects } from './Projects';
 import ContentForgeApp from '../components/apps/ContentForgeApp';
 import DocAnalyzerApp from '../components/apps/DocAnalyzerApp';
 import TextCleanerApp from '../components/apps/TextCleanerApp';
+import ToneConverterApp from '../components/apps/ToneConverterApp';
 import './ProjectDetail.css';
 
 function ProjectDetail() {
@@ -68,6 +69,8 @@ function ProjectDetail() {
         );
       case 'textcleaner':
         return <TextCleanerApp />;
+      case 'toneconverter':
+        return <ToneConverterApp />;
       default:
         return null;
     }

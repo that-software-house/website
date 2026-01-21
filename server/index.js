@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { contentRouter } from './routes/content.js';
 import { docAnalyzerRouter } from './routes/docAnalyzer.js';
+import { toneConverterRouter } from './routes/toneConverter.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -13,6 +14,7 @@ app.use(express.json({ limit: '10mb' }));
 // Routes
 app.use('/api/content', contentRouter);
 app.use('/api/doc-analyzer', docAnalyzerRouter);
+app.use('/api/tone', toneConverterRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

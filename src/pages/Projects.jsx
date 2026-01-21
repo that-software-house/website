@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Zap, Bot, FileText, BarChart3, Eraser } from 'lucide-react';
+import { Sparkles, ArrowRight, Zap, Bot, FileText, BarChart3, Eraser, RefreshCw } from 'lucide-react';
 import './Projects.css';
 import SectionCta from '@/components/SectionCta';
 
@@ -65,6 +65,18 @@ const projects = [
     tags: ['AI', 'Text', 'ChatGPT', 'LLM'],
     apps: [
       { id: 'text-cleaner', name: 'Text Cleaner', description: 'Clean ChatGPT and AI text' }
+    ]
+  },
+  {
+    id: 'toneconverter',
+    title: 'Tone Converter',
+    subtitle: 'AI Writing Style',
+    description: 'Transform your text into any tone - professional, casual, friendly, persuasive, or more. Perfect for emails, social posts, and business communication.',
+    icon: RefreshCw,
+    gradient: 'from-cyan-500 to-blue-600',
+    tags: ['AI', 'Writing', 'Tone', 'Style'],
+    apps: [
+      { id: 'tone-converter', name: 'Tone Converter', description: 'Change text tone instantly' }
     ]
   }
 ];
