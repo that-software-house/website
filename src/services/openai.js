@@ -3,8 +3,11 @@
  * Calls the backend API which uses OpenAI Agents SDK
  */
 
+import { supabase } from '@/lib/supabase';
+
 const API_BASE = '/api/content';
 const DOC_API_BASE = '/api/doc-analyzer';
+const TONE_API_BASE = '/api/tone';
 
 async function parseJsonSafe(response) {
   try {
@@ -12,6 +15,23 @@ async function parseJsonSafe(response) {
   } catch (err) {
     return null;
   }
+}
+
+async function getAuthHeaders() {
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`;
+    }
+  } catch (err) {
+    // Continue without auth
+  }
+
+  return headers;
 }
 
 /**
@@ -22,11 +42,10 @@ async function parseJsonSafe(response) {
  * @returns {Promise<{results: Object, errors: Object}>}
  */
 export async function generateContent(content, formats, sourceType = 'text') {
+  const headers = await getAuthHeaders();
   const response = await fetch(`${API_BASE}/generate`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({ content, formats, sourceType }),
   });
 
@@ -45,11 +64,10 @@ export async function generateContent(content, formats, sourceType = 'text') {
  * @returns {Promise<string>}
  */
 export async function generateLinkedInPost(content) {
+  const headers = await getAuthHeaders();
   const response = await fetch(`${API_BASE}/linkedin`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({ content }),
   });
 
@@ -68,11 +86,10 @@ export async function generateLinkedInPost(content) {
  * @returns {Promise<string[]>}
  */
 export async function generateTwitterThread(content) {
+  const headers = await getAuthHeaders();
   const response = await fetch(`${API_BASE}/twitter`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({ content }),
   });
 
@@ -91,11 +108,10 @@ export async function generateTwitterThread(content) {
  * @returns {Promise<string[]>}
  */
 export async function generateCarouselSlides(content) {
+  const headers = await getAuthHeaders();
   const response = await fetch(`${API_BASE}/carousel`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({ content }),
   });
 
@@ -115,11 +131,10 @@ export async function generateCarouselSlides(content) {
  * @returns {Promise<string>}
  */
 export async function summarizeContent(content, maxPoints = 5) {
+  const headers = await getAuthHeaders();
   const response = await fetch(`${API_BASE}/summarize`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({ content, maxPoints }),
   });
 
@@ -136,8 +151,13 @@ export async function analyzeDocument(file) {
   const formData = new FormData();
   formData.append('file', file);
 
+  // Get auth headers but exclude Content-Type (FormData sets it automatically)
+  const authHeaders = await getAuthHeaders();
+  delete authHeaders['Content-Type'];
+
   const response = await fetch(`${DOC_API_BASE}/analyze`, {
     method: 'POST',
+    headers: authHeaders,
     body: formData,
   });
 
@@ -148,6 +168,29 @@ export async function analyzeDocument(file) {
   }
 
   return data || {};
+}
+
+/**
+ * Convert text to a different tone
+ * @param {string} text - The text to convert
+ * @param {string} tone - The target tone
+ * @returns {Promise<string>}
+ */
+export async function convertTone(text, tone) {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${TONE_API_BASE}/convert`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ text, tone }),
+  });
+
+  const data = await parseJsonSafe(response);
+  if (!response.ok) {
+    const message = data?.message || data?.error || 'Failed to convert tone';
+    throw new Error(message);
+  }
+
+  return data?.convertedText || '';
 }
 
 /**
@@ -178,6 +221,8 @@ export default {
   generateTwitterThread,
   generateCarouselSlides,
   summarizeContent,
+  analyzeDocument,
+  convertTone,
   extractFromUrl,
   extractFromYouTube,
 };

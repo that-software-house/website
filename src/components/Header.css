@@ -245,6 +245,110 @@
   pointer-events: auto;
 }
 
+/* Services Dropdown */
+.nav-dropdown {
+  position: relative;
+}
+
+.nav-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #3c3f50;
+  padding: 0.4rem 0.35rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.nav-dropdown-trigger:hover {
+  color: #111;
+}
+
+.nav-dropdown-trigger.active {
+  color: #111;
+}
+
+.header.at-top .nav-dropdown-trigger {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.header.at-top .nav-dropdown-trigger:hover,
+.header.at-top .nav-dropdown-trigger.active {
+  color: #fff;
+}
+
+.dropdown-chevron {
+  transition: transform 0.2s ease;
+}
+
+.dropdown-chevron.open {
+  transform: rotate(180deg);
+}
+
+.nav-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  min-width: 180px;
+  padding: 0.5rem;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+}
+
+.nav-dropdown-menu.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.nav-dropdown-item {
+  display: block;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #3c3f50;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.nav-dropdown-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: #111;
+}
+
+.nav-dropdown-item.active {
+  background: rgba(244, 173, 13, 0.1);
+  color: #111;
+}
+
+/* Mobile Nav Section */
+.mobile-nav-section {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.mobile-nav-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
 @media (max-width: 960px) {
   .header-container {
     grid-template-columns: auto auto;

@@ -7,6 +7,7 @@ import ContentForgeApp from '../components/apps/ContentForgeApp';
 import DocAnalyzerApp from '../components/apps/DocAnalyzerApp';
 import TextCleanerApp from '../components/apps/TextCleanerApp';
 import ToneConverterApp from '../components/apps/ToneConverterApp';
+import UsageBanner from '../components/auth/UsageBanner';
 import './ProjectDetail.css';
 
 function ProjectDetail() {
@@ -76,6 +77,9 @@ function ProjectDetail() {
     }
   };
 
+  // Check if this project uses AI features (needs usage banner)
+  const usesAI = ['contentforge', 'docanalyzer', 'toneconverter'].includes(project.id);
+
   return (
     <div className="project-detail-page">
       {/* Back Navigation */}
@@ -85,6 +89,9 @@ function ProjectDetail() {
           Back to Projects
         </Link>
       </nav>
+
+      {/* Usage Banner for AI-powered projects */}
+      {usesAI && <UsageBanner />}
 
       {/* Active App Content */}
       <motion.section

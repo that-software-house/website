@@ -7,6 +7,7 @@ import Home from './pages/Home'
 import About from './pages/About'
 import Contact from './pages/Contact'
 import ServicesPage from './pages/ServicesPage'
+import SeoPage from './pages/SeoPage'
 import Terms from './pages/Terms'
 import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
@@ -24,6 +25,7 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/services" element={<ServicesPage />} />
+          <Route path="/seo" element={<SeoPage />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:projectId" element={<ProjectDetail />} />

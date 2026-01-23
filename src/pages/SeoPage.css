@@ -1,0 +1,453 @@
+.seo-page {
+  min-height: 100vh;
+}
+
+/* Hero Section */
+.seo-hero {
+  position: relative;
+  padding: 8rem 0 5rem;
+  background: #0f172a;
+  overflow: hidden;
+}
+
+.seo-hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.seo-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
+  z-index: 1;
+}
+
+.seo-hero .container {
+  position: relative;
+  z-index: 2;
+}
+
+.seo-hero-content {
+  max-width: 700px;
+}
+
+.seo-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(244, 173, 13, 0.15);
+  border: 1px solid rgba(244, 173, 13, 0.3);
+  border-radius: 999px;
+  color: #f4ad0d;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.seo-hero h1 {
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.1;
+  margin-bottom: 1.25rem;
+}
+
+.seo-hero p {
+  font-size: 1.15rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+.seo-hero-cta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.seo-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.5rem;
+  background: #f4ad0d;
+  color: #111;
+  font-weight: 700;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.seo-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(244, 173, 13, 0.3);
+}
+
+.seo-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.9rem 1.5rem;
+  background: transparent;
+  color: #fff;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.seo-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Results Section */
+.seo-results {
+  padding: 3rem 0;
+  background: #fff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.seo-results-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+}
+
+.seo-result-card {
+  text-align: center;
+}
+
+.seo-result-metric {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.seo-result-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* Services Section */
+.seo-services {
+  padding: 5rem 0;
+  background: var(--layer-1);
+}
+
+.seo-section-header {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 3rem;
+}
+
+.seo-section-header h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.seo-section-header p {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+}
+
+.seo-services-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+.seo-service-card {
+  padding: 2rem;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  transition: all 0.2s ease;
+}
+
+.seo-service-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+}
+
+.seo-service-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(244, 173, 13, 0.1);
+  color: #f4ad0d;
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+}
+
+.seo-service-card h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.seo-service-card p {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* Pricing Section */
+.seo-pricing {
+  padding: 5rem 0;
+  background: #fff;
+}
+
+.seo-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.seo-pricing-card {
+  position: relative;
+  padding: 2rem;
+  background: var(--layer-1);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  transition: all 0.2s ease;
+}
+
+.seo-pricing-card.popular {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-color: transparent;
+  transform: scale(1.02);
+}
+
+.seo-pricing-card.popular h3,
+.seo-pricing-card.popular .price-amount,
+.seo-pricing-card.popular .price-period {
+  color: #fff;
+}
+
+.seo-pricing-card.popular .seo-plan-description {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.seo-pricing-card.popular .seo-features li {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.seo-pricing-card.popular .seo-features svg {
+  color: #f4ad0d;
+}
+
+.popular-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.35rem 1rem;
+  background: #f4ad0d;
+  color: #111;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.seo-pricing-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.seo-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.price-amount {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.price-period {
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+.seo-plan-description {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.seo-pricing-card.popular .seo-plan-description {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.seo-features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.seo-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.seo-features svg {
+  flex-shrink: 0;
+  color: #22c55e;
+  margin-top: 2px;
+}
+
+.seo-plan-cta {
+  display: block;
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  background: var(--text-primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-align: center;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.seo-plan-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.seo-pricing-card.popular .seo-plan-cta {
+  background: #f4ad0d;
+  color: #111;
+}
+
+/* Process Section */
+.seo-process {
+  padding: 5rem 0;
+  background: var(--layer-1);
+}
+
+.seo-process-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+}
+
+.seo-process-step {
+  position: relative;
+}
+
+.step-number {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #f4ad0d;
+  margin-bottom: 0.75rem;
+}
+
+.seo-process-step h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.seo-process-step p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .seo-services-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .seo-pricing-grid {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .seo-pricing-card.popular {
+    transform: none;
+  }
+
+  .seo-process-steps {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .seo-hero {
+    padding: 6rem 0 4rem;
+  }
+
+  .seo-results-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .seo-result-metric {
+    font-size: 2rem;
+  }
+
+  .seo-services,
+  .seo-pricing,
+  .seo-process {
+    padding: 4rem 0;
+  }
+
+  .seo-services-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .seo-hero {
+    padding: 5rem 0 3rem;
+  }
+
+  .seo-hero-cta {
+    flex-direction: column;
+  }
+
+  .seo-btn-primary,
+  .seo-btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .seo-results-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .seo-process-steps {
+    grid-template-columns: 1fr;
+  }
+}

@@ -3,6 +3,8 @@ import cors from 'cors';
 import { contentRouter } from './routes/content.js';
 import { docAnalyzerRouter } from './routes/docAnalyzer.js';
 import { toneConverterRouter } from './routes/toneConverter.js';
+import { chatRouter } from './routes/chat.js';
+import { authMiddleware, rateLimitMiddleware, getUsage } from './middleware/rateLimit.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -11,10 +13,22 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 
-// Routes
-app.use('/api/content', contentRouter);
-app.use('/api/doc-analyzer', docAnalyzerRouter);
-app.use('/api/tone', toneConverterRouter);
+// Auth middleware for all API routes
+app.use('/api', authMiddleware);
+
+// Usage endpoint (no rate limit)
+app.get('/api/usage', (req, res) => {
+  const usage = getUsage(req);
+  res.json(usage);
+});
+
+// Apply rate limiting to AI routes
+app.use('/api/content', rateLimitMiddleware, contentRouter);
+app.use('/api/doc-analyzer', rateLimitMiddleware, docAnalyzerRouter);
+app.use('/api/tone', rateLimitMiddleware, toneConverterRouter);
+
+// Chat widget (no rate limit - for website visitors)
+app.use('/api/chat', chatRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -1,19 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, Sparkles, X } from 'lucide-react';
+import { Menu, Sparkles, X, ChevronDown } from 'lucide-react';
 import './Header.css';
 
 const Header = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
   const location = useLocation();
+
   const navItems = [
     { to: '/ai-software', label: 'AI Solutions' },
     { to: '/custom-software', label: 'Custom Software' },
     { to: '/projects', label: 'Cases' },
-    { to: '/services', label: 'Services' },
     { to: '/about', label: 'About us' },
+  ];
+
+  const serviceItems = [
+    { to: '/services', label: 'SMB Web Package' },
+    { to: '/seo', label: 'SEO & Growth' },
   ];
 
   useEffect(() => {
@@ -57,6 +63,31 @@ const Header = () => {
         </div>
 
         <nav className="nav" aria-label="Primary navigation">
+          {/* Services Dropdown */}
+          <div
+            className="nav-dropdown"
+            onMouseEnter={() => setServicesOpen(true)}
+            onMouseLeave={() => setServicesOpen(false)}
+          >
+            <button
+              className={`nav-link nav-dropdown-trigger ${location.pathname === '/services' || location.pathname === '/seo' ? 'active' : ''}`}
+              aria-expanded={servicesOpen}
+            >
+              Services
+              <ChevronDown size={14} className={`dropdown-chevron ${servicesOpen ? 'open' : ''}`} />
+            </button>
+            <div className={`nav-dropdown-menu ${servicesOpen ? 'open' : ''}`}>
+              {serviceItems.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`nav-dropdown-item ${location.pathname === item.to ? 'active' : ''}`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
           {navItems.map((item) => (
             <Link
               key={item.to}
@@ -64,7 +95,6 @@ const Header = () => {
               className={`nav-link ${location.pathname.startsWith(item.to) ? 'active' : ''}`}
             >
               {item.label}
-              {item.badge && <span className="nav-dot" />}
             </Link>
           ))}
         </nav>
@@ -102,6 +132,18 @@ const Header = () => {
                 {item.label}
               </Link>
             ))}
+            <div className="mobile-nav-section">
+              <span className="mobile-nav-label">Services</span>
+              {serviceItems.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`nav-link ${location.pathname === item.to ? 'active' : ''}`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           </div>
           <Link to="/contact" className="cta-primary drawer-cta">
             Book a call
