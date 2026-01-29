@@ -9,6 +9,7 @@ import Contact from './pages/Contact'
 import ServicesPage from './pages/ServicesPage'
 import SeoPage from './pages/SeoPage'
 import Terms from './pages/Terms'
+import Privacy from './pages/Privacy'
 import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
 import AiSoftware from './pages/AiSoftware'
@@ -27,6 +28,7 @@ function App() {
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/seo" element={<SeoPage />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:projectId" element={<ProjectDetail />} />
           <Route path="/ai-software" element={<AiSoftware />} />
