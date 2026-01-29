@@ -13,7 +13,7 @@ const Header = () => {
   const navItems = [
     { to: '/ai-software', label: 'AI Solutions' },
     { to: '/custom-software', label: 'Custom Software' },
-    { to: '/projects', label: 'Cases' },
+    { to: '/projects', label: 'Projects' },
     { to: '/about', label: 'About us' },
   ];
 
