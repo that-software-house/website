@@ -8,6 +8,12 @@ const Contact = () => {
     projectDescription: '',
     howDidYouFind: ''
   });
+  const [status, setStatus] = useState('idle'); // idle | sending | success | error
+
+  const encode = (data) =>
+    Object.keys(data)
+      .map((key) => encodeURIComponent(key) + '=' + encodeURIComponent(data[key]))
+      .join('&');
 
   const handleChange = (e) => {
     setFormData({
@@ -17,8 +23,33 @@ const Contact = () => {
   };
 
   const handleSubmit = (e) => {
-    // Netlify will handle the form submission
-    // The form will be submitted automatically due to data-netlify attribute
+    e.preventDefault();
+    setStatus('sending');
+
+    const body = encode({
+      'form-name': 'contact',
+      ...formData,
+    });
+
+    fetch('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    })
+      .then(() => {
+        setStatus('success');
+        setFormData({
+          fullName: '',
+          email: '',
+          projectDescription: '',
+          howDidYouFind: '',
+        });
+        setTimeout(() => setStatus('idle'), 3200);
+      })
+      .catch(() => {
+        setStatus('error');
+        setTimeout(() => setStatus('idle'), 3200);
+      });
   };
 
   return (
@@ -59,6 +90,7 @@ const Contact = () => {
             <form
               name="contact"
               method="POST"
+              action="/"
               data-netlify="true"
               data-netlify-honeypot="bot-field"
               onSubmit={handleSubmit}
@@ -132,7 +164,11 @@ const Contact = () => {
               </div>
 
               <div className="form-submit">
-                <button type="submit" className="contact-primary-btn">Let's talk</button>
+                <button type="submit" className="contact-primary-btn" disabled={status === 'sending'}>
+                  {status === 'sending' ? 'Sending…' : "Let's talk"}
+                </button>
+                {status === 'success' && <p className="form-status success">Thanks! We received your message.</p>}
+                {status === 'error' && <p className="form-status error">Something went wrong. Please try again.</p>}
               </div>
             </form>
           </div>

@@ -10,6 +10,7 @@ const ContactFormSection = () => {
   });
 
   const [fileName, setFileName] = useState('');
+  const [file, setFile] = useState(null);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState('idle');
 
@@ -40,6 +41,7 @@ const ContactFormSection = () => {
     const file = e.target.files[0];
     if (file) {
       setFileName(file.name);
+      setFile(file);
     }
   };
 
@@ -60,8 +62,32 @@ const ContactFormSection = () => {
 
     if (Object.keys(validationErrors).length === 0) {
       setErrors({});
-      setStatus('success');
-      setTimeout(() => setStatus('idle'), 2500);
+      setStatus('sending');
+
+      const formDataPayload = new FormData();
+      formDataPayload.append('form-name', 'project-contact');
+      Object.entries(formData).forEach(([key, value]) => {
+        formDataPayload.append(key, value);
+      });
+      if (file) {
+        formDataPayload.append('attachment', file);
+      }
+
+      fetch('/', {
+        method: 'POST',
+        body: formDataPayload,
+      })
+        .then(() => {
+          setStatus('success');
+          setFormData({ name: '', email: '', message: '', budget: '' });
+          setFile(null);
+          setFileName('');
+          setTimeout(() => setStatus('idle'), 3000);
+        })
+        .catch(() => {
+          setStatus('error');
+          setTimeout(() => setStatus('idle'), 3000);
+        });
     } else {
       setStatus('error');
       setTimeout(() => setStatus('idle'), 2200);
@@ -84,7 +110,22 @@ const ContactFormSection = () => {
           </p>
         </div>
 
-        <form className="contact-form" onSubmit={handleSubmit}>
+        <form
+          className="contact-form"
+          onSubmit={handleSubmit}
+          name="project-contact"
+          method="POST"
+          action="/"
+          data-netlify="true"
+          data-netlify-honeypot="bot-field"
+          encType="multipart/form-data"
+        >
+          <input type="hidden" name="form-name" value="project-contact" />
+          <p hidden>
+            <label>
+              Don&apos;t fill this out: <input name="bot-field" onChange={handleChange} />
+            </label>
+          </p>
           <div className="form-row">
             <div className="form-field">
               <label className="field-label">YOUR NAME</label>
@@ -132,6 +173,7 @@ const ContactFormSection = () => {
               type="file"
               id="file-upload"
               onChange={handleFileChange}
+              name="attachment"
               className="file-input"
             />
             <label htmlFor="file-upload" className="file-upload-button">
@@ -160,8 +202,8 @@ const ContactFormSection = () => {
           </div>
 
           <div className="form-submit-section">
-            <button type="submit" className="form-submit-button">
-              Submit
+            <button type="submit" className="form-submit-button" disabled={status === 'sending'}>
+              {status === 'sending' ? 'Sending…' : 'Submit'}
             </button>
             <p className="form-terms">
               BY CLICKING THIS BUTTON YOU ACCEPT{' '}
@@ -173,7 +215,11 @@ const ContactFormSection = () => {
         </form>
 
         <div className={`form-toast ${status !== 'idle' ? 'visible' : ''}`} role="status" aria-live="polite">
-          {status === 'success' ? 'We got your note. Expect a reply in < 24 hours.' : 'Please correct highlighted fields.'}
+          {status === 'success'
+            ? 'We got your note. Expect a reply in < 24 hours.'
+            : status === 'error'
+              ? 'Please correct highlighted fields or retry.'
+              : 'Submitting...'}
         </div>
       </div>
     </section>

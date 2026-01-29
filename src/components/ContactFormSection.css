@@ -221,6 +221,12 @@
   box-shadow: 0 10px 22px rgba(244, 173, 13, 0.22);
 }
 
+.form-submit-button:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 .form-terms {
   font-size: 0.85rem;
   color: #7a8096;
