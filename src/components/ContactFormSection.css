@@ -176,17 +176,18 @@
   font-weight: 600;
   letter-spacing: 0.03em;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
 }
 
 .budget-button:hover {
   border-color: #7c8cff;
 }
 
-.budget-button.active {
-  background: linear-gradient(120deg, #7c8cff, #9ea9ff);
-  border-color: #7c8cff;
-  color: #0f162b;
-  box-shadow: 0 8px 22px rgba(124, 140, 255, 0.3);
+.budget-radio {
+  accent-color: #7c8cff;
 }
 
 .form-submit-section {

@@ -1,57 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './Contact.css';
 
 const Contact = () => {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    projectDescription: '',
-    howDidYouFind: ''
-  });
-  const [status, setStatus] = useState('idle'); // idle | sending | success | error
-
-  const encode = (data) =>
-    Object.keys(data)
-      .map((key) => encodeURIComponent(key) + '=' + encodeURIComponent(data[key]))
-      .join('&');
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setStatus('sending');
-
-    const body = encode({
-      'form-name': 'contact',
-      ...formData,
-    });
-
-    fetch('/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body,
-    })
-      .then(() => {
-        setStatus('success');
-        setFormData({
-          fullName: '',
-          email: '',
-          projectDescription: '',
-          howDidYouFind: '',
-        });
-        setTimeout(() => setStatus('idle'), 3200);
-      })
-      .catch(() => {
-        setStatus('error');
-        setTimeout(() => setStatus('idle'), 3200);
-      });
-  };
-
   return (
     <div className="contact-page">
       <section className="contact-hero">
@@ -90,10 +40,9 @@ const Contact = () => {
             <form
               name="contact"
               method="POST"
-              action="/"
+              action="/thank-you"
               data-netlify="true"
               data-netlify-honeypot="bot-field"
-              onSubmit={handleSubmit}
               className="contact-form"
             >
               {/* Hidden field for Netlify */}
@@ -112,8 +61,6 @@ const Contact = () => {
                   id="fullName"
                   name="fullName"
                   placeholder="Full name"
-                  value={formData.fullName}
-                  onChange={handleChange}
                   required
                   className="form-input"
                 />
@@ -125,8 +72,6 @@ const Contact = () => {
                   id="email"
                   name="email"
                   placeholder="email@company.com"
-                  value={formData.email}
-                  onChange={handleChange}
                   required
                   className="form-input"
                 />
@@ -137,8 +82,6 @@ const Contact = () => {
                   id="projectDescription"
                   name="projectDescription"
                   placeholder="Project description"
-                  value={formData.projectDescription}
-                  onChange={handleChange}
                   required
                   rows="6"
                   className="form-textarea"
@@ -151,8 +94,6 @@ const Contact = () => {
                   id="howDidYouFind"
                   name="howDidYouFind"
                   placeholder="How did you find That Software House"
-                  value={formData.howDidYouFind}
-                  onChange={handleChange}
                   className="form-input"
                 />
               </div>
@@ -164,11 +105,9 @@ const Contact = () => {
               </div>
 
               <div className="form-submit">
-                <button type="submit" className="contact-primary-btn" disabled={status === 'sending'}>
-                  {status === 'sending' ? 'Sending…' : "Let's talk"}
+                <button type="submit" className="contact-primary-btn">
+                  Let's talk
                 </button>
-                {status === 'success' && <p className="form-status success">Thanks! We received your message.</p>}
-                {status === 'error' && <p className="form-status error">Something went wrong. Please try again.</p>}
               </div>
             </form>
           </div>
