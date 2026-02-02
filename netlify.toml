@@ -7,11 +7,16 @@
   # Use ES modules
   node_bundler = "esbuild"
   # Increase timeout for AI generation (default is 10s, max is 26s on free tier)
-  external_node_modules = ["@openai/agents"]
+  external_node_modules = ["@openai/agents", "busboy"]
 
 [[redirects]]
   from = "/api/content/generate"
   to = "/.netlify/functions/content"
+  status = 200
+
+[[redirects]]
+  from = "/api/data-insights/analyze"
+  to = "/.netlify/functions/data-insights"
   status = 200
 
 [[redirects]]
