@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Sparkles, Bot, FileText, BarChart3, Eraser, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Sparkles, Bot } from 'lucide-react';
 import { projects } from './Projects';
 import ContentForgeApp from '../components/apps/ContentForgeApp';
 import DocAnalyzerApp from '../components/apps/DocAnalyzerApp';
+import DataInsightsApp from '../components/apps/DataInsightsApp';
 import TextCleanerApp from '../components/apps/TextCleanerApp';
 import ToneConverterApp from '../components/apps/ToneConverterApp';
 import UsageBanner from '../components/auth/UsageBanner';
@@ -61,13 +62,7 @@ function ProjectDetail() {
       case 'docanalyzer':
         return <DocAnalyzerApp />;
       case 'datainsights':
-        return (
-          <div className="coming-soon-app">
-            <BarChart3 className="w-16 h-16 text-gray-300 mb-4" />
-            <h3>Data Insights</h3>
-            <p>This app is coming soon. Stay tuned!</p>
-          </div>
-        );
+        return <DataInsightsApp />;
       case 'textcleaner':
         return <TextCleanerApp />;
       case 'toneconverter':
@@ -78,7 +73,7 @@ function ProjectDetail() {
   };
 
   // Check if this project uses AI features (needs usage banner)
-  const usesAI = ['contentforge', 'docanalyzer', 'toneconverter'].includes(project.id);
+  const usesAI = ['contentforge', 'docanalyzer', 'datainsights', 'toneconverter'].includes(project.id);
 
   return (
     <div className="project-detail-page">

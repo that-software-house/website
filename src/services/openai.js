@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 const API_BASE = '/api/content';
 const DOC_API_BASE = '/api/doc-analyzer';
 const TONE_API_BASE = '/api/tone';
+const DATA_INSIGHTS_API_BASE = '/api/data-insights';
 
 async function parseJsonSafe(response) {
   try {
@@ -171,6 +172,34 @@ export async function analyzeDocument(file) {
 }
 
 /**
+ * Analyze data file (CSV, JSON, Excel) for insights and visualizations
+ * @param {File} file - The data file to analyze
+ * @returns {Promise<Object>} - Parsed data, schema, analysis, and visualization recommendations
+ */
+export async function analyzeData(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  // Get auth headers but exclude Content-Type (FormData sets it automatically)
+  const authHeaders = await getAuthHeaders();
+  delete authHeaders['Content-Type'];
+
+  const response = await fetch(`${DATA_INSIGHTS_API_BASE}/analyze`, {
+    method: 'POST',
+    headers: authHeaders,
+    body: formData,
+  });
+
+  const data = await parseJsonSafe(response);
+  if (!response.ok) {
+    const message = data?.message || data?.error || 'Failed to analyze data';
+    throw new Error(message);
+  }
+
+  return data || {};
+}
+
+/**
  * Convert text to a different tone
  * @param {string} text - The text to convert
  * @param {string} tone - The target tone
@@ -222,6 +251,7 @@ export default {
   generateCarouselSlides,
   summarizeContent,
   analyzeDocument,
+  analyzeData,
   convertTone,
   extractFromUrl,
   extractFromYouTube,

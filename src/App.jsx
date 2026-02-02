@@ -15,6 +15,7 @@ import ProjectDetail from './pages/ProjectDetail'
 import AiSoftware from './pages/AiSoftware'
 import CustomSoftware from './pages/CustomSoftware'
 import ThankYou from './pages/ThankYou'
+import DataInsights from './pages/DataInsights'
 import './App.css'
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
           <Route path="/ai-software" element={<AiSoftware />} />
           <Route path="/custom-software" element={<CustomSoftware />} />
           <Route path="/thank-you" element={<ThankYou />} />
+          <Route path="/data-insights" element={<DataInsights />} />
         </Routes>
         <Footer />
         <ChatWidget />
