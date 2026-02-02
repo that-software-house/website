@@ -11,6 +11,14 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  optimizeDeps: {
+    include: ['react-is'],
+  },
+  build: {
+    commonjsOptions: {
+      include: [/react-is/, /node_modules/],
+    },
+  },
   server: {
     proxy: {
       '/api': {
