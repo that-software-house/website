@@ -7,8 +7,9 @@
   # Use ES modules
   node_bundler = "esbuild"
   # Increase timeout for AI generation (default is 10s, max is 26s on free tier)
-  external_node_modules = ["@openai/agents", "busboy"]
+  external_node_modules = ["@openai/agents", "busboy", "googleapis"]
 
+# Specific API routes (must come before the wildcard catch-all)
 [[redirects]]
   from = "/api/content/generate"
   to = "/.netlify/functions/content"
@@ -19,6 +20,22 @@
   to = "/.netlify/functions/data-insights"
   status = 200
 
+[[redirects]]
+  from = "/api/googleAuth"
+  to = "/.netlify/functions/googleAuth"
+  status = 200
+
+[[redirects]]
+  from = "/api/oauth2callback"
+  to = "/.netlify/functions/oauth2callback"
+  status = 200
+
+[[redirects]]
+  from = "/api/profile"
+  to = "/.netlify/functions/profile"
+  status = 200
+
+# Wildcard API catch-all (must come after specific routes)
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"

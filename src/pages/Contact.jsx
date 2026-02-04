@@ -112,6 +112,25 @@ const Contact = () => {
             </form>
           </div>
 
+          {/* Schedule a Meeting */}
+          <div className="contact-calendar-section">
+            <h2 className="form-heading">Schedule a meeting:</h2>
+            <div className="contact-calendar-wrapper">
+              <iframe
+                src="https://calendar.zoho.com/eventreqForm/zz0801123077471a5efc878400cdfb1519d47c9c6f298fc418baa5bc47b9f5fa365fe60c491ca5c113e27afd416f59ec076b4bcf1a?theme=0&l=en&tz=America%2FChicago"
+                title="TSH Meeting"
+                frameBorder="0"
+                scrolling="no"
+                marginWidth="0"
+                marginHeight="0"
+                height="350"
+                width="432"
+                allowTransparency="true"
+                style={{ border: 0, maxWidth: '100%' }}
+              />
+            </div>
+          </div>
+
           {/* Additional Links */}
           <div className="contact-links">
             <a href="mailto:contact@thatsoftwarehouse.com" className="contact-link-item">

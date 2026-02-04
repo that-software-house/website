@@ -1,10 +1,12 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { contentRouter } from './routes/content.js';
 import { docAnalyzerRouter } from './routes/docAnalyzer.js';
 import { toneConverterRouter } from './routes/toneConverter.js';
 import { chatRouter } from './routes/chat.js';
 import { dataInsightsRouter } from './routes/dataInsights.js';
+import { googleAuthRouter } from './routes/googleAuth.js';
 import { authMiddleware, rateLimitMiddleware, getUsage } from './middleware/rateLimit.js';
 
 const app = express();
@@ -13,6 +15,7 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+app.use(cookieParser());
 
 // Auth middleware for all API routes
 app.use('/api', authMiddleware);
@@ -28,6 +31,9 @@ app.use('/api/content', rateLimitMiddleware, contentRouter);
 app.use('/api/doc-analyzer', rateLimitMiddleware, docAnalyzerRouter);
 app.use('/api/tone', rateLimitMiddleware, toneConverterRouter);
 app.use('/api/data-insights', rateLimitMiddleware, dataInsightsRouter);
+
+// Google OAuth (no rate limit - handles redirects)
+app.use('/api', googleAuthRouter);
 
 // Chat widget (no rate limit - for website visitors)
 app.use('/api/chat', chatRouter);

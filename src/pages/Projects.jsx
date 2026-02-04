@@ -78,6 +78,18 @@ const projects = [
     apps: [
       { id: 'tone-converter', name: 'Tone Converter', description: 'Change text tone instantly' }
     ]
+  },
+  {
+    id: 'insightcard',
+    title: 'InsightCard',
+    subtitle: 'Creator Audience Intelligence',
+    description: 'Connect YouTube, auto-cluster your audience, and get next-week topic/time/format suggestions on a shareable card.',
+    icon: BarChart3,
+    gradient: 'from-slate-500 to-indigo-600',
+    tags: ['Creators', 'Analytics', 'AI'],
+    apps: [
+      { id: 'insight-card', name: 'InsightCard', description: 'One-page audience insights' }
+    ]
   }
 ];
 
