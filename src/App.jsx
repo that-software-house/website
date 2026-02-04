@@ -9,6 +9,7 @@ import About from './pages/About'
 import Contact from './pages/Contact'
 import ServicesPage from './pages/ServicesPage'
 import SeoPage from './pages/SeoPage'
+import MarketingPage from './pages/MarketingPage'
 import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
 import Projects from './pages/Projects'
@@ -31,6 +32,7 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/seo" element={<SeoPage />} />
+          <Route path="/marketing" element={<MarketingPage />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/projects" element={<Projects />} />

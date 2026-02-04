@@ -20,7 +20,10 @@ const Header = () => {
   const serviceItems = [
     { to: '/services', label: 'SMB Web Package' },
     { to: '/seo', label: 'SEO & Growth' },
+    { to: '/marketing', label: 'Marketing' },
   ];
+
+  const isServicesActive = ['/services', '/seo', '/marketing'].includes(location.pathname);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -70,7 +73,7 @@ const Header = () => {
             onMouseLeave={() => setServicesOpen(false)}
           >
             <button
-              className={`nav-link nav-dropdown-trigger ${location.pathname === '/services' || location.pathname === '/seo' ? 'active' : ''}`}
+              className={`nav-link nav-dropdown-trigger ${isServicesActive ? 'active' : ''}`}
               aria-expanded={servicesOpen}
             >
               Services

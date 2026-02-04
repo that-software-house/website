@@ -65,6 +65,7 @@ const Footer = () => {
               <Link to="/ai-software">AI Solutions</Link>
               <Link to="/services">SMB Web Package</Link>
               <Link to="/seo">SEO & Growth</Link>
+              <Link to="/marketing">Marketing</Link>
             </nav>
           </div>
 
