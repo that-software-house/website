@@ -224,6 +224,15 @@
   margin-bottom: 1rem;
 }
 
+.mobile-drawer .nav-link {
+  color: #111;
+}
+
+.mobile-drawer .nav-link:hover,
+.mobile-drawer .nav-link.active {
+  color: #111;
+}
+
 .drawer-cta {
   width: 100%;
   justify-content: center;
