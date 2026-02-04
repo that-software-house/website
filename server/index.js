@@ -5,6 +5,7 @@ import { docAnalyzerRouter } from './routes/docAnalyzer.js';
 import { toneConverterRouter } from './routes/toneConverter.js';
 import { chatRouter } from './routes/chat.js';
 import { dataInsightsRouter } from './routes/dataInsights.js';
+import { scheduleRouter } from './routes/schedule.js';
 import { authMiddleware, rateLimitMiddleware, getUsage } from './middleware/rateLimit.js';
 
 const app = express();
@@ -28,6 +29,7 @@ app.use('/api/content', rateLimitMiddleware, contentRouter);
 app.use('/api/doc-analyzer', rateLimitMiddleware, docAnalyzerRouter);
 app.use('/api/tone', rateLimitMiddleware, toneConverterRouter);
 app.use('/api/data-insights', rateLimitMiddleware, dataInsightsRouter);
+app.use('/api/schedule', scheduleRouter);
 
 // Chat widget (no rate limit - for website visitors)
 app.use('/api/chat', chatRouter);

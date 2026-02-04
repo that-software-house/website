@@ -39,26 +39,28 @@ const Contact = () => {
 
     const formattedDate = formatDate(scheduleDate);
     const formattedTime = formatTime(scheduleTime);
-    const baseUrl =
-      'https://calendar.zoho.com/eventreq/zz0801123048eba502da4d422846acf2b1b883b8d1cf743e8f02124fee436449b8776743a8d4bc9cff846adddd69e774bcc8b6c0d7';
-    const params = new URLSearchParams({
-      name: scheduleName.trim(),
-      mailId: scheduleEmail.trim(),
-      date: formattedDate,
-      time: formattedTime,
-      reason: scheduleReason.trim() || 'General meeting',
-    });
 
     setScheduleLoading(true);
 
     try {
-      const response = await fetch(`${baseUrl}?${params.toString()}`, {
-        method: 'GET',
-        mode: 'cors',
+      const response = await fetch('/api/schedule', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: scheduleName.trim(),
+          mailId: scheduleEmail.trim(),
+          date: formattedDate,
+          time: formattedTime,
+          reason: scheduleReason.trim() || 'General meeting',
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error('Schedule request failed');
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok || !payload?.success) {
+        throw new Error(payload?.message || 'Schedule request failed');
       }
 
       setScheduleStatus({
@@ -71,10 +73,13 @@ const Contact = () => {
       setScheduleTime(null);
       setScheduleReason('');
     } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Sorry, we could not schedule the appointment right now. Please try again or email us.';
       setScheduleStatus({
         type: 'error',
-        message:
-          'Sorry, we could not schedule the appointment right now. Please try again or email us.',
+        message,
       });
     } finally {
       setScheduleLoading(false);
