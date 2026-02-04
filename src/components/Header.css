@@ -226,10 +226,21 @@
 
 .mobile-drawer .nav-link {
   color: #111;
+  display: block;
 }
 
 .mobile-drawer .nav-link:hover,
 .mobile-drawer .nav-link.active {
+  color: #111;
+}
+
+.header.at-top .mobile-drawer .nav-link,
+.header.at-top .mobile-drawer .nav-link:hover,
+.header.at-top .mobile-drawer .nav-link.active {
+  color: #111;
+}
+
+.mobile-nav-section .nav-link {
   color: #111;
 }
 
