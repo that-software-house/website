@@ -18,6 +18,9 @@ import AiSoftware from './pages/AiSoftware'
 import CustomSoftware from './pages/CustomSoftware'
 import ThankYou from './pages/ThankYou'
 import DataInsights from './pages/DataInsights'
+import ValidateIdea from './pages/ValidateIdea'
+import BuildProduct from './pages/BuildProduct'
+import ScaleProduct from './pages/ScaleProduct'
 import './App.css'
 
 function App() {
@@ -39,6 +42,9 @@ function App() {
           <Route path="/projects/:projectId" element={<ProjectDetail />} />
           <Route path="/ai-software" element={<AiSoftware />} />
           <Route path="/custom-software" element={<CustomSoftware />} />
+          <Route path="/validate-your-idea" element={<ValidateIdea />} />
+          <Route path="/build-your-product" element={<BuildProduct />} />
+          <Route path="/scale-your-product" element={<ScaleProduct />} />
           <Route path="/thank-you" element={<ThankYou />} />
           <Route path="/data-insights" element={<DataInsights />} />
         </Routes>

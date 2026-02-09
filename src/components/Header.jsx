@@ -18,12 +18,15 @@ const Header = () => {
   ];
 
   const serviceItems = [
+    { to: '/validate-your-idea', label: 'Validate your idea' },
+    { to: '/build-your-product', label: 'Build your product' },
+    { to: '/scale-your-product', label: 'Scale your product' },
     { to: '/services', label: 'SMB Web Package' },
     { to: '/seo', label: 'SEO & Growth' },
     { to: '/marketing', label: 'Marketing' },
   ];
 
-  const isServicesActive = ['/services', '/seo', '/marketing'].includes(location.pathname);
+  const isServicesActive = ['/validate-your-idea', '/build-your-product', '/scale-your-product', '/services', '/seo', '/marketing'].includes(location.pathname);
 
   useEffect(() => {
     const handleScroll = () => {

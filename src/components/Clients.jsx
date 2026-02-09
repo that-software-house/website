@@ -16,17 +16,20 @@ const Clients = () => {
     { name: 'Microsoft', logo: microsoftLogo },
     { name: 'American Express', logo: amex },
   ];
+  const loopedClients = [...clients, ...clients];
 
   return (
     <section className="clients-wide">
       <div className="container">
         <h2 className="clients-wide__title">Products we developed are used by</h2>
-        <div className="clients-wide__grid">
-          {clients.map((client) => (
-            <div key={client.name} className="clients-wide__item">
-              {client.logo ? <img src={client.logo} alt={client.name} /> : <span>{client.name}</span>}
-            </div>
-          ))}
+        <div className="clients-wide__marquee">
+          <div className="clients-wide__grid">
+            {loopedClients.map((client, idx) => (
+              <div key={`${client.name}-${idx}`} className="clients-wide__item" aria-hidden={idx >= clients.length}>
+                {client.logo ? <img src={client.logo} alt={client.name} /> : <span>{client.name}</span>}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

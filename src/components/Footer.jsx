@@ -51,7 +51,6 @@ const Footer = () => {
             <h4>Company</h4>
             <nav>
               <Link to="/about">About Us</Link>
-              <Link to="/about#team">Our Team</Link>
               <Link to="/contact">Contact</Link>
               <Link to="/projects">Projects</Link>
             </nav>
@@ -61,6 +60,9 @@ const Footer = () => {
           <div className="footer-col">
             <h4>Services</h4>
             <nav>
+              <Link to="/validate-your-idea">Validate your idea</Link>
+              <Link to="/build-your-product">Build your product</Link>
+              <Link to="/scale-your-product">Scale your product</Link>
               <Link to="/custom-software">Custom Software</Link>
               <Link to="/ai-software">AI Solutions</Link>
               <Link to="/services">SMB Web Package</Link>

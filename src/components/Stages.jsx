@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import './Stages.css';
 
 const Stages = () => {
@@ -8,6 +9,7 @@ const Stages = () => {
     {
       name: 'Pre-seed',
       title: 'Validate your idea & attract early investors',
+      exploreTo: '/validate-your-idea',
       services: [
         { title: 'Design prototype', description: 'Test product ideas fast with clickable prototypes that feel real.' },
         { title: 'Product discovery', description: 'Map out key features, user flows, and technical requirements before building.' },
@@ -17,6 +19,7 @@ const Stages = () => {
     {
       name: 'Seed',
       title: 'Build your product & gain market traction',
+      exploreTo: '/build-your-product',
       services: [
         { title: 'Branding', description: 'Develop a brand that resonates — visually, emotionally, and strategically.' },
         { title: 'Technical workshop', description: 'Validate your tech stack, architecture, and scalability path.' },
@@ -28,6 +31,7 @@ const Stages = () => {
     {
       name: 'Series A & beyond',
       title: 'Scale, optimize & reach more users',
+      exploreTo: '/scale-your-product',
       services: [
         { title: 'UX audit', description: 'Identify usability bottlenecks, improve engagement, and optimize for conversions.' },
         { title: 'Product redesign', description: 'Upgrade legacy interfaces with scalable, business-driven UX and UI.' },
@@ -88,16 +92,20 @@ const Stages = () => {
         <div className="stages-dark__main">
           {stages.map((stage, idx) => (
             <div key={stage.name} className="stage-panel" data-stage-index={idx}>
-              <h2 className="stages-dark__title">{stage.title}</h2>
+              <div className="stages-dark__title-row">
+                <h2 className="stages-dark__title">{stage.title}</h2>
+                {stage.exploreTo && (
+                  <Link to={stage.exploreTo} className="stages-dark__explore">
+                    <span>Explore</span>
+                    <span aria-hidden>→</span>
+                  </Link>
+                )}
+              </div>
               <div className="stages-dark__grid">
                 {stage.services.map((svc) => (
                   <div key={svc.title} className="stages-dark__card">
                     <h4>{svc.title}</h4>
                     <p>{svc.description}</p>
-                    <div className="stages-dark__link">
-                      <span>Explore</span>
-                      <span>→</span>
-                    </div>
                   </div>
                 ))}
               </div>
