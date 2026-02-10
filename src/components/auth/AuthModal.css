@@ -215,6 +215,9 @@
 .auth-footer {
   margin-top: 20px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .auth-footer p {
@@ -233,5 +236,19 @@
 }
 
 .auth-footer button:hover {
+  text-decoration: underline;
+}
+
+.auth-link-button {
+  align-self: center;
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 0;
+}
+
+.auth-link-button:hover {
   text-decoration: underline;
 }

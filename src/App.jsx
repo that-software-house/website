@@ -21,6 +21,7 @@ import DataInsights from './pages/DataInsights'
 import ValidateIdea from './pages/ValidateIdea'
 import BuildProduct from './pages/BuildProduct'
 import ScaleProduct from './pages/ScaleProduct'
+import ResetPassword from './pages/ResetPassword'
 import './App.css'
 
 function App() {
@@ -47,6 +48,7 @@ function App() {
           <Route path="/scale-your-product" element={<ScaleProduct />} />
           <Route path="/thank-you" element={<ThankYou />} />
           <Route path="/data-insights" element={<DataInsights />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
         </Routes>
         <Footer />
         <ChatWidget />

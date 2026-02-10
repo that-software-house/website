@@ -99,6 +99,22 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
+  const requestPasswordReset = async (email) => {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) throw error;
+    return data;
+  };
+
+  const updatePassword = async (password) => {
+    const { data, error } = await supabase.auth.updateUser({
+      password,
+    });
+    if (error) throw error;
+    return data;
+  };
+
   const value = {
     user,
     loading,
@@ -107,6 +123,8 @@ export const AuthProvider = ({ children }) => {
     signIn,
     signOut,
     signInWithGoogle,
+    requestPasswordReset,
+    updatePassword,
     refreshUsage,
     isAuthenticated: !!user,
     isPremium: user?.user_metadata?.is_premium || false,
