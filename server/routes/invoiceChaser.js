@@ -33,9 +33,22 @@ const ALLOWED_ACTIONS = new Set([
 
 const queueStore = new Map();
 const MONTH_NAME_PATTERN = '(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)';
-const DATE_PATTERN = `\\b(?:\\d{1,2}[/-]\\d{1,2}[/-]\\d{2,4}|${MONTH_NAME_PATTERN}\\s+\\d{1,2},\\s+\\d{4})\\b`;
-const MONEY_PATTERN = '[$€£]\\s*\\(?-?\\d[\\d,]*(?:\\.\\d{2})?\\)?|\\(?-?\\d[\\d,]*\\.\\d{2}\\)?';
+const DATE_PATTERN = `\\b(?:\\d{1,2}[./-]\\d{1,2}[./-]\\d{2,4}|${MONTH_NAME_PATTERN}\\s+\\d{1,2},\\s+\\d{4})\\b`;
+const MONEY_PATTERN = '[$€£]\\s*\\(?-?\\d[\\d,]*(?:\\.\\d{2})?\\)?|\\b\\(?-?\\d[\\d,]*(?:\\.\\d{2})?\\)?\\s*(?:USD|EUR|GBP)\\b';
 const EMAIL_PATTERN = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
+const SECTION_END_PATTERNS = [
+  /^pay to:?$/i,
+  /^invoice\s*(?:no|number|id|#)\s*:?\s*$/i,
+  /^date:?$/i,
+  /^due date:?$/i,
+  /^description:?$/i,
+  /^subtotal:?$/i,
+  /^total:?$/i,
+  /^amount due:?$/i,
+  /^balance due:?$/i,
+  /^unit price:?$/i,
+  /^qty:?$/i,
+];
 
 const FIELD_ALIASES = {
   invoiceId: [
@@ -151,8 +164,29 @@ function parseDate(value) {
   if (!str) return null;
 
   const parsed = new Date(str);
-  if (Number.isNaN(parsed.getTime())) return null;
-  return parsed;
+  if (!Number.isNaN(parsed.getTime())) return parsed;
+
+  const normalized = str.replace(/[.]/g, '/').replace(/-/g, '/');
+  const dateMatch = normalized.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (!dateMatch) return null;
+
+  let first = Number.parseInt(dateMatch[1], 10);
+  let second = Number.parseInt(dateMatch[2], 10);
+  let year = Number.parseInt(dateMatch[3], 10);
+
+  if (!Number.isFinite(first) || !Number.isFinite(second) || !Number.isFinite(year)) return null;
+  if (year < 100) year += 2000;
+
+  let month = first;
+  let day = second;
+  if (first > 12 && second <= 12) {
+    month = second;
+    day = first;
+  }
+
+  const fallback = new Date(year, month - 1, day);
+  if (Number.isNaN(fallback.getTime())) return null;
+  return fallback;
 }
 
 function toISODate(date) {
@@ -476,6 +510,42 @@ function extractTextFromPdfBuffer(buffer) {
     .trim();
 }
 
+function lineLooksLikePdfNoise(line = '') {
+  const text = String(line || '').trim();
+  if (!text) return true;
+
+  if (/^(xref|trailer|startxref|obj|endobj|stream|endstream)$/i.test(text)) return true;
+  if (/^\d+\s+\d+\s+obj$/i.test(text)) return true;
+  if (/^<<|>>$/.test(text)) return true;
+  if (/^\/[A-Za-z0-9#]+/.test(text)) return true;
+  if (/^[0-9.\- ]+(?:cm|re|m|l|S|Q|q|n|W\*|Do|BT|ET|Tf|Tm|Td|Tj|TJ)$/i.test(text)) return true;
+  const looksLikeDate = new RegExp(`^${DATE_PATTERN}$`, 'i').test(text);
+  if (/^[0-9.\- ]+$/.test(text) && /\d+\.\d+/.test(text) && !looksLikeDate) return true;
+
+  const alphaCount = (text.match(/[A-Za-z]/g) || []).length;
+  if (alphaCount < 2 && /[^\x20-\x7E]/.test(text)) return true;
+  return false;
+}
+
+function buildRelevantInvoiceLines(lines = []) {
+  const cleaned = [];
+  for (const rawLine of lines) {
+    const line = String(rawLine || '').replace(/\s+/g, ' ').trim();
+    if (!line || lineLooksLikePdfNoise(line)) continue;
+    if (cleaned[cleaned.length - 1] === line) continue;
+    cleaned.push(line);
+  }
+
+  if (cleaned.length === 0) return [];
+
+  const anchorIndex = cleaned.findIndex((line) =>
+    /(issued to|bill to|invoice no|invoice number|due date|description|amount due|total)/i.test(line)
+  );
+
+  if (anchorIndex === -1) return cleaned.slice(0, 200);
+  return cleaned.slice(Math.max(0, anchorIndex - 8), Math.min(cleaned.length, anchorIndex + 220));
+}
+
 function sanitizeInvoiceId(value = '') {
   const candidate = String(value)
     .replace(/\s+/g, ' ')
@@ -488,6 +558,16 @@ function sanitizeInvoiceId(value = '') {
   if (!candidate) return '';
   if (/^(date|amount|due|invoice|total)$/i.test(candidate)) return '';
   return candidate;
+}
+
+function isLikelyCustomerName(value = '') {
+  const text = String(value || '').replace(/\s+/g, ' ').trim();
+  if (!text) return false;
+  if (text.includes('@')) return false;
+  if (/^account\s*(name|no)\b/i.test(text)) return false;
+  if (/^(invoice|issued to|bill to|pay to|date|due date|description|total|subtotal|amount|balance|unit price|qty)\b/i.test(text)) return false;
+  if (/^[\d\s#.,-]+$/.test(text)) return false;
+  return /[A-Za-z]/.test(text);
 }
 
 function extractLabeledValue(lines = [], labels = []) {
@@ -521,6 +601,31 @@ function extractDateFromText(text = '') {
   return match ? match[0] : '';
 }
 
+function extractSectionLines(lines = [], startPatterns = [], endPatterns = SECTION_END_PATTERNS) {
+  if (!Array.isArray(lines) || lines.length === 0) return [];
+
+  let startIndex = -1;
+  for (let i = 0; i < lines.length; i += 1) {
+    if (startPatterns.some((pattern) => pattern.test(lines[i]))) {
+      startIndex = i;
+      break;
+    }
+  }
+  if (startIndex === -1) return [];
+
+  const section = [];
+  for (let i = startIndex + 1; i < lines.length; i += 1) {
+    const line = String(lines[i] || '').trim();
+    if (!line) continue;
+    if (endPatterns.some((pattern) => pattern.test(line))) break;
+    if (/^(issued to|bill to|pay to)\s*:?\s*$/i.test(line)) continue;
+    section.push(line);
+    if (section.length >= 20) break;
+  }
+
+  return section;
+}
+
 function extractLargestMoneyToken(text = '') {
   const tokens = [...String(text).matchAll(new RegExp(MONEY_PATTERN, 'g'))].map((match) => match[0]);
   if (tokens.length === 0) return '';
@@ -533,47 +638,106 @@ function extractLargestMoneyToken(text = '') {
 }
 
 function extractAmountFromLines(lines = []) {
-  const labeledAmount = extractLargestMoneyToken(
-    extractLabeledValue(lines, [
-      'amount due',
-      'balance due',
-      'total due',
-      'total amount due',
-      'outstanding balance',
-      'amount outstanding',
-      'balance',
-    ])
-  );
-  if (labeledAmount) return labeledAmount;
+  for (const label of [
+    'amount due',
+    'balance due',
+    'total due',
+    'total amount due',
+    'outstanding balance',
+    'amount outstanding',
+  ]) {
+    const token = extractLargestMoneyToken(extractLabeledValue(lines, [label]));
+    if (token) return token;
+  }
 
-  let bestToken = '';
-  let bestAmount = 0;
-  for (const line of lines) {
-    if (!/(amount|balance|total|due|outstanding)/i.test(line)) continue;
-    const token = extractLargestMoneyToken(line);
-    if (!token) continue;
+  const candidates = [];
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = String(lines[i] || '').trim();
+    if (!line) continue;
 
-    const numeric = Math.abs(parseMoney(token));
-    if (numeric > bestAmount) {
-      bestAmount = numeric;
-      bestToken = token;
+    const labelOnly = /^(total|subtotal|amount due|balance due|total due|outstanding balance|amount outstanding)\s*:?\s*$/i.test(line);
+    if (labelOnly) {
+      for (let offset = 1; offset <= 3; offset += 1) {
+        const token = extractLargestMoneyToken(lines[i + offset] || '');
+        if (token) candidates.push(token);
+      }
+      continue;
+    }
+
+    if (/(amount due|balance due|total due|outstanding|subtotal|^total\b)/i.test(line)) {
+      const token = extractLargestMoneyToken(line);
+      if (token) candidates.push(token);
     }
   }
 
-  if (bestToken) return bestToken;
-  return extractLargestMoneyToken(lines.join(' '));
+  if (candidates.length === 0) return '';
+  return candidates.reduce((bestToken, token) => {
+    const amount = Math.abs(parseMoney(token));
+    const bestAmount = Math.abs(parseMoney(bestToken));
+    return amount > bestAmount ? token : bestToken;
+  }, candidates[0]);
+}
+
+function extractCustomerEmailFromLines(lines = [], rawText = '') {
+  const issuedSection = extractSectionLines(lines, [/^issued to:?$/i, /^bill to:?$/i]);
+  for (const line of issuedSection) {
+    const match = String(line).match(EMAIL_PATTERN);
+    if (match?.[0]) return match[0].trim();
+  }
+
+  const labeledEmail = extractLabeledValue(lines, ['customer email', 'billing email', 'email']);
+  const labeledMatch = String(labeledEmail).match(EMAIL_PATTERN);
+  if (labeledMatch?.[0]) return labeledMatch[0].trim();
+
+  return String(rawText.match(EMAIL_PATTERN)?.[0] || '').trim();
+}
+
+function extractInvoiceIdFromLines(lines = [], rawText = '') {
+  const labeledInvoiceId = sanitizeInvoiceId(
+    extractLabeledValue(lines, [
+      'invoice number',
+      'invoice no',
+      'invoice #',
+      'invoice id',
+      'reference number',
+      'reference',
+    ])
+  );
+  if (labeledInvoiceId) return labeledInvoiceId;
+
+  for (let i = 0; i < lines.length; i += 1) {
+    if (!/invoice\s*(?:no|number|#|id)/i.test(lines[i])) continue;
+    for (let offset = 1; offset <= 3; offset += 1) {
+      const candidate = sanitizeInvoiceId(lines[i + offset] || '');
+      if (candidate) return candidate;
+    }
+  }
+
+  const strictRegexId = sanitizeInvoiceId(
+    String(rawText).match(/\binvoice\s*(?:no\.?|number|#|id)\s*[:#-]?\s*([A-Z0-9][A-Z0-9/_-]{1,})\b/i)?.[1] || ''
+  );
+  if (strictRegexId) return strictRegexId;
+
+  return sanitizeInvoiceId(
+    String(rawText).match(/\bINV[-\s#]*([A-Z0-9][A-Z0-9-]{2,})\b/i)?.[1] || ''
+  );
 }
 
 function extractCustomerNameFromLines(lines = [], customerEmail = '') {
+  const issuedSection = extractSectionLines(lines, [/^issued to:?$/i, /^bill to:?$/i, /^customer:?$/i]);
+  const fromIssuedSection = issuedSection.find((line) => isLikelyCustomerName(line));
+  if (fromIssuedSection) {
+    return fromIssuedSection.replace(/\s+/g, ' ').trim();
+  }
+
   const labeledName = extractLabeledValue(lines, [
     'bill to',
     'customer name',
     'customer',
     'client',
     'company',
-    'account name',
   ]);
-  if (labeledName && !labeledName.includes('@')) {
+  if (isLikelyCustomerName(labeledName)) {
     return labeledName.replace(/\s+/g, ' ').trim();
   }
 
@@ -582,7 +746,7 @@ function extractCustomerNameFromLines(lines = [], customerEmail = '') {
     const emailLineIndex = lines.findIndex((line) => line.toLowerCase().includes(emailLower));
     if (emailLineIndex > 0) {
       const candidate = String(lines[emailLineIndex - 1] || '').replace(/\s+/g, ' ').trim();
-      if (candidate && !candidate.includes('@') && !/invoice|amount|due/i.test(candidate)) {
+      if (isLikelyCustomerName(candidate)) {
         return candidate;
       }
     }
@@ -599,6 +763,8 @@ async function parsePDF(buffer, sourceFileName = 'invoice-pdf') {
     .split(/\r?\n| {2,}/)
     .map((line) => line.replace(/\s+/g, ' ').trim())
     .filter(Boolean);
+  const relevantLines = buildRelevantInvoiceLines(lines);
+  const relevantText = relevantLines.join('\n');
 
   const filenameSeed = String(sourceFileName || 'invoice-pdf')
     .replace(/\.[a-z0-9]+$/i, '')
@@ -606,35 +772,22 @@ async function parsePDF(buffer, sourceFileName = 'invoice-pdf') {
     .replace(/^-+|-+$/g, '');
   const fallbackInvoiceId = filenameSeed || `PDF-${Date.now()}`;
 
-  const labeledInvoiceId = sanitizeInvoiceId(
-    extractLabeledValue(lines, [
-      'invoice number',
-      'invoice no',
-      'invoice #',
-      'invoice id',
-      'invoice',
-      'reference',
-    ])
-  );
-  const regexInvoiceId = sanitizeInvoiceId(
-    text.match(/\b(?:INV|INVOICE)[-\s#]*([A-Z0-9][A-Z0-9-]{2,})\b/i)?.[1] || ''
-  );
+  const invoiceId = extractInvoiceIdFromLines(relevantLines, relevantText);
+  const customerEmail = extractCustomerEmailFromLines(relevantLines, relevantText);
+  const customerName = extractCustomerNameFromLines(relevantLines, customerEmail);
+  const amountToken = extractAmountFromLines(relevantLines);
 
-  const customerEmail = String(text.match(EMAIL_PATTERN)?.[0] || '').trim();
-  const customerName = extractCustomerNameFromLines(lines, customerEmail);
-  const amountToken = extractAmountFromLines(lines);
-
-  const allDates = [...text.matchAll(new RegExp(DATE_PATTERN, 'gi'))].map((match) => match[0]);
+  const allDates = [...relevantText.matchAll(new RegExp(DATE_PATTERN, 'gi'))].map((match) => match[0]);
   const issueDate =
     extractDateFromText(
-      extractLabeledValue(lines, ['invoice date', 'issue date', 'date issued', 'statement date'])
+      extractLabeledValue(relevantLines, ['invoice date', 'issue date', 'date issued', 'statement date'])
     ) ||
-    extractDateFromText(extractLabeledValue(lines, ['date'])) ||
+    extractDateFromText(extractLabeledValue(relevantLines, ['date'])) ||
     allDates[0] ||
     '';
 
   let dueDate =
-    extractDateFromText(extractLabeledValue(lines, ['due date', 'payment due', 'due by', 'past due'])) ||
+    extractDateFromText(extractLabeledValue(relevantLines, ['due date', 'payment due', 'due by', 'past due'])) ||
     allDates[allDates.length - 1] ||
     '';
 
@@ -653,9 +806,9 @@ async function parsePDF(buffer, sourceFileName = 'invoice-pdf') {
     dueDate = fallbackDate.toISOString().slice(0, 10);
   }
 
-  const status = /paid in full|payment received|settled/i.test(text) ? 'paid' : 'overdue';
+  const status = /paid in full|payment received|settled/i.test(relevantText) ? 'paid' : 'overdue';
   const row = {
-    invoiceId: labeledInvoiceId || regexInvoiceId || fallbackInvoiceId,
+    invoiceId: invoiceId || fallbackInvoiceId,
     customerName,
     customerEmail,
     amountDue: amountToken || '0',
