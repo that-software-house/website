@@ -7,7 +7,7 @@
   # Use ES modules
   node_bundler = "esbuild"
   # Increase timeout for AI generation (default is 10s, max is 26s on free tier)
-  external_node_modules = ["@openai/agents", "openai", "@supabase/supabase-js", "busboy", "xlsx", "pdf-parse"]
+  external_node_modules = ["@openai/agents", "openai", "@supabase/supabase-js", "busboy", "xlsx"]
 
 [[redirects]]
   from = "/api/content/generate"

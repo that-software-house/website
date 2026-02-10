@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { createRequire } from 'module';
+import zlib from 'zlib';
 import { Agent, run, setOpenAIAPI } from '@openai/agents';
 import { parseMultipart } from './_lib/multipart.js';
 import { consumeRateLimit } from './_lib/rateLimit.js';
@@ -46,9 +46,6 @@ const SUPPORTED_TYPES = [
 const SUPPORTED_EXTS = ['.csv', '.json', '.xlsx', '.xls', '.pdf'];
 const ACTIVE_STATUS = new Set(['open', 'overdue', 'partial']);
 const ALLOWED_ACTIONS = new Set(['copied', 'sent', 'paid', 'promise_to_pay', 'promise_broken', 'note']);
-
-const require = createRequire(import.meta.url);
-const pdfParse = require('pdf-parse');
 
 const queueStore = globalThis.__INVOICE_CHASER_QUEUE_STORE__ || new Map();
 globalThis.__INVOICE_CHASER_QUEUE_STORE__ = queueStore;
@@ -362,6 +359,94 @@ async function parseExcel(buffer) {
   return { headers: Object.keys(rows[0]), rows };
 }
 
+function decodePdfLiteralString(value = '') {
+  return String(value)
+    .replace(/\\([0-7]{1,3})/g, (_match, octal) => String.fromCharCode(parseInt(octal, 8)))
+    .replace(/\\([nrtbf()\\])/g, (_match, escaped) => {
+      if (escaped === 'n') return '\n';
+      if (escaped === 'r') return '\r';
+      if (escaped === 't') return '\t';
+      if (escaped === 'b') return '\b';
+      if (escaped === 'f') return '\f';
+      return escaped;
+    });
+}
+
+function decodePdfHexString(value = '') {
+  const cleaned = String(value).replace(/[^A-Fa-f0-9]/g, '');
+  if (!cleaned) return '';
+
+  const normalized = cleaned.length % 2 === 0 ? cleaned : `${cleaned}0`;
+  const bytes = [];
+  for (let index = 0; index < normalized.length; index += 2) {
+    const byte = parseInt(normalized.slice(index, index + 2), 16);
+    if (Number.isFinite(byte)) bytes.push(byte);
+  }
+
+  return Buffer.from(bytes).toString('latin1');
+}
+
+function extractTextFromPdfBuffer(buffer) {
+  if (!buffer || buffer.length === 0) return '';
+
+  const raw = buffer.toString('latin1');
+  const segments = [raw];
+
+  let cursor = 0;
+  while (cursor < raw.length) {
+    const streamStart = raw.indexOf('stream', cursor);
+    if (streamStart === -1) break;
+
+    let dataStart = streamStart + 6;
+    if (raw[dataStart] === '\r' && raw[dataStart + 1] === '\n') dataStart += 2;
+    else if (raw[dataStart] === '\n') dataStart += 1;
+
+    const streamEnd = raw.indexOf('endstream', dataStart);
+    if (streamEnd === -1) break;
+
+    const dictStart = raw.lastIndexOf('<<', streamStart);
+    const dictEnd = raw.lastIndexOf('>>', streamStart);
+    const dictText =
+      dictStart !== -1 && dictEnd !== -1 && dictEnd > dictStart
+        ? raw.slice(dictStart, dictEnd + 2)
+        : '';
+
+    if (/FlateDecode/i.test(dictText)) {
+      try {
+        let compressed = buffer.subarray(dataStart, streamEnd);
+        while (
+          compressed.length > 0 &&
+          (compressed[compressed.length - 1] === 0x0a || compressed[compressed.length - 1] === 0x0d)
+        ) {
+          compressed = compressed.subarray(0, compressed.length - 1);
+        }
+
+        const inflated = zlib.inflateSync(compressed);
+        segments.push(inflated.toString('latin1'));
+      } catch {
+        // Ignore stream inflate failures and continue with available text.
+      }
+    }
+
+    cursor = streamEnd + 'endstream'.length;
+  }
+
+  const combined = segments.join('\n');
+  const literalText = (combined.match(/\((?:\\.|[^\\()])*\)/g) || [])
+    .map((token) => decodePdfLiteralString(token.slice(1, -1)))
+    .join('\n');
+  const hexText = [...combined.matchAll(/<([A-Fa-f0-9]{4,})>/g)]
+    .map((match) => decodePdfHexString(match[1]))
+    .join('\n');
+  const plainText = combined.replace(/[^\x09\x0A\x0D\x20-\x7E]/g, ' ');
+
+  return `${literalText}\n${hexText}\n${plainText}`
+    .replace(/\u0000/g, ' ')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 function sanitizeInvoiceId(value = '') {
   const candidate = String(value)
     .replace(/\s+/g, ' ')
@@ -478,12 +563,11 @@ function extractCustomerNameFromLines(lines = [], customerEmail = '') {
 }
 
 async function parsePDF(buffer, sourceFileName = 'invoice-pdf') {
-  const parsed = await pdfParse(buffer);
-  const text = String(parsed?.text || '').replace(/\u0000/g, ' ').trim();
+  const text = extractTextFromPdfBuffer(buffer);
   if (!text) return { headers: [], rows: [] };
 
   const lines = text
-    .split(/\r?\n/)
+    .split(/\r?\n| {2,}/)
     .map((line) => line.replace(/\s+/g, ' ').trim())
     .filter(Boolean);
 
@@ -525,7 +609,16 @@ async function parsePDF(buffer, sourceFileName = 'invoice-pdf') {
     allDates[allDates.length - 1] ||
     '';
 
-  if (!dueDate && /overdue|past due|late payment/i.test(text)) {
+  if (!dueDate && issueDate) {
+    const issueDateValue = parseDate(issueDate);
+    if (issueDateValue) {
+      const inferredDueDate = new Date(issueDateValue.getTime());
+      inferredDueDate.setDate(inferredDueDate.getDate() + 30);
+      dueDate = inferredDueDate.toISOString().slice(0, 10);
+    }
+  }
+
+  if (!dueDate) {
     const fallbackDate = new Date();
     fallbackDate.setDate(fallbackDate.getDate() - 30);
     dueDate = fallbackDate.toISOString().slice(0, 10);
@@ -714,7 +807,18 @@ async function handleUpload(event, rateHeaders) {
   } else if (filename.endsWith('.xlsx') || filename.endsWith('.xls')) {
     parsed = await parseExcel(file.buffer);
   } else if (filename.endsWith('.pdf') || mimetype === 'application/pdf') {
-    parsed = await parsePDF(file.buffer, file.filename || filename);
+    try {
+      parsed = await parsePDF(file.buffer, file.filename || filename);
+    } catch {
+      return jsonResponse(
+        400,
+        {
+          error: 'Unsupported PDF',
+          message: 'Unable to parse this PDF. Please upload a text-based invoice PDF or a CSV/JSON/Excel export.',
+        },
+        rateHeaders
+      );
+    }
   } else {
     parsed = await parseExcel(file.buffer);
   }
