@@ -1,6 +1,8 @@
 import { Agent, setOpenAIAPI } from '@openai/agents';
 import { run } from '@openai/agents';
 import * as cheerio from 'cheerio';
+import { consumeRateLimit } from './_lib/rateLimit.js';
+import { extractSubpath, jsonResponse, methodNotAllowed, optionsResponse } from './_lib/http.js';
 
 // Use Chat Completions API
 setOpenAIAPI('chat_completions');
@@ -167,58 +169,80 @@ function parseCarouselSlides(output) {
 
 // Main handler
 export async function handler(event) {
-  // Handle CORS
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Content-Type': 'application/json',
-  };
+  if (event.httpMethod === 'OPTIONS') return optionsResponse();
+  if (event.httpMethod !== 'POST') return methodNotAllowed();
 
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
-  }
-
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
+  const rate = await consumeRateLimit(event);
+  if (!rate.allowed) {
+    return jsonResponse(
+      429,
+      {
+        error: 'Rate limit exceeded',
+        message: `You've used all ${rate.usage.limit} free requests today.`,
+        usage: rate.usage,
+      },
+      rate.headers
+    );
   }
 
   try {
-    const { content, formats, sourceType } = JSON.parse(event.body);
+    const body = JSON.parse(event.body || '{}');
+    const subpath = extractSubpath(event, '/api/content', 'content');
+    const { content, sourceType, maxPoints = 5 } = body;
 
-    if (!content || !formats || !Array.isArray(formats)) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: 'Content and formats array are required' }),
-      };
+    if (!content || !String(content).trim()) {
+      return jsonResponse(400, { error: 'Content is required' }, rate.headers);
     }
 
-    let processedContent = content;
+    let processedContent = String(content);
 
-    // Fetch URL content if needed
-    if (sourceType === 'url' && content.startsWith('http')) {
-      console.log('Fetching content from URL:', content);
-      const urlData = await fetchUrlContent(content);
+    if (sourceType === 'url' && processedContent.startsWith('http')) {
+      const urlData = await fetchUrlContent(processedContent);
       processedContent = urlData.content;
-    } else if (sourceType === 'youtube' && content.includes('youtube')) {
+    } else if (sourceType === 'youtube' && processedContent.includes('youtube')) {
       try {
-        const urlData = await fetchUrlContent(content);
+        const urlData = await fetchUrlContent(processedContent);
         processedContent = urlData.content;
       } catch {
-        processedContent = `YouTube video URL: ${content}\n\nPlease provide the video transcript or description for content generation.`;
+        processedContent = `YouTube video URL: ${processedContent}\n\nPlease provide the video transcript or description for content generation.`;
       }
     }
 
-    // Generate content for each format
+    if (subpath === '/linkedin') {
+      const result = await run(linkedInAgent, processedContent);
+      return jsonResponse(200, { post: result.finalOutput }, rate.headers);
+    }
+
+    if (subpath === '/twitter') {
+      const result = await run(twitterAgent, processedContent);
+      return jsonResponse(200, { thread: parseTwitterThread(result.finalOutput) }, rate.headers);
+    }
+
+    if (subpath === '/carousel') {
+      const result = await run(carouselAgent, processedContent);
+      return jsonResponse(200, { slides: parseCarouselSlides(result.finalOutput) }, rate.headers);
+    }
+
+    if (subpath === '/summarize') {
+      const result = await run(
+        contentSummarizerAgent,
+        `Summarize the following content into ${maxPoints} key points:\n\n${processedContent}`
+      );
+      return jsonResponse(200, { summary: result.finalOutput }, rate.headers);
+    }
+
+    // Default to /generate behavior (also handles root path used by explicit redirect)
+    const formats = Array.isArray(body.formats) ? body.formats : [];
+    if (formats.length === 0) {
+      return jsonResponse(400, { error: 'Formats array is required' }, rate.headers);
+    }
+
     const results = {};
     const errors = {};
 
     for (const format of formats) {
       try {
-        console.log(`Generating ${format} content...`);
         let result;
-
         switch (format) {
           case 'linkedin':
             result = await run(linkedInAgent, processedContent);
@@ -232,24 +256,21 @@ export async function handler(event) {
             result = await run(carouselAgent, processedContent);
             results.carousel = parseCarouselSlides(result.finalOutput);
             break;
+          default:
+            errors[format] = 'Unsupported format';
+            break;
         }
       } catch (formatError) {
-        console.error(`Error generating ${format}:`, formatError);
         errors[format] = formatError.message;
       }
     }
 
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ results, errors }),
-    };
+    return jsonResponse(200, { results, errors }, rate.headers);
   } catch (error) {
-    console.error('Function error:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: 'Generation failed', message: error.message }),
-    };
+    return jsonResponse(
+      500,
+      { error: 'Generation failed', message: error.message },
+      rate.headers
+    );
   }
 }

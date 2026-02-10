@@ -1,5 +1,7 @@
 import { Agent, setOpenAIAPI, run } from '@openai/agents';
-import Busboy from 'busboy';
+import { parseMultipart } from './_lib/multipart.js';
+import { consumeRateLimit } from './_lib/rateLimit.js';
+import { extractSubpath, jsonResponse, methodNotAllowed, optionsResponse } from './_lib/http.js';
 
 // Use Chat Completions API
 setOpenAIAPI('chat_completions');
@@ -172,6 +174,17 @@ function parseJSON(content) {
   return { headers, rows };
 }
 
+async function parseExcel(buffer) {
+  const XLSX = await import('xlsx');
+  const workbook = XLSX.read(buffer, { type: 'buffer' });
+  const firstSheetName = workbook.SheetNames[0];
+  const firstSheet = workbook.Sheets[firstSheetName];
+  const rows = XLSX.utils.sheet_to_json(firstSheet);
+
+  if (!rows || rows.length === 0) return { headers: [], rows: [] };
+  return { headers: Object.keys(rows[0]), rows };
+}
+
 // Safely parse JSON from agent output
 function safeParseJSON(text) {
   try {
@@ -312,73 +325,36 @@ Available data columns: ${JSON.stringify(headers)}`;
   return { schema, analysis, visualizations };
 }
 
-// Parse multipart form data
-function parseMultipart(event) {
-  return new Promise((resolve, reject) => {
-    const contentType = event.headers['content-type'] || event.headers['Content-Type'];
-
-    if (!contentType || !contentType.includes('multipart/form-data')) {
-      reject(new Error('Content-Type must be multipart/form-data'));
-      return;
-    }
-
-    const busboy = Busboy({ headers: { 'content-type': contentType } });
-    const files = [];
-
-    busboy.on('file', (fieldname, file, info) => {
-      const { filename, mimeType } = info;
-      const chunks = [];
-
-      file.on('data', (chunk) => chunks.push(chunk));
-      file.on('end', () => {
-        files.push({
-          fieldname,
-          filename,
-          mimeType,
-          buffer: Buffer.concat(chunks),
-        });
-      });
-    });
-
-    busboy.on('finish', () => resolve(files));
-    busboy.on('error', reject);
-
-    // Handle base64 encoded body from API Gateway
-    const body = event.isBase64Encoded
-      ? Buffer.from(event.body, 'base64')
-      : Buffer.from(event.body);
-
-    busboy.end(body);
-  });
-}
-
 // Main handler
 export async function handler(event) {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Content-Type': 'application/json',
-  };
+  if (event.httpMethod === 'OPTIONS') return optionsResponse();
+  if (event.httpMethod !== 'POST') return methodNotAllowed();
 
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+  const subpath = extractSubpath(event, '/api/data-insights', 'data-insights');
+  if (subpath !== '/' && subpath !== '/analyze') {
+    return jsonResponse(404, { error: 'Route not found' });
   }
 
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
+  const rate = await consumeRateLimit(event);
+  if (!rate.allowed) {
+    return jsonResponse(
+      429,
+      {
+        error: 'Rate limit exceeded',
+        message: `You've used all ${rate.usage.limit} free requests today.`,
+        usage: rate.usage,
+      },
+      rate.headers
+    );
   }
 
   try {
     // Parse the uploaded file
-    const files = await parseMultipart(event);
+    const parsedMultipart = await parseMultipart(event);
+    const files = parsedMultipart.files || [];
 
     if (!files || files.length === 0) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: 'No file uploaded' }),
-      };
+      return jsonResponse(400, { error: 'No file uploaded' }, rate.headers);
     }
 
     const file = files[0];
@@ -398,16 +374,9 @@ export async function handler(event) {
       parsedHeaders = parsed.headers;
       rows = parsed.rows;
     } else if (filename.endsWith('.xlsx') || filename.endsWith('.xls')) {
-      // For Excel files, we need xlsx library which adds complexity
-      // For now, return an error suggesting CSV/JSON
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({
-          error: 'Excel files not supported in serverless mode',
-          message: 'Please convert your Excel file to CSV or JSON format'
-        }),
-      };
+      const parsed = await parseExcel(file.buffer);
+      parsedHeaders = parsed.headers;
+      rows = parsed.rows;
     } else {
       // Try CSV as fallback
       try {
@@ -415,20 +384,12 @@ export async function handler(event) {
         parsedHeaders = parsed.headers;
         rows = parsed.rows;
       } catch {
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({ error: 'Unable to parse file' }),
-        };
+        return jsonResponse(400, { error: 'Unable to parse file' }, rate.headers);
       }
     }
 
     if (parsedHeaders.length === 0 || rows.length === 0) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: 'File contains no data' }),
-      };
+      return jsonResponse(400, { error: 'File contains no data' }, rate.headers);
     }
 
     // Run the AI pipeline
@@ -449,10 +410,9 @@ export async function handler(event) {
       };
     });
 
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({
+    return jsonResponse(
+      200,
+      {
         parsedData: {
           headers: parsedHeaders,
           rows: rows.slice(0, MAX_ROWS),
@@ -465,14 +425,15 @@ export async function handler(event) {
           ...visualizations,
           recommendations: chartData,
         },
-      }),
-    };
+      },
+      rate.headers
+    );
   } catch (error) {
     console.error('Data insights error:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: 'Analysis failed', message: error.message }),
-    };
+    return jsonResponse(
+      500,
+      { error: 'Analysis failed', message: error.message },
+      rate.headers
+    );
   }
 }

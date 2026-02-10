@@ -7,7 +7,7 @@
   # Use ES modules
   node_bundler = "esbuild"
   # Increase timeout for AI generation (default is 10s, max is 26s on free tier)
-  external_node_modules = ["@openai/agents", "busboy"]
+  external_node_modules = ["@openai/agents", "openai", "@supabase/supabase-js", "busboy", "xlsx"]
 
 [[redirects]]
   from = "/api/content/generate"
@@ -15,8 +15,48 @@
   status = 200
 
 [[redirects]]
+  from = "/api/content/*"
+  to = "/.netlify/functions/content/:splat"
+  status = 200
+
+[[redirects]]
   from = "/api/data-insights/analyze"
   to = "/.netlify/functions/data-insights"
+  status = 200
+
+[[redirects]]
+  from = "/api/data-insights/*"
+  to = "/.netlify/functions/data-insights/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/doc-analyzer/*"
+  to = "/.netlify/functions/doc-analyzer/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/tone/*"
+  to = "/.netlify/functions/tone/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/invoice-chaser/*"
+  to = "/.netlify/functions/invoice-chaser/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/api/chat"
+  to = "/.netlify/functions/chat"
+  status = 200
+
+[[redirects]]
+  from = "/api/usage"
+  to = "/.netlify/functions/usage"
+  status = 200
+
+[[redirects]]
+  from = "/api/schedule"
+  to = "/.netlify/functions/schedule"
   status = 200
 
 [[redirects]]
