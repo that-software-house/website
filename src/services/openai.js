@@ -276,7 +276,7 @@ export async function convertTone(text, tone) {
 
 /**
  * Analyze invoice export and build prioritized overdue queue
- * @param {File} file - CSV/JSON/Excel invoice export
+ * @param {File} file - CSV/JSON/Excel/PDF invoice export
  * @returns {Promise<Object>}
  */
 export async function analyzeInvoiceExport(file) {

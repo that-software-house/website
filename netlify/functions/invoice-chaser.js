@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { createRequire } from 'module';
 import { Agent, run, setOpenAIAPI } from '@openai/agents';
 import { parseMultipart } from './_lib/multipart.js';
 import { consumeRateLimit } from './_lib/rateLimit.js';
@@ -34,11 +35,27 @@ Output JSON ONLY:
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const MAX_ROWS = 2000;
+const SUPPORTED_TYPES = [
+  'text/csv',
+  'application/json',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-excel',
+  'application/pdf',
+  'application/octet-stream',
+];
+const SUPPORTED_EXTS = ['.csv', '.json', '.xlsx', '.xls', '.pdf'];
 const ACTIVE_STATUS = new Set(['open', 'overdue', 'partial']);
 const ALLOWED_ACTIONS = new Set(['copied', 'sent', 'paid', 'promise_to_pay', 'promise_broken', 'note']);
 
+const require = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse');
+
 const queueStore = globalThis.__INVOICE_CHASER_QUEUE_STORE__ || new Map();
 globalThis.__INVOICE_CHASER_QUEUE_STORE__ = queueStore;
+const MONTH_NAME_PATTERN = '(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)';
+const DATE_PATTERN = `\\b(?:\\d{1,2}[/-]\\d{1,2}[/-]\\d{2,4}|${MONTH_NAME_PATTERN}\\s+\\d{1,2},\\s+\\d{4})\\b`;
+const MONEY_PATTERN = '[$€£]\\s*\\(?-?\\d[\\d,]*(?:\\.\\d{2})?\\)?|\\(?-?\\d[\\d,]*\\.\\d{2}\\)?';
+const EMAIL_PATTERN = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
 
 const FIELD_ALIASES = {
   invoiceId: ['invoiceid', 'invoice', 'invoicenumber', 'invoiceno', 'invoicenum', 'documentnumber', 'number', 'id'],
@@ -345,6 +362,191 @@ async function parseExcel(buffer) {
   return { headers: Object.keys(rows[0]), rows };
 }
 
+function sanitizeInvoiceId(value = '') {
+  const candidate = String(value)
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')[0]
+    .replace(/^[#:\-]+/, '')
+    .replace(/[^A-Za-z0-9/_-]/g, '')
+    .trim();
+
+  if (!candidate) return '';
+  if (/^(date|amount|due|invoice|total)$/i.test(candidate)) return '';
+  return candidate;
+}
+
+function extractLabeledValue(lines = [], labels = []) {
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = String(lines[i] || '');
+    const lower = line.toLowerCase();
+
+    for (const label of labels) {
+      const labelLower = label.toLowerCase();
+      const index = lower.indexOf(labelLower);
+      if (index === -1) continue;
+
+      const suffix = line
+        .slice(index + labelLower.length)
+        .replace(/^[\s:#-]+/, '')
+        .trim();
+      if (suffix) return suffix;
+
+      const nextLine = String(lines[i + 1] || '').trim();
+      if (nextLine && !/:\s*$/.test(nextLine)) {
+        return nextLine;
+      }
+    }
+  }
+
+  return '';
+}
+
+function extractDateFromText(text = '') {
+  const match = String(text).match(new RegExp(DATE_PATTERN, 'i'));
+  return match ? match[0] : '';
+}
+
+function extractLargestMoneyToken(text = '') {
+  const tokens = [...String(text).matchAll(new RegExp(MONEY_PATTERN, 'g'))].map((match) => match[0]);
+  if (tokens.length === 0) return '';
+
+  return tokens.reduce((bestToken, token) => {
+    const amount = Math.abs(parseMoney(token));
+    const bestAmount = Math.abs(parseMoney(bestToken));
+    return amount > bestAmount ? token : bestToken;
+  }, tokens[0]);
+}
+
+function extractAmountFromLines(lines = []) {
+  const labeledAmount = extractLargestMoneyToken(
+    extractLabeledValue(lines, [
+      'amount due',
+      'balance due',
+      'total due',
+      'total amount due',
+      'outstanding balance',
+      'amount outstanding',
+      'balance',
+    ])
+  );
+  if (labeledAmount) return labeledAmount;
+
+  let bestToken = '';
+  let bestAmount = 0;
+  for (const line of lines) {
+    if (!/(amount|balance|total|due|outstanding)/i.test(line)) continue;
+    const token = extractLargestMoneyToken(line);
+    if (!token) continue;
+
+    const numeric = Math.abs(parseMoney(token));
+    if (numeric > bestAmount) {
+      bestAmount = numeric;
+      bestToken = token;
+    }
+  }
+
+  if (bestToken) return bestToken;
+  return extractLargestMoneyToken(lines.join(' '));
+}
+
+function extractCustomerNameFromLines(lines = [], customerEmail = '') {
+  const labeledName = extractLabeledValue(lines, [
+    'bill to',
+    'customer name',
+    'customer',
+    'client',
+    'company',
+    'account name',
+  ]);
+  if (labeledName && !labeledName.includes('@')) {
+    return labeledName.replace(/\s+/g, ' ').trim();
+  }
+
+  if (customerEmail) {
+    const emailLower = customerEmail.toLowerCase();
+    const emailLineIndex = lines.findIndex((line) => line.toLowerCase().includes(emailLower));
+    if (emailLineIndex > 0) {
+      const candidate = String(lines[emailLineIndex - 1] || '').replace(/\s+/g, ' ').trim();
+      if (candidate && !candidate.includes('@') && !/invoice|amount|due/i.test(candidate)) {
+        return candidate;
+      }
+    }
+  }
+
+  return 'Unknown Customer';
+}
+
+async function parsePDF(buffer, sourceFileName = 'invoice-pdf') {
+  const parsed = await pdfParse(buffer);
+  const text = String(parsed?.text || '').replace(/\u0000/g, ' ').trim();
+  if (!text) return { headers: [], rows: [] };
+
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+
+  const filenameSeed = String(sourceFileName || 'invoice-pdf')
+    .replace(/\.[a-z0-9]+$/i, '')
+    .replace(/[^A-Za-z0-9_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  const fallbackInvoiceId = filenameSeed || `PDF-${Date.now()}`;
+
+  const labeledInvoiceId = sanitizeInvoiceId(
+    extractLabeledValue(lines, [
+      'invoice number',
+      'invoice no',
+      'invoice #',
+      'invoice id',
+      'invoice',
+      'reference',
+    ])
+  );
+  const regexInvoiceId = sanitizeInvoiceId(
+    text.match(/\b(?:INV|INVOICE)[-\s#]*([A-Z0-9][A-Z0-9-]{2,})\b/i)?.[1] || ''
+  );
+
+  const customerEmail = String(text.match(EMAIL_PATTERN)?.[0] || '').trim();
+  const customerName = extractCustomerNameFromLines(lines, customerEmail);
+  const amountToken = extractAmountFromLines(lines);
+
+  const allDates = [...text.matchAll(new RegExp(DATE_PATTERN, 'gi'))].map((match) => match[0]);
+  const issueDate =
+    extractDateFromText(
+      extractLabeledValue(lines, ['invoice date', 'issue date', 'date issued', 'statement date'])
+    ) ||
+    extractDateFromText(extractLabeledValue(lines, ['date'])) ||
+    allDates[0] ||
+    '';
+
+  let dueDate =
+    extractDateFromText(extractLabeledValue(lines, ['due date', 'payment due', 'due by', 'past due'])) ||
+    allDates[allDates.length - 1] ||
+    '';
+
+  if (!dueDate && /overdue|past due|late payment/i.test(text)) {
+    const fallbackDate = new Date();
+    fallbackDate.setDate(fallbackDate.getDate() - 30);
+    dueDate = fallbackDate.toISOString().slice(0, 10);
+  }
+
+  const status = /paid in full|payment received|settled/i.test(text) ? 'paid' : 'overdue';
+  const row = {
+    invoiceId: labeledInvoiceId || regexInvoiceId || fallbackInvoiceId,
+    customerName,
+    customerEmail,
+    amountDue: amountToken || '0',
+    currency: parseCurrency(amountToken || 'USD'),
+    dueDate,
+    issueDate,
+    status,
+    notes: 'Parsed from PDF upload',
+  };
+
+  return { headers: Object.keys(row), rows: [row] };
+}
+
 function normalizeRowsToInvoices(rows = []) {
   const dedup = new Map();
 
@@ -491,16 +693,30 @@ async function handleUpload(event, rateHeaders) {
   }
 
   const filename = String(file.filename || '').toLowerCase();
+  const mimetype = String(file.mimeType || '').toLowerCase();
+  const hasSupportedExt = SUPPORTED_EXTS.some((ext) => filename.endsWith(ext));
+  const hasSupportedType = SUPPORTED_TYPES.includes(mimetype);
+
+  if (!hasSupportedExt && !hasSupportedType) {
+    return jsonResponse(
+      400,
+      { error: 'Unsupported file', message: 'Please upload a CSV, JSON, Excel, or PDF invoice export' },
+      rateHeaders
+    );
+  }
+
   let parsed = { headers: [], rows: [] };
 
-  if (filename.endsWith('.csv')) {
+  if (filename.endsWith('.csv') || mimetype === 'text/csv') {
     parsed = parseCSV(file.buffer.toString('utf-8'));
-  } else if (filename.endsWith('.json')) {
+  } else if (filename.endsWith('.json') || mimetype === 'application/json') {
     parsed = parseJSON(file.buffer.toString('utf-8'));
   } else if (filename.endsWith('.xlsx') || filename.endsWith('.xls')) {
     parsed = await parseExcel(file.buffer);
+  } else if (filename.endsWith('.pdf') || mimetype === 'application/pdf') {
+    parsed = await parsePDF(file.buffer, file.filename || filename);
   } else {
-    parsed = parseCSV(file.buffer.toString('utf-8'));
+    parsed = await parseExcel(file.buffer);
   }
 
   if (!parsed.rows || parsed.rows.length === 0) {

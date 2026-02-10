@@ -311,12 +311,12 @@ const InvoiceChaserApp = () => {
         <label className="invoicechaser-upload">
           <input
             type="file"
-            accept=".csv,.json,.xlsx,.xls"
+            accept=".csv,.json,.xlsx,.xls,.pdf,application/pdf"
             onChange={(event) => handleFileSelect(event.target.files?.[0])}
             disabled={isUploading}
           />
           <Sparkles size={16} />
-          <span>{fileName || 'Upload invoice export (CSV, JSON, Excel)'}</span>
+          <span>{fileName || 'Upload invoice export (CSV, JSON, Excel, PDF)'}</span>
         </label>
 
         <div className="invoicechaser-upload-actions">
