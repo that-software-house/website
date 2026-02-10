@@ -372,6 +372,27 @@ export async function fetchInvoiceQueue(queueId) {
 }
 
 /**
+ * Fetch uploaded invoice documents for authenticated user
+ * @returns {Promise<{documents: Array}>}
+ */
+export async function fetchInvoiceDocuments() {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${INVOICE_CHASER_API_BASE}/documents`, {
+    method: 'GET',
+    headers,
+  });
+
+  const data = await parseJsonSafe(response);
+  syncUsageFromResponse(response, data);
+  if (!response.ok) {
+    const message = data?.message || data?.error || 'Failed to fetch invoice documents';
+    throw new Error(message);
+  }
+
+  return data || { documents: [] };
+}
+
+/**
  * Extract content from URL (handled by backend)
  * @param {string} url - The URL to extract content from
  * @returns {Promise<string>}
@@ -406,6 +427,7 @@ export default {
   generateInvoiceDrafts,
   logInvoiceAction,
   fetchInvoiceQueue,
+  fetchInvoiceDocuments,
   extractFromUrl,
   extractFromYouTube,
 };

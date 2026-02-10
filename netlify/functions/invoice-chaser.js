@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import zlib from 'zlib';
+import { createClient } from '@supabase/supabase-js';
 import { Agent, run, setOpenAIAPI } from '@openai/agents';
 import { parseMultipart } from './_lib/multipart.js';
 import { consumeRateLimit } from './_lib/rateLimit.js';
@@ -46,9 +47,16 @@ const SUPPORTED_TYPES = [
 const SUPPORTED_EXTS = ['.csv', '.json', '.xlsx', '.xls', '.pdf'];
 const ACTIVE_STATUS = new Set(['open', 'overdue', 'partial']);
 const ALLOWED_ACTIONS = new Set(['copied', 'sent', 'paid', 'promise_to_pay', 'promise_broken', 'note']);
+const INVOICE_DOCUMENTS_TABLE = 'invoice_chaser_documents';
 
 const queueStore = globalThis.__INVOICE_CHASER_QUEUE_STORE__ || new Map();
 globalThis.__INVOICE_CHASER_QUEUE_STORE__ = queueStore;
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+const supabase = supabaseUrl && supabaseServiceKey
+  ? createClient(supabaseUrl, supabaseServiceKey)
+  : null;
+
 const MONTH_NAME_PATTERN = '(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)';
 const DATE_PATTERN = `\\b(?:\\d{1,2}[./-]\\d{1,2}[./-]\\d{2,4}|${MONTH_NAME_PATTERN}\\s+\\d{1,2},\\s+\\d{4})\\b`;
 const MONEY_PATTERN = '[$€£]\\s*\\(?-?\\d[\\d,]*(?:\\.\\d{2})?\\)?|\\b\\(?-?\\d[\\d,]*(?:\\.\\d{2})?\\)?\\s*(?:USD|EUR|GBP)\\b';
@@ -328,6 +336,116 @@ function summarizeQueue(queueRecord) {
     recoveredInvoices: queueRecord.invoices.filter((x) => x.status === 'paid').length,
     lastPrioritizedAt: queueRecord.lastPrioritizedAt,
   };
+}
+
+function deriveDocumentStatus(queueRecord) {
+  return (queueRecord.prioritizedInvoices || []).length > 0 ? 'pending' : 'paid';
+}
+
+function mapDocumentRow(row) {
+  return {
+    queueId: row.queue_id,
+    sourceFileName: row.source_file_name,
+    status: row.status || 'pending',
+    summary: row.summary || null,
+    createdAt: row.created_at || null,
+    updatedAt: row.updated_at || null,
+    lastPrioritizedAt: row.last_prioritized_at || null,
+  };
+}
+
+function queueRecordFromDocumentRow(row) {
+  return {
+    id: row.queue_id,
+    userId: row.user_id || null,
+    sourceFileName: row.source_file_name || 'invoice-export',
+    createdAt: row.created_at || new Date().toISOString(),
+    invoices: Array.isArray(row.invoices) ? row.invoices : [],
+    prioritizedInvoices: Array.isArray(row.prioritized_invoices) ? row.prioritized_invoices : [],
+    actions: Array.isArray(row.actions) ? row.actions : [],
+    lastPrioritizedAt: row.last_prioritized_at || null,
+  };
+}
+
+async function persistQueueDocument(queueRecord, userId) {
+  if (!userId) return null;
+  if (!supabase) {
+    throw new Error('Document storage is unavailable');
+  }
+  queueRecord.userId = userId;
+
+  const summary = summarizeQueue(queueRecord);
+  const payload = {
+    queue_id: queueRecord.id,
+    user_id: userId,
+    source_file_name: queueRecord.sourceFileName,
+    status: deriveDocumentStatus(queueRecord),
+    summary,
+    invoices: queueRecord.invoices,
+    prioritized_invoices: queueRecord.prioritizedInvoices,
+    actions: queueRecord.actions,
+    created_at: queueRecord.createdAt,
+    last_prioritized_at: queueRecord.lastPrioritizedAt,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data, error } = await supabase
+    .from(INVOICE_DOCUMENTS_TABLE)
+    .upsert(payload, { onConflict: 'queue_id' })
+    .select('queue_id, source_file_name, status, summary, created_at, updated_at, last_prioritized_at')
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to save invoice document: ${error.message}`);
+  }
+
+  return mapDocumentRow(data);
+}
+
+async function listDocumentsForUser(userId) {
+  if (!userId) return [];
+  if (!supabase) {
+    throw new Error('Document storage is unavailable');
+  }
+
+  const { data, error } = await supabase
+    .from(INVOICE_DOCUMENTS_TABLE)
+    .select('queue_id, source_file_name, status, summary, created_at, updated_at, last_prioritized_at')
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to load invoice documents: ${error.message}`);
+  }
+
+  return (data || []).map(mapDocumentRow);
+}
+
+async function resolveQueueRecord(queueId, userId = null) {
+  const inMemory = queueStore.get(queueId);
+  if (inMemory) {
+    if (inMemory.userId && inMemory.userId !== userId) {
+      return null;
+    }
+    return inMemory;
+  }
+
+  if (!userId || !supabase) return null;
+
+  const { data, error } = await supabase
+    .from(INVOICE_DOCUMENTS_TABLE)
+    .select('queue_id, user_id, source_file_name, created_at, last_prioritized_at, invoices, prioritized_invoices, actions')
+    .eq('queue_id', queueId)
+    .eq('user_id', userId)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  const queueRecord = queueRecordFromDocumentRow(data);
+  queueStore.set(queueId, queueRecord);
+  return queueRecord;
 }
 
 function parseCSV(content) {
@@ -926,7 +1044,7 @@ function parseBody(event) {
   }
 }
 
-async function handleUpload(event, rateHeaders) {
+async function handleUpload(event, rateHeaders, user = null) {
   const { files } = await parseMultipart(event);
   const file = Array.isArray(files) ? files[0] : null;
 
@@ -992,6 +1110,7 @@ async function handleUpload(event, rateHeaders) {
   const queueId = crypto.randomUUID();
   const queueRecord = {
     id: queueId,
+    userId: user?.id || null,
     sourceFileName: file.filename || 'invoice-export',
     createdAt: new Date().toISOString(),
     invoices,
@@ -1002,6 +1121,7 @@ async function handleUpload(event, rateHeaders) {
 
   reprioritizeQueue(queueRecord);
   queueStore.set(queueId, queueRecord);
+  const document = await persistQueueDocument(queueRecord, user?.id || null);
 
   return jsonResponse(
     200,
@@ -1011,12 +1131,13 @@ async function handleUpload(event, rateHeaders) {
       queue: queueRecord.prioritizedInvoices,
       sourceFileName: queueRecord.sourceFileName,
       generatedAt: queueRecord.lastPrioritizedAt,
+      document,
     },
     rateHeaders
   );
 }
 
-async function handleDrafts(event, rateHeaders) {
+async function handleDrafts(event, rateHeaders, user = null) {
   const { queueId, invoiceId, invoiceKey } = parseBody(event);
 
   if (!queueId || (!invoiceId && !invoiceKey)) {
@@ -1027,12 +1148,13 @@ async function handleDrafts(event, rateHeaders) {
     );
   }
 
-  const queueRecord = queueStore.get(queueId);
+  const queueRecord = await resolveQueueRecord(queueId, user?.id || null);
   if (!queueRecord) {
     return jsonResponse(404, { error: 'Queue not found', message: 'Upload an invoice export first' }, rateHeaders);
   }
 
   reprioritizeQueue(queueRecord);
+  await persistQueueDocument(queueRecord, user?.id || null);
 
   const invoice = invoiceKey
     ? queueRecord.invoices.find((row) => row.invoiceKey === invoiceKey)
@@ -1065,7 +1187,7 @@ async function handleDrafts(event, rateHeaders) {
   );
 }
 
-function handleActions(event, rateHeaders) {
+async function handleActions(event, rateHeaders, user = null) {
   const { queueId, invoiceId, invoiceKey, actionType, tone = null, channel = 'email', subject = null, body = null, notes = null } = parseBody(event);
 
   if (!queueId || (!invoiceId && !invoiceKey) || !actionType) {
@@ -1084,7 +1206,7 @@ function handleActions(event, rateHeaders) {
     );
   }
 
-  const queueRecord = queueStore.get(queueId);
+  const queueRecord = await resolveQueueRecord(queueId, user?.id || null);
   if (!queueRecord) {
     return jsonResponse(404, { error: 'Queue not found', message: 'Upload an invoice export first' }, rateHeaders);
   }
@@ -1129,13 +1251,16 @@ function handleActions(event, rateHeaders) {
   }
 
   reprioritizeQueue(queueRecord);
+  const document = await persistQueueDocument(queueRecord, user?.id || null);
 
   return jsonResponse(
     200,
     {
       success: true,
+      queueId,
       action,
       invoice,
+      document,
       summary: summarizeQueue(queueRecord),
       queue: queueRecord.prioritizedInvoices,
       recentActions: queueRecord.actions.slice(-30).reverse(),
@@ -1144,7 +1269,7 @@ function handleActions(event, rateHeaders) {
   );
 }
 
-function handleQueue(event, rateHeaders) {
+async function handleQueue(event, rateHeaders, user = null) {
   const subpath = extractSubpath(event, '/api/invoice-chaser', 'invoice-chaser');
   const match = subpath.match(/^\/queue\/([^/]+)$/);
   const queueId = match?.[1] ? decodeURIComponent(match[1]) : null;
@@ -1153,12 +1278,13 @@ function handleQueue(event, rateHeaders) {
     return jsonResponse(400, { error: 'Invalid request', message: 'queueId is required' }, rateHeaders);
   }
 
-  const queueRecord = queueStore.get(queueId);
+  const queueRecord = await resolveQueueRecord(queueId, user?.id || null);
   if (!queueRecord) {
     return jsonResponse(404, { error: 'Queue not found', message: 'Upload an invoice export first' }, rateHeaders);
   }
 
   reprioritizeQueue(queueRecord);
+  const document = await persistQueueDocument(queueRecord, user?.id || null);
 
   return jsonResponse(
     200,
@@ -1166,12 +1292,26 @@ function handleQueue(event, rateHeaders) {
       queueId,
       sourceFileName: queueRecord.sourceFileName,
       createdAt: queueRecord.createdAt,
+      document,
       summary: summarizeQueue(queueRecord),
       queue: queueRecord.prioritizedInvoices,
       recentActions: queueRecord.actions.slice(-30).reverse(),
     },
     rateHeaders
   );
+}
+
+async function handleDocuments(rateHeaders, user = null) {
+  if (!user?.id) {
+    return jsonResponse(
+      401,
+      { error: 'Unauthorized', message: 'Sign in to view your uploaded invoice documents' },
+      rateHeaders
+    );
+  }
+
+  const documents = await listDocumentsForUser(user.id);
+  return jsonResponse(200, { documents }, rateHeaders);
 }
 
 export async function handler(event) {
@@ -1198,19 +1338,23 @@ export async function handler(event) {
 
   try {
     if (event.httpMethod === 'POST' && (subpath === '/' || subpath === '/upload')) {
-      return await handleUpload(event, rate.headers);
+      return await handleUpload(event, rate.headers, rate.user);
     }
 
     if (event.httpMethod === 'POST' && subpath === '/drafts') {
-      return await handleDrafts(event, rate.headers);
+      return await handleDrafts(event, rate.headers, rate.user);
     }
 
     if (event.httpMethod === 'POST' && subpath === '/actions') {
-      return handleActions(event, rate.headers);
+      return await handleActions(event, rate.headers, rate.user);
     }
 
     if (event.httpMethod === 'GET' && subpath.startsWith('/queue/')) {
-      return handleQueue(event, rate.headers);
+      return await handleQueue(event, rate.headers, rate.user);
+    }
+
+    if (event.httpMethod === 'GET' && (subpath === '/documents' || subpath === '/documents/')) {
+      return await handleDocuments(rate.headers, rate.user);
     }
 
     return jsonResponse(404, { error: 'Route not found' }, rate.headers);

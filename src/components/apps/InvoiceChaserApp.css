@@ -39,6 +39,7 @@
 
 .invoicechaser-upload-card,
 .invoicechaser-log-panel,
+.invoicechaser-documents-panel,
 .invoicechaser-queue-panel,
 .invoicechaser-draft-panel {
   border: 1px solid #e2e8f0;
@@ -60,6 +61,11 @@
   cursor: pointer;
   color: #334155;
   background: #f8fafc;
+}
+
+.invoicechaser-upload.disabled {
+  cursor: not-allowed;
+  opacity: 0.82;
 }
 
 .invoicechaser-upload input {
@@ -170,6 +176,13 @@
   gap: 0.9rem;
 }
 
+.invoicechaser-side-stack {
+  display: grid;
+  gap: 0.9rem;
+  align-content: start;
+}
+
+.invoicechaser-documents-panel,
 .invoicechaser-queue-panel,
 .invoicechaser-draft-panel,
 .invoicechaser-log-panel {
@@ -208,6 +221,86 @@
   gap: 0.55rem;
   max-height: 520px;
   overflow-y: auto;
+}
+
+.invoicechaser-document-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.invoicechaser-document-item {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.invoicechaser-document-item:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
+
+.invoicechaser-document-item.active {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+  background: #eff6ff;
+}
+
+.invoicechaser-document-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+
+.invoicechaser-document-title {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.invoicechaser-document-title strong {
+  font-size: 0.84rem;
+  line-height: 1.2;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.invoicechaser-document-status {
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+}
+
+.invoicechaser-document-status.pending {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.invoicechaser-document-status.paid {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.invoicechaser-document-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+  color: #64748b;
+  font-size: 0.76rem;
 }
 
 .invoicechaser-queue-item {
@@ -381,6 +474,45 @@
   white-space: nowrap;
 }
 
+.invoicechaser-gate-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 70;
+}
+
+.invoicechaser-gate-modal {
+  width: min(420px, 100%);
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.2);
+  padding: 1rem;
+}
+
+.invoicechaser-gate-modal h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #0f172a;
+}
+
+.invoicechaser-gate-modal p {
+  margin: 0.5rem 0 0;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.invoicechaser-gate-modal-actions {
+  margin-top: 0.85rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
 .spinning {
   animation: invoicechaser-spin 1s linear infinite;
 }
@@ -413,6 +545,7 @@
   }
 
   .invoicechaser-upload-card,
+  .invoicechaser-documents-panel,
   .invoicechaser-queue-panel,
   .invoicechaser-draft-panel,
   .invoicechaser-log-panel {
