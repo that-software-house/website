@@ -128,9 +128,7 @@ const InvoiceChaserApp = () => {
         return;
       }
 
-      setIsLoadingDocuments(true);
-      try {
-        const response = await fetchInvoiceDocuments();
+      const applyDocumentResponse = (response) => {
         const nextDocuments = response?.documents || [];
         setDocuments(nextDocuments);
         setSelectedDocumentId((previousSelectedDocumentId) => (
@@ -139,8 +137,36 @@ const InvoiceChaserApp = () => {
             ? previousSelectedDocumentId
             : (nextDocuments[0]?.queueId || ''))
         ));
+
+        setError((previousError) => (
+          previousError === 'Sign in to view your uploaded invoice documents' ? '' : previousError
+        ));
+      };
+
+      setIsLoadingDocuments(true);
+      try {
+        const response = await fetchInvoiceDocuments();
+        applyDocumentResponse(response);
       } catch (err) {
-        setError(err.message || 'Failed to load uploaded documents.');
+        const message = err?.message || 'Failed to load uploaded documents.';
+        const isAuthValidationError = message === 'Sign in to view your uploaded invoice documents';
+
+        // Supabase session can briefly lag right after sign-in; retry once.
+        if (isAuthValidationError) {
+          try {
+            await new Promise((resolve) => setTimeout(resolve, 450));
+            const retryResponse = await fetchInvoiceDocuments();
+            applyDocumentResponse(retryResponse);
+            return;
+          } catch {
+            setError(
+              'Signed in locally, but API auth could not be verified. Check Netlify SUPABASE_URL and SUPABASE_SERVICE_KEY.'
+            );
+            return;
+          }
+        }
+
+        setError(message);
       } finally {
         setIsLoadingDocuments(false);
       }
