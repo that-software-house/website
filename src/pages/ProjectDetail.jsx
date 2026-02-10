@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Sparkles, Bot } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
 import { projects } from './Projects';
 import ContentForgeApp from '../components/apps/ContentForgeApp';
 import DocAnalyzerApp from '../components/apps/DocAnalyzerApp';
@@ -17,6 +18,32 @@ function ProjectDetail() {
   const project = projects.find((p) => p.id === projectId);
   const initialAppId = project?.apps?.[0]?.id || null;
   const [activeApp, setActiveApp] = useState(initialAppId);
+  const siteUrl = 'https://thatsoftwarehouse.com';
+
+  const seoTitle = project
+    ? `${project.title} | That Software House`
+    : 'Project Not Found | That Software House';
+
+  const seoDescription = project
+    ? project.description
+    : "The project you're looking for does not exist.";
+
+  const seoUrl = project
+    ? `${siteUrl}/projects/${project.id}`
+    : `${siteUrl}/projects`;
+
+  useSEO({
+    title: seoTitle,
+    description: seoDescription,
+    keywords: project?.tags?.join(', ') || 'AI projects, software tools, That Software House',
+    canonicalUrl: seoUrl,
+    openGraph: {
+      title: seoTitle,
+      description: seoDescription,
+      type: 'website',
+      url: seoUrl,
+    },
+  });
 
   useEffect(() => {
     setActiveApp(project?.apps?.[0]?.id || null);

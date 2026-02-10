@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight, Zap, Bot, FileText, BarChart3, Eraser, RefreshCw, CircleDollarSign } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
 import './Projects.css';
 import SectionCta from '@/components/SectionCta';
 
@@ -129,6 +130,19 @@ function ProjectCard({ project, index }) {
 }
 
 function Projects() {
+  useSEO({
+    title: 'AI Projects | That Software House',
+    description: 'Explore AI-powered projects from That Software House, including Content Extractor, Document Analyzer, Data Insights, Tone Converter, and Invoice Chaser.',
+    keywords: 'AI projects, SaaS tools, content generator, document analyzer, data insights, invoice chaser',
+    canonicalUrl: 'https://thatsoftwarehouse.com/projects',
+    openGraph: {
+      title: 'AI Projects | That Software House',
+      description: 'Explore our AI-powered projects and tools built to solve real business problems.',
+      type: 'website',
+      url: 'https://thatsoftwarehouse.com/projects',
+    },
+  });
+
   return (
     <div className="projects-page">
       {/* Hero Section */}
