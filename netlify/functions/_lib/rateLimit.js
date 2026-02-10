@@ -2,6 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 
 const FREE_TIER_LIMIT = 10;
 const PREMIUM_LIMIT = 1000;
+const RATE_LIMIT_TABLE = 'api_daily_usage';
+const RATE_LIMIT_RPC = 'increment_api_daily_usage';
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const supabaseServiceKey =
@@ -18,16 +20,16 @@ globalThis.__NETLIFY_RATE_LIMIT_STORE__ = rateLimitStore;
 
 function getResetTime() {
   const now = new Date();
-  const tomorrow = new Date(now);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(0, 0, 0, 0);
-  return tomorrow.getTime();
+  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0, 0);
 }
 
-function cleanupExpired() {
-  const now = Date.now();
+function getUsageDateKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function cleanupExpired(currentDateKey = getUsageDateKey()) {
   for (const [key, value] of rateLimitStore.entries()) {
-    if (value.resetAt < now) {
+    if (value.usageDate !== currentDateKey) {
       rateLimitStore.delete(key);
     }
   }
@@ -62,13 +64,92 @@ async function getUserFromEvent(event) {
   return data.user;
 }
 
-function toUsage(record, limit) {
+function toUsage(count, limit, resetAtMs) {
   return {
-    used: record.count,
+    used: count,
     limit,
-    remaining: Math.max(0, limit - record.count),
-    resetsAt: new Date(record.resetAt).toISOString(),
+    remaining: Math.max(0, limit - count),
+    resetsAt: new Date(resetAtMs).toISOString(),
   };
+}
+
+async function readUsageCountFromSupabase(identifier, usageDate) {
+  if (!supabase) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from(RATE_LIMIT_TABLE)
+      .select('request_count')
+      .eq('identifier', identifier)
+      .eq('usage_date', usageDate)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Rate limit read failed:', error.message);
+      return null;
+    }
+
+    const count = Number.parseInt(data?.request_count ?? 0, 10);
+    if (!Number.isFinite(count)) return 0;
+    return Math.max(0, count);
+  } catch (error) {
+    console.error('Rate limit read failed:', error.message);
+    return null;
+  }
+}
+
+async function incrementUsageCountInSupabase(identifier, usageDate, incrementBy = 1) {
+  if (!supabase) return null;
+
+  try {
+    const { data, error } = await supabase.rpc(RATE_LIMIT_RPC, {
+      p_identifier: identifier,
+      p_usage_date: usageDate,
+      p_increment: incrementBy,
+    });
+
+    if (error) {
+      console.error('Rate limit increment failed:', error.message);
+      return null;
+    }
+
+    const count = Number.parseInt(data ?? 0, 10);
+    if (!Number.isFinite(count)) return 0;
+    return Math.max(0, count);
+  } catch (error) {
+    console.error('Rate limit increment failed:', error.message);
+    return null;
+  }
+}
+
+function readUsageCountFromMemory(identifier, usageDate) {
+  cleanupExpired(usageDate);
+  const record = rateLimitStore.get(identifier);
+  if (!record || record.usageDate !== usageDate) return 0;
+  return Math.max(0, Number.parseInt(record.count ?? 0, 10) || 0);
+}
+
+function incrementUsageCountInMemory(identifier, usageDate, incrementBy = 1) {
+  cleanupExpired(usageDate);
+  const currentCount = readUsageCountFromMemory(identifier, usageDate);
+  const nextCount = currentCount + incrementBy;
+  rateLimitStore.set(identifier, {
+    usageDate,
+    count: nextCount,
+  });
+  return nextCount;
+}
+
+async function getUsageCount(identifier, usageDate) {
+  const supabaseCount = await readUsageCountFromSupabase(identifier, usageDate);
+  if (supabaseCount !== null) return supabaseCount;
+  return readUsageCountFromMemory(identifier, usageDate);
+}
+
+async function incrementUsageCount(identifier, usageDate, incrementBy = 1) {
+  const supabaseCount = await incrementUsageCountInSupabase(identifier, usageDate, incrementBy);
+  if (supabaseCount !== null) return supabaseCount;
+  return incrementUsageCountInMemory(identifier, usageDate, incrementBy);
 }
 
 export function buildRateLimitHeaders(usage) {
@@ -81,55 +162,36 @@ export function buildRateLimitHeaders(usage) {
 }
 
 export async function getUsageForEvent(event) {
-  cleanupExpired();
-
   const user = await getUserFromEvent(event);
   const identifier = user?.id ? `user:${user.id}` : `ip:${extractIp(event)}`;
 
   const isPremium = Boolean(user?.user_metadata?.is_premium);
   const limit = isPremium ? PREMIUM_LIMIT : FREE_TIER_LIMIT;
-
-  const now = Date.now();
-  const record = rateLimitStore.get(identifier);
-
-  if (!record || record.resetAt < now) {
-    return {
-      used: 0,
-      limit,
-      remaining: limit,
-      resetsAt: new Date(getResetTime()).toISOString(),
-      isPremium,
-    };
-  }
+  const usageDate = getUsageDateKey();
+  const resetAtMs = getResetTime();
+  const count = await getUsageCount(identifier, usageDate);
 
   return {
-    ...toUsage(record, limit),
+    ...toUsage(count, limit, resetAtMs),
     isPremium,
   };
 }
 
-export async function consumeRateLimit(event) {
-  cleanupExpired();
-
+export async function consumeRateLimit(event, options = {}) {
+  const { consume = true } = options;
   const user = await getUserFromEvent(event);
   const identifier = user?.id ? `user:${user.id}` : `ip:${extractIp(event)}`;
 
   const isPremium = Boolean(user?.user_metadata?.is_premium);
   const limit = isPremium ? PREMIUM_LIMIT : FREE_TIER_LIMIT;
+  const usageDate = getUsageDateKey();
+  const resetAtMs = getResetTime();
+  const currentCount = await getUsageCount(identifier, usageDate);
 
-  const now = Date.now();
-  let record = rateLimitStore.get(identifier);
-
-  if (!record || record.resetAt < now) {
-    record = {
-      count: 0,
-      resetAt: getResetTime(),
-    };
-  }
-
-  if (record.count >= limit) {
+  if (consume && currentCount >= limit) {
+    const now = Date.now();
     const usage = {
-      ...toUsage(record, limit),
+      ...toUsage(currentCount, limit, resetAtMs),
       isPremium,
     };
 
@@ -138,17 +200,18 @@ export async function consumeRateLimit(event) {
       usage,
       headers: {
         ...buildRateLimitHeaders(usage),
-        'Retry-After': String(Math.ceil((record.resetAt - now) / 1000)),
+        'Retry-After': String(Math.ceil((resetAtMs - now) / 1000)),
       },
       user,
     };
   }
 
-  record.count += 1;
-  rateLimitStore.set(identifier, record);
+  const nextCount = consume
+    ? await incrementUsageCount(identifier, usageDate, 1)
+    : currentCount;
 
   const usage = {
-    ...toUsage(record, limit),
+    ...toUsage(nextCount, limit, resetAtMs),
     isPremium,
   };
 

@@ -54,11 +54,18 @@ const getResetTime = () => {
   return tomorrow.getTime();
 };
 
+const shouldConsumeRequest = (req) => {
+  if (req.baseUrl !== '/api/invoice-chaser') return true;
+  const normalizedPath = (req.path || '/').replace(/\/+$/, '') || '/';
+  return req.method === 'POST' && (normalizedPath === '/' || normalizedPath === '/upload');
+};
+
 export const rateLimitMiddleware = async (req, res, next) => {
   try {
     const identifier = getClientIdentifier(req);
     const isPremium = req.user?.user_metadata?.is_premium || false;
     const limit = isPremium ? PREMIUM_LIMIT : FREE_TIER_LIMIT;
+    const shouldConsume = shouldConsumeRequest(req);
 
     const now = Date.now();
     let record = rateLimitStore.get(identifier);
@@ -72,7 +79,7 @@ export const rateLimitMiddleware = async (req, res, next) => {
     }
 
     // Check if over limit
-    if (record.count >= limit) {
+    if (shouldConsume && record.count >= limit) {
       const retryAfter = Math.ceil((record.resetAt - now) / 1000);
       res.set('X-RateLimit-Limit', limit.toString());
       res.set('X-RateLimit-Remaining', '0');
@@ -92,8 +99,10 @@ export const rateLimitMiddleware = async (req, res, next) => {
     }
 
     // Increment count
-    record.count++;
-    rateLimitStore.set(identifier, record);
+    if (shouldConsume) {
+      record.count++;
+      rateLimitStore.set(identifier, record);
+    }
 
     // Set rate limit headers
     res.set('X-RateLimit-Limit', limit.toString());

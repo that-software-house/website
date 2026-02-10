@@ -1321,13 +1321,18 @@ export async function handler(event) {
   if (event.httpMethod === 'OPTIONS') return optionsResponse();
 
   const subpath = extractSubpath(event, '/api/invoice-chaser', 'invoice-chaser');
+  const normalizedSubpath = subpath.endsWith('/') && subpath.length > 1
+    ? subpath.slice(0, -1)
+    : subpath;
+  const shouldConsumeCredit =
+    event.httpMethod === 'POST' && (normalizedSubpath === '/' || normalizedSubpath === '/upload');
 
   if (event.httpMethod !== 'GET' && event.httpMethod !== 'POST') {
     return methodNotAllowed();
   }
 
-  const rate = await consumeRateLimit(event);
-  if (!rate.allowed) {
+  const rate = await consumeRateLimit(event, { consume: shouldConsumeCredit });
+  if (shouldConsumeCredit && !rate.allowed) {
     return jsonResponse(
       429,
       {
@@ -1340,23 +1345,23 @@ export async function handler(event) {
   }
 
   try {
-    if (event.httpMethod === 'POST' && (subpath === '/' || subpath === '/upload')) {
+    if (event.httpMethod === 'POST' && (normalizedSubpath === '/' || normalizedSubpath === '/upload')) {
       return await handleUpload(event, rate.headers, rate.user);
     }
 
-    if (event.httpMethod === 'POST' && subpath === '/drafts') {
+    if (event.httpMethod === 'POST' && normalizedSubpath === '/drafts') {
       return await handleDrafts(event, rate.headers, rate.user);
     }
 
-    if (event.httpMethod === 'POST' && subpath === '/actions') {
+    if (event.httpMethod === 'POST' && normalizedSubpath === '/actions') {
       return await handleActions(event, rate.headers, rate.user);
     }
 
-    if (event.httpMethod === 'GET' && subpath.startsWith('/queue/')) {
+    if (event.httpMethod === 'GET' && normalizedSubpath.startsWith('/queue/')) {
       return await handleQueue(event, rate.headers, rate.user);
     }
 
-    if (event.httpMethod === 'GET' && (subpath === '/documents' || subpath === '/documents/')) {
+    if (event.httpMethod === 'GET' && normalizedSubpath === '/documents') {
       return await handleDocuments(rate.headers, rate.user);
     }
 
