@@ -9,11 +9,13 @@ const API_BASE = '/api/content';
 const DOC_API_BASE = '/api/doc-analyzer';
 const TONE_API_BASE = '/api/tone';
 const DATA_INSIGHTS_API_BASE = '/api/data-insights';
+const INVOICE_CHASER_API_BASE = '/api/invoice-chaser';
+const USAGE_UPDATED_EVENT = 'usage:updated';
 
 async function parseJsonSafe(response) {
   try {
     return await response.json();
-  } catch (err) {
+  } catch {
     return null;
   }
 }
@@ -28,11 +30,53 @@ async function getAuthHeaders() {
     if (session?.access_token) {
       headers['Authorization'] = `Bearer ${session.access_token}`;
     }
-  } catch (err) {
+  } catch {
     // Continue without auth
   }
 
   return headers;
+}
+
+function emitUsageUpdate(usage) {
+  if (!usage || typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(USAGE_UPDATED_EVENT, { detail: usage }));
+}
+
+function parseUsageHeaders(response) {
+  const limitHeader = response.headers.get('X-RateLimit-Limit');
+  const remainingHeader = response.headers.get('X-RateLimit-Remaining');
+  const resetHeader = response.headers.get('X-RateLimit-Reset');
+
+  if (limitHeader === null || remainingHeader === null) return null;
+
+  const limit = Number.parseInt(limitHeader, 10);
+  const remaining = Number.parseInt(remainingHeader, 10);
+  const resetAtMs = resetHeader ? Number.parseInt(resetHeader, 10) : null;
+
+  if (!Number.isFinite(limit) || !Number.isFinite(remaining)) return null;
+
+  return {
+    used: Math.max(0, limit - remaining),
+    limit,
+    remaining: Math.max(0, remaining),
+    resetsAt:
+      Number.isFinite(resetAtMs) && resetAtMs > 0
+        ? new Date(resetAtMs).toISOString()
+        : undefined,
+  };
+}
+
+function syncUsageFromResponse(response, data) {
+  // Prefer explicit usage object from API body (e.g. 429 response payload).
+  if (data?.usage && typeof data.usage === 'object') {
+    emitUsageUpdate(data.usage);
+    return;
+  }
+
+  const usageFromHeaders = parseUsageHeaders(response);
+  if (usageFromHeaders) {
+    emitUsageUpdate(usageFromHeaders);
+  }
 }
 
 /**
@@ -51,6 +95,7 @@ export async function generateContent(content, formats, sourceType = 'text') {
   });
 
   const data = await parseJsonSafe(response);
+  syncUsageFromResponse(response, data);
   if (!response.ok) {
     const message = data?.message || data?.error || 'Failed to generate content';
     throw new Error(message);
@@ -73,6 +118,7 @@ export async function generateLinkedInPost(content) {
   });
 
   const data = await parseJsonSafe(response);
+  syncUsageFromResponse(response, data);
   if (!response.ok) {
     const message = data?.message || data?.error || 'Failed to generate LinkedIn post';
     throw new Error(message);
@@ -95,6 +141,7 @@ export async function generateTwitterThread(content) {
   });
 
   const data = await parseJsonSafe(response);
+  syncUsageFromResponse(response, data);
   if (!response.ok) {
     const message = data?.message || data?.error || 'Failed to generate Twitter thread';
     throw new Error(message);
@@ -117,6 +164,7 @@ export async function generateCarouselSlides(content) {
   });
 
   const data = await parseJsonSafe(response);
+  syncUsageFromResponse(response, data);
   if (!response.ok) {
     const message = data?.message || data?.error || 'Failed to generate carousel slides';
     throw new Error(message);
@@ -140,6 +188,7 @@ export async function summarizeContent(content, maxPoints = 5) {
   });
 
   const data = await parseJsonSafe(response);
+  syncUsageFromResponse(response, data);
   if (!response.ok) {
     const message = data?.message || data?.error || 'Failed to summarize content';
     throw new Error(message);
@@ -163,6 +212,7 @@ export async function analyzeDocument(file) {
   });
 
   const data = await parseJsonSafe(response);
+  syncUsageFromResponse(response, data);
   if (!response.ok) {
     const message = data?.message || data?.error || 'Failed to analyze document';
     throw new Error(message);
@@ -191,6 +241,7 @@ export async function analyzeData(file) {
   });
 
   const data = await parseJsonSafe(response);
+  syncUsageFromResponse(response, data);
   if (!response.ok) {
     const message = data?.message || data?.error || 'Failed to analyze data';
     throw new Error(message);
@@ -214,12 +265,110 @@ export async function convertTone(text, tone) {
   });
 
   const data = await parseJsonSafe(response);
+  syncUsageFromResponse(response, data);
   if (!response.ok) {
     const message = data?.message || data?.error || 'Failed to convert tone';
     throw new Error(message);
   }
 
   return data?.convertedText || '';
+}
+
+/**
+ * Analyze invoice export and build prioritized overdue queue
+ * @param {File} file - CSV/JSON/Excel invoice export
+ * @returns {Promise<Object>}
+ */
+export async function analyzeInvoiceExport(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const authHeaders = await getAuthHeaders();
+  delete authHeaders['Content-Type'];
+
+  const response = await fetch(`${INVOICE_CHASER_API_BASE}/upload`, {
+    method: 'POST',
+    headers: authHeaders,
+    body: formData,
+  });
+
+  const data = await parseJsonSafe(response);
+  syncUsageFromResponse(response, data);
+  if (!response.ok) {
+    const message = data?.message || data?.error || 'Failed to build invoice queue';
+    throw new Error(message);
+  }
+
+  return data || {};
+}
+
+/**
+ * Generate friendly/firm/final follow-up drafts for one invoice
+ * @param {string} queueId
+ * @param {string} invoiceKey
+ * @returns {Promise<Object>}
+ */
+export async function generateInvoiceDrafts(queueId, invoiceKey) {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${INVOICE_CHASER_API_BASE}/drafts`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ queueId, invoiceKey }),
+  });
+
+  const data = await parseJsonSafe(response);
+  syncUsageFromResponse(response, data);
+  if (!response.ok) {
+    const message = data?.message || data?.error || 'Failed to generate invoice drafts';
+    throw new Error(message);
+  }
+
+  return data || {};
+}
+
+/**
+ * Save invoice action log and return reprioritized queue
+ * @param {Object} payload
+ * @returns {Promise<Object>}
+ */
+export async function logInvoiceAction(payload) {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${INVOICE_CHASER_API_BASE}/actions`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload),
+  });
+
+  const data = await parseJsonSafe(response);
+  syncUsageFromResponse(response, data);
+  if (!response.ok) {
+    const message = data?.message || data?.error || 'Failed to save invoice action';
+    throw new Error(message);
+  }
+
+  return data || {};
+}
+
+/**
+ * Fetch invoice queue (recalculated priority)
+ * @param {string} queueId
+ * @returns {Promise<Object>}
+ */
+export async function fetchInvoiceQueue(queueId) {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${INVOICE_CHASER_API_BASE}/queue/${encodeURIComponent(queueId)}`, {
+    method: 'GET',
+    headers,
+  });
+
+  const data = await parseJsonSafe(response);
+  syncUsageFromResponse(response, data);
+  if (!response.ok) {
+    const message = data?.message || data?.error || 'Failed to fetch invoice queue';
+    throw new Error(message);
+  }
+
+  return data || {};
 }
 
 /**
@@ -253,6 +402,10 @@ export default {
   analyzeDocument,
   analyzeData,
   convertTone,
+  analyzeInvoiceExport,
+  generateInvoiceDrafts,
+  logInvoiceAction,
+  fetchInvoiceQueue,
   extractFromUrl,
   extractFromYouTube,
 };

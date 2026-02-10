@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Zap, Bot, FileText, BarChart3, Eraser, RefreshCw } from 'lucide-react';
+import { Sparkles, ArrowRight, Zap, Bot, FileText, BarChart3, Eraser, RefreshCw, CircleDollarSign } from 'lucide-react';
 import './Projects.css';
 import SectionCta from '@/components/SectionCta';
 
@@ -77,6 +77,18 @@ const projects = [
     tags: ['AI', 'Writing', 'Tone', 'Style'],
     apps: [
       { id: 'tone-converter', name: 'Tone Converter', description: 'Change text tone instantly' }
+    ]
+  },
+  {
+    id: 'invoicechaser',
+    title: 'Invoice Chaser',
+    subtitle: 'Collections Copilot',
+    description: 'Upload invoice exports, prioritize overdue accounts by risk, and generate friendly, firm, and final follow-up drafts in seconds.',
+    icon: CircleDollarSign,
+    gradient: 'from-rose-500 to-orange-600',
+    tags: ['AI', 'Finance', 'Collections', 'SMB'],
+    apps: [
+      { id: 'invoice-chaser', name: 'Invoice Chaser', description: 'Prioritize and chase overdue invoices' }
     ]
   }
 ];

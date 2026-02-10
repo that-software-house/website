@@ -1,0 +1,51 @@
+{
+  "id": "inv_0001",
+  "orgId": "org_demo_123",
+  "userId": "user_demo_456",
+  "clientName": "Acme Design Co",
+  "clientEmail": "billing@acmedesign.co",
+  "invoiceNumber": "ACME-2025-017",
+  "issueDate": "2025-12-15",
+  "dueDate": "2026-01-15",
+  "amount": 4200.00,
+  "currency": "USD",
+  "status": "overdue",
+  "source": "csv_import",
+  "lineItems": [
+    {
+      "id": "li_001",
+      "description": "Website redesign – UX & UI exploration",
+      "quantity": 1,
+      "unitPrice": 2000.00,
+      "total": 2000.00
+    },
+    {
+      "id": "li_002",
+      "description": "Frontend implementation (React + Tailwind)",
+      "quantity": 1,
+      "unitPrice": 1500.00,
+      "total": 1500.00
+    },
+    {
+      "id": "li_003",
+      "description": "QA, cross-browser testing, and fixes",
+      "quantity": 1,
+      "unitPrice": 700.00,
+      "total": 700.00
+    }
+  ],
+  "raw": {
+    "invoice_no": "ACME-2025-017",
+    "client": "Acme Design Co",
+    "issued_on": "2025-12-15",
+    "due_on": "2026-01-15",
+    "currency": "USD",
+    "items": [
+      { "label": "UX & UI exploration", "amount": "2000" },
+      { "label": "Frontend implementation", "amount": "1500" },
+      { "label": "QA & fixes", "amount": "700" }
+    ],
+    "total": "4200",
+    "notes": "Website redesign – Phase 2"
+  }
+}

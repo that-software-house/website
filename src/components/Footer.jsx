@@ -31,10 +31,10 @@ const Footer = () => {
               contact@thatsoftwarehouse.com
             </a>
             <div className="footer-social">
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+              <a href="https://www.linkedin.com/company/that-software-house/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
                 <Linkedin size={18} />
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <a href="https://www.instagram.com/thatsoftwarehouse/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                 <Instagram size={18} />
               </a>
               <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="X">

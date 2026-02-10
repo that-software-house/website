@@ -8,6 +8,7 @@ import DocAnalyzerApp from '../components/apps/DocAnalyzerApp';
 import DataInsightsApp from '../components/apps/DataInsightsApp';
 import TextCleanerApp from '../components/apps/TextCleanerApp';
 import ToneConverterApp from '../components/apps/ToneConverterApp';
+import InvoiceChaserApp from '../components/apps/InvoiceChaserApp';
 import UsageBanner from '../components/auth/UsageBanner';
 import './ProjectDetail.css';
 
@@ -67,13 +68,15 @@ function ProjectDetail() {
         return <TextCleanerApp />;
       case 'toneconverter':
         return <ToneConverterApp />;
+      case 'invoicechaser':
+        return <InvoiceChaserApp />;
       default:
         return null;
     }
   };
 
   // Check if this project uses AI features (needs usage banner)
-  const usesAI = ['contentforge', 'docanalyzer', 'datainsights', 'toneconverter'].includes(project.id);
+  const usesAI = ['contentforge', 'docanalyzer', 'datainsights', 'toneconverter', 'invoicechaser'].includes(project.id);
 
   return (
     <div className="project-detail-page">

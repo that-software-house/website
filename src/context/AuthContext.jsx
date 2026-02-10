@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
 const AuthContext = createContext({});
+const USAGE_UPDATED_EVENT = 'usage:updated';
 
 export const useAuth = () => useContext(AuthContext);
 
@@ -14,9 +15,7 @@ export const AuthProvider = ({ children }) => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUsage(session.user.id);
-      }
+      fetchUsage(session?.access_token || null);
       setLoading(false);
     });
 
@@ -24,33 +23,46 @@ export const AuthProvider = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setUser(session?.user ?? null);
-        if (session?.user) {
-          fetchUsage(session.user.id);
-        } else {
-          setUsage({ used: 0, limit: 10, remaining: 10 });
-        }
+        fetchUsage(session?.access_token || null);
       }
     );
 
-    return () => subscription.unsubscribe();
+    const handleUsageUpdated = (event) => {
+      if (event?.detail && typeof event.detail === 'object') {
+        setUsage((prev) => ({ ...prev, ...event.detail }));
+      }
+    };
+
+    window.addEventListener(USAGE_UPDATED_EVENT, handleUsageUpdated);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener(USAGE_UPDATED_EVENT, handleUsageUpdated);
+    };
   }, []);
 
-  const fetchUsage = async (userId) => {
+  const fetchUsage = async (accessToken = null) => {
     try {
-      const response = await fetch(`/api/usage?userId=${userId}`);
+      const headers = {};
+      if (accessToken) {
+        headers.Authorization = `Bearer ${accessToken}`;
+      }
+
+      const response = await fetch('/api/usage', { headers });
       if (response.ok) {
         const data = await response.json();
-        setUsage(data);
+        if (data && typeof data === 'object') {
+          setUsage(data);
+        }
       }
     } catch (err) {
       console.error('Failed to fetch usage:', err);
     }
   };
 
-  const refreshUsage = () => {
-    if (user) {
-      fetchUsage(user.id);
-    }
+  const refreshUsage = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    await fetchUsage(session?.access_token || null);
   };
 
   const signUp = async (email, password) => {

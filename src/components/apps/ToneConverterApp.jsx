@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { RefreshCw, Copy, Check, Sparkles, Briefcase, Coffee, Heart, Megaphone, GraduationCap, Smile, Zap, MessageCircle } from 'lucide-react';
 import { useSEO } from '@/hooks/useSEO';
+import { convertTone } from '@/services/openai';
 import './ToneConverterApp.css';
 
 const toneOptions = [
@@ -67,19 +68,8 @@ const ToneConverterApp = () => {
     setOutputText('');
 
     try {
-      const response = await fetch('/api/tone/convert', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: inputText, tone: selectedTone }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to convert tone');
-      }
-
-      setOutputText(data.convertedText || '');
+      const convertedText = await convertTone(inputText, selectedTone);
+      setOutputText(convertedText || '');
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
