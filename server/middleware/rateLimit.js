@@ -2,11 +2,14 @@ import { createClient } from '@supabase/supabase-js';
 
 // Initialize Supabase client for server-side
 // Use non-VITE prefixed variables for server (VITE_ vars are for browser only)
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseServiceKey =
+  process.env.SUPABASE_SERVICE_KEY ||
+  process.env.SUPABASE_SECRET_KEY ||
+  process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseServiceKey) {
-  console.warn('Warning: SUPABASE_URL or SUPABASE_SERVICE_KEY not set. Auth features may not work.');
+  console.warn('Warning: Supabase server credentials not set. Auth features may not work.');
 }
 
 const supabase = supabaseUrl && supabaseServiceKey
