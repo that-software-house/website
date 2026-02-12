@@ -7,7 +7,7 @@ const SPOTIFY_TOKEN_URL = 'https://accounts.spotify.com/api/token';
 const SPOTIFY_API_BASE = 'https://api.spotify.com/v1';
 
 function getRedirectUri() {
-  return `https://472e36e9bf38.ngrok.app/projects/musicstats`;
+  return `https://thatsoftwarehouse.com/projects/musicstats`;
 }
 
 // --- PKCE Helpers ---
