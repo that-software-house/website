@@ -10,6 +10,7 @@ import DataInsightsApp from '../components/apps/DataInsightsApp';
 import TextCleanerApp from '../components/apps/TextCleanerApp';
 import ToneConverterApp from '../components/apps/ToneConverterApp';
 import InvoiceChaserApp from '../components/apps/InvoiceChaserApp';
+import MusicStatsApp from '../components/apps/MusicStatsApp';
 import UsageBanner from '../components/auth/UsageBanner';
 import './ProjectDetail.css';
 
@@ -97,6 +98,8 @@ function ProjectDetail() {
         return <ToneConverterApp />;
       case 'invoicechaser':
         return <InvoiceChaserApp />;
+      case 'musicstats':
+        return <MusicStatsApp />;
       default:
         return null;
     }

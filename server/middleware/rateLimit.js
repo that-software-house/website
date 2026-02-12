@@ -60,12 +60,16 @@ const shouldConsumeRequest = (req) => {
   return req.method === 'POST' && (normalizedPath === '/' || normalizedPath === '/upload');
 };
 
+const hasUnlimitedInvoiceUploads = (req) => (
+  Boolean(req.user?.user_metadata?.invoice_chaser_unlimited || req.user?.user_metadata?.is_premium)
+);
+
 export const rateLimitMiddleware = async (req, res, next) => {
   try {
     const identifier = getClientIdentifier(req);
     const isPremium = req.user?.user_metadata?.is_premium || false;
     const limit = isPremium ? PREMIUM_LIMIT : FREE_TIER_LIMIT;
-    const shouldConsume = shouldConsumeRequest(req);
+    const shouldConsume = shouldConsumeRequest(req) && !hasUnlimitedInvoiceUploads(req);
 
     const now = Date.now();
     let record = rateLimitStore.get(identifier);

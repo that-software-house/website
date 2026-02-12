@@ -10,6 +10,7 @@ const DOC_API_BASE = '/api/doc-analyzer';
 const TONE_API_BASE = '/api/tone';
 const DATA_INSIGHTS_API_BASE = '/api/data-insights';
 const INVOICE_CHASER_API_BASE = '/api/invoice-chaser';
+const BILLING_API_BASE = '/api/billing';
 const USAGE_UPDATED_EVENT = 'usage:updated';
 
 async function parseJsonSafe(response) {
@@ -393,6 +394,47 @@ export async function fetchInvoiceDocuments() {
 }
 
 /**
+ * Create Stripe Checkout session for InvoiceChaser monthly plan
+ * @returns {Promise<{checkoutUrl: string, sessionId: string}>}
+ */
+export async function createInvoiceChaserCheckout() {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${BILLING_API_BASE}/checkout`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ plan: 'invoice_chaser_unlimited' }),
+  });
+
+  const data = await parseJsonSafe(response);
+  if (!response.ok) {
+    const message = data?.message || data?.error || 'Failed to start checkout';
+    throw new Error(message);
+  }
+
+  return data || {};
+}
+
+/**
+ * Create Stripe Customer Portal session for current user
+ * @returns {Promise<{portalUrl: string}>}
+ */
+export async function createBillingPortalSession() {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${BILLING_API_BASE}/portal`, {
+    method: 'POST',
+    headers,
+  });
+
+  const data = await parseJsonSafe(response);
+  if (!response.ok) {
+    const message = data?.message || data?.error || 'Failed to open billing portal';
+    throw new Error(message);
+  }
+
+  return data || {};
+}
+
+/**
  * Extract content from URL (handled by backend)
  * @param {string} url - The URL to extract content from
  * @returns {Promise<string>}
@@ -428,6 +470,8 @@ export default {
   logInvoiceAction,
   fetchInvoiceQueue,
   fetchInvoiceDocuments,
+  createInvoiceChaserCheckout,
+  createBillingPortalSession,
   extractFromUrl,
   extractFromYouTube,
 };

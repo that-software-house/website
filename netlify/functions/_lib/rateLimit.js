@@ -73,6 +73,13 @@ function toUsage(count, limit, resetAtMs) {
   };
 }
 
+function hasUnlimitedInvoiceUploads(user) {
+  return Boolean(
+    user?.user_metadata?.invoice_chaser_unlimited ||
+    user?.user_metadata?.is_premium
+  );
+}
+
 async function readUsageCountFromSupabase(identifier, usageDate) {
   if (!supabase) return null;
 
@@ -178,7 +185,7 @@ export async function getUsageForEvent(event) {
 }
 
 export async function consumeRateLimit(event, options = {}) {
-  const { consume = true } = options;
+  const { consume = true, feature = null } = options;
   const user = await getUserFromEvent(event);
   const identifier = user?.id ? `user:${user.id}` : `ip:${extractIp(event)}`;
 
@@ -187,8 +194,11 @@ export async function consumeRateLimit(event, options = {}) {
   const usageDate = getUsageDateKey();
   const resetAtMs = getResetTime();
   const currentCount = await getUsageCount(identifier, usageDate);
+  const skipForFeature =
+    feature === 'invoice_chaser_upload' && hasUnlimitedInvoiceUploads(user);
+  const shouldConsume = consume && !skipForFeature;
 
-  if (consume && currentCount >= limit) {
+  if (shouldConsume && currentCount >= limit) {
     const now = Date.now();
     const usage = {
       ...toUsage(currentCount, limit, resetAtMs),
@@ -206,7 +216,7 @@ export async function consumeRateLimit(event, options = {}) {
     };
   }
 
-  const nextCount = consume
+  const nextCount = shouldConsume
     ? await incrementUsageCount(identifier, usageDate, 1)
     : currentCount;
 

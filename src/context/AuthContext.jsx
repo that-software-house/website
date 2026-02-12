@@ -60,6 +60,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const refreshUserProfile = async () => {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    setUser(user ?? null);
+    return user ?? null;
+  };
+
   const refreshUsage = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     await fetchUsage(session?.access_token || null);
@@ -128,8 +135,12 @@ export const AuthProvider = ({ children }) => {
     requestPasswordReset,
     updatePassword,
     refreshUsage,
+    refreshUserProfile,
     isAuthenticated: !!user,
     isPremium: user?.user_metadata?.is_premium || false,
+    hasInvoiceChaserUnlimited: Boolean(
+      user?.user_metadata?.invoice_chaser_unlimited || user?.user_metadata?.is_premium
+    ),
   };
 
   return (

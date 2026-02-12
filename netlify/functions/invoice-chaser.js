@@ -1331,7 +1331,10 @@ export async function handler(event) {
     return methodNotAllowed();
   }
 
-  const rate = await consumeRateLimit(event, { consume: shouldConsumeCredit });
+  const rate = await consumeRateLimit(event, {
+    consume: shouldConsumeCredit,
+    feature: shouldConsumeCredit ? 'invoice_chaser_upload' : null,
+  });
   if (shouldConsumeCredit && !rate.allowed) {
     return jsonResponse(
       429,

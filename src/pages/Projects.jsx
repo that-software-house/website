@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Zap, Bot, FileText, BarChart3, Eraser, RefreshCw, CircleDollarSign } from 'lucide-react';
+import { Sparkles, ArrowRight, Zap, Bot, FileText, BarChart3, Eraser, RefreshCw, CircleDollarSign, Music } from 'lucide-react';
 import { useSEO } from '@/hooks/useSEO';
 import './Projects.css';
 import SectionCta from '@/components/SectionCta';
@@ -90,6 +90,18 @@ const projects = [
     tags: ['AI', 'Finance', 'Collections', 'SMB'],
     apps: [
       { id: 'invoice-chaser', name: 'Invoice Chaser', description: 'Prioritize and chase overdue invoices' }
+    ]
+  },
+  {
+    id: 'musicstats',
+    title: 'Music Stats',
+    subtitle: 'Spotify Insights',
+    description: 'Connect your Spotify account to visualize your listening habits. See your top artists, tracks, genre breakdown, and estimated listening time.',
+    icon: Music,
+    gradient: 'from-green-500 to-emerald-600',
+    tags: ['Spotify', 'Music', 'Analytics'],
+    apps: [
+      { id: 'music-stats', name: 'Music Stats', description: 'View your Spotify listening stats' }
     ]
   }
 ];
