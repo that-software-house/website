@@ -189,7 +189,7 @@ const About = () => {
                 <span>AS</span>
               </div>
               <h3 className="leader-name">Afshin Saniesales</h3>
-              <p className="leader-title">CCO, Co-Founder</p>
+              <p className="leader-title">Advisor, Co-Founder</p>
               <a
                 href="https://www.linkedin.com/in/saniesales/"
                 target="_blank"
