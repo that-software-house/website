@@ -2,11 +2,27 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Smartphone, Server, Layout, Package, Code, Globe, CreditCard, Users as UsersIcon, HeadphonesIcon, Mail, MapPin, Brain } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
 import SectionCta from '../components/SectionCta';
 import Clients from '../components/Clients';
 import './CustomSoftware.css';
 
 const CustomSoftware = () => {
+  useSEO({
+    title: 'Custom Software Development | That Software House',
+    description: 'Custom web apps, mobile apps, APIs, and backend systems built to scale. From MVP to enterprise — React, Node.js, React Native, and cloud infrastructure.',
+    keywords: 'custom software development, web application, mobile app development, MVP development, React, Node.js, Austin TX',
+    canonicalUrl: 'https://thatsoftwarehouse.com/custom-software',
+    structuredData: {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      name: 'Custom Software Development',
+      provider: { '@type': 'Organization', name: 'That Software House' },
+      description: 'Full-stack custom software development for web, mobile, and backend systems.',
+      areaServed: 'Worldwide',
+      serviceType: 'Custom Software Development',
+    },
+  });
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
   const testimonials = [

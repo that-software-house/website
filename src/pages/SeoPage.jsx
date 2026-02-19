@@ -1,9 +1,25 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Search, TrendingUp, FileText, Link2, BarChart3, CheckCircle2, ArrowRight } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
 import './SeoPage.css';
 
 const SeoPage = () => {
+  useSEO({
+    title: 'SEO Services | That Software House',
+    description: 'Technical SEO, content strategy, link building, and analytics. Rank higher, get found, and grow faster with data-driven SEO from That Software House.',
+    keywords: 'SEO services, technical SEO, content strategy, link building, SEO Austin TX, search engine optimization',
+    canonicalUrl: 'https://thatsoftwarehouse.com/seo',
+    structuredData: {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      name: 'SEO Services',
+      provider: { '@type': 'Organization', name: 'That Software House' },
+      description: 'Technical SEO audits, content strategy, link building, and analytics reporting.',
+      areaServed: 'Worldwide',
+      serviceType: 'Search Engine Optimization',
+    },
+  });
   const services = [
     {
       icon: Search,

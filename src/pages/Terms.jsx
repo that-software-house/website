@@ -1,7 +1,13 @@
 import React from 'react';
+import { useSEO } from '@/hooks/useSEO';
 import './Terms.css';
 
 const Terms = () => {
+  useSEO({
+    title: 'Terms of Use | That Software House',
+    description: 'Terms of use for That Software House website and services.',
+    canonicalUrl: 'https://thatsoftwarehouse.com/terms',
+  });
   return (
     <div className="terms-page">
       <div className="terms-container">

@@ -1,10 +1,26 @@
 import React, { useState } from 'react';
+import { useSEO } from '@/hooks/useSEO';
 import './ServicesPage.css';
 import smbPackageImg from '../assets/smb-coffee-shop.jpg';
 import smbFormImg from '../assets/smb-dental-clinic.jpg';
 import SectionCta from '@/components/SectionCta';
 
 const ServicesPage = () => {
+  useSEO({
+    title: 'Small Business Web Packages | That Software House',
+    description: 'Affordable, modern websites for local businesses. Fast, customized web packages designed to help small businesses grow online.',
+    keywords: 'small business website, affordable web design, local business website, web packages, Austin TX',
+    canonicalUrl: 'https://thatsoftwarehouse.com/services',
+    structuredData: {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      name: 'Small Business Web Packages',
+      provider: { '@type': 'Organization', name: 'That Software House' },
+      description: 'Customized, modern websites for local businesses that are fast, affordable and reliable.',
+      areaServed: 'Worldwide',
+      serviceType: 'Web Design',
+    },
+  });
   const [formData, setFormData] = useState({
     name: '',
     email: ''

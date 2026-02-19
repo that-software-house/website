@@ -1,9 +1,28 @@
 import React, { useState } from 'react';
+import { useSEO } from '@/hooks/useSEO';
 import './About.css';
 import Clients from '../components/Clients';
 import SectionCta from '@/components/SectionCta';
 
 const About = () => {
+  useSEO({
+    title: 'About Us | That Software House',
+    description: 'Meet the team behind That Software House. 7 experts with 25+ years of combined experience shipping 20+ products for startups and enterprises.',
+    keywords: 'about that software house, software team Austin, engineering team, product studio',
+    canonicalUrl: 'https://thatsoftwarehouse.com/about',
+    structuredData: {
+      '@context': 'https://schema.org',
+      '@type': 'AboutPage',
+      name: 'About That Software House',
+      url: 'https://thatsoftwarehouse.com/about',
+      mainEntity: {
+        '@type': 'Organization',
+        name: 'That Software House',
+        numberOfEmployees: { '@type': 'QuantitativeValue', value: 7 },
+        foundingLocation: { '@type': 'Place', name: 'Austin, TX' },
+      },
+    },
+  });
   const [expandedCapability, setExpandedCapability] = useState(null);
 
   const stats = [

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Compass, Globe, PenTool } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
 import SectionCta from '../components/SectionCta';
 import './ValidateIdea.css';
 
@@ -46,6 +47,13 @@ const servicePillars = [
 ];
 
 const ValidateIdea = () => {
+  useSEO({
+    title: 'Validate Your Idea | That Software House',
+    description: 'Prove demand before building. Design prototypes, product discovery, and website development to validate your startup idea with real users.',
+    keywords: 'validate startup idea, MVP validation, design prototype, product discovery, pre-seed startup',
+    canonicalUrl: 'https://thatsoftwarehouse.com/validate-your-idea',
+  });
+
   return (
     <div className="validate-page">
       <section className="validate-hero">

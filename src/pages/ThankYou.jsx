@@ -1,7 +1,12 @@
 import React from 'react';
+import { useSEO } from '@/hooks/useSEO';
 import './Contact.css';
 
 const ThankYou = () => {
+  useSEO({
+    title: 'Thank You | That Software House',
+    description: 'Thanks for reaching out. Our team will get back to you within one business day.',
+  });
   return (
     <div className="contact-page">
       <section className="contact-hero">

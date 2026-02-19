@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle2, Loader2, Lock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useSEO } from '@/hooks/useSEO';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import './ResetPassword.css';
 
 const ResetPassword = () => {
+  useSEO({
+    title: 'Reset Password | That Software House',
+    description: 'Set a new password for your That Software House account.',
+  });
+
   const navigate = useNavigate();
   const { updatePassword } = useAuth();
 

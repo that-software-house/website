@@ -1,5 +1,6 @@
 import React from 'react';
 import { Monitor, RefreshCw, Search, Users } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
 import SectionCta from '../components/SectionCta';
 import './ScaleProduct.css';
 
@@ -51,6 +52,13 @@ const scaleServices = [
 ];
 
 const ScaleProduct = () => {
+  useSEO({
+    title: 'Scale Your Product | That Software House',
+    description: 'Scale, optimize, and reach more users. UX audits, product redesigns, performance optimization, and team augmentation to grow your product.',
+    keywords: 'scale product, UX audit, product redesign, performance optimization, staff augmentation',
+    canonicalUrl: 'https://thatsoftwarehouse.com/scale-your-product',
+  });
+
   return (
     <div className="scale-product-page">
       <section className="scale-product-hero">

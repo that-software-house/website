@@ -1,7 +1,13 @@
 import React from 'react';
+import { useSEO } from '@/hooks/useSEO';
 import './Terms.css';
 
 const Privacy = () => {
+  useSEO({
+    title: 'Privacy Policy | That Software House',
+    description: 'Privacy policy for That Software House. Learn how we collect, use, and protect your data.',
+    canonicalUrl: 'https://thatsoftwarehouse.com/privacy',
+  });
   return (
     <div className="terms-page">
       <div className="terms-container">

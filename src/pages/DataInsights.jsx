@@ -1,9 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useSEO } from '@/hooks/useSEO';
 import DataInsightsApp from '../components/apps/DataInsightsApp';
 import './DataInsights.css';
 
 const DataInsights = () => {
+  useSEO({
+    title: 'Data Insights | That Software House',
+    description: 'Upload your data and get AI-powered analysis, visualizations, and actionable insights.',
+  });
+
   return (
     <div className="data-insights-page">
       <section className="data-insights-hero">

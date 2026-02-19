@@ -1,5 +1,6 @@
 import React from 'react';
 import { Brush, Gauge, Lightbulb, Rocket, Users } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
 import SectionCta from '../components/SectionCta';
 import './BuildProduct.css';
 
@@ -62,6 +63,13 @@ const seedServices = [
 ];
 
 const BuildProduct = () => {
+  useSEO({
+    title: 'Build Your Product | That Software House',
+    description: 'Go from idea to market-ready product. Branding, technical workshops, MVP development, and growth strategy to gain market traction.',
+    keywords: 'build product, MVP development, startup branding, product development, go to market',
+    canonicalUrl: 'https://thatsoftwarehouse.com/build-your-product',
+  });
+
   return (
     <div className="build-product-page">
       <section className="build-product-hero">

@@ -1,9 +1,25 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
 import './MarketingPage.css';
 
 const MarketingPage = () => {
+  useSEO({
+    title: 'Marketing for Tech Products | That Software House',
+    description: 'Marketing for products that are hard to explain. Strategy, positioning, content, and growth for SaaS, AI, and technical products.',
+    keywords: 'tech marketing, SaaS marketing, product marketing, GTM strategy, content marketing, Austin TX',
+    canonicalUrl: 'https://thatsoftwarehouse.com/marketing',
+    structuredData: {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      name: 'Tech Product Marketing',
+      provider: { '@type': 'Organization', name: 'That Software House' },
+      description: 'Strategy, positioning, content, and growth marketing for technical products.',
+      areaServed: 'Worldwide',
+      serviceType: 'Product Marketing',
+    },
+  });
   const serviceGroups = [
     {
       title: 'Strategy & Positioning',

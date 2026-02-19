@@ -1,9 +1,25 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useSEO } from '@/hooks/useSEO';
 import './AiSoftware.css';
 import SectionCta from '../components/SectionCta';
 
 const AiSoftware = () => {
+  useSEO({
+    title: 'AI Software Development | That Software House',
+    description: 'Custom AI solutions from GPT and Claude integrations to predictive analytics. We build, deploy, and scale AI for healthcare, fintech, and enterprise.',
+    keywords: 'AI development, AI software, GPT integration, Claude, machine learning, AI consulting, Austin TX',
+    canonicalUrl: 'https://thatsoftwarehouse.com/ai-software',
+    structuredData: {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      name: 'AI Software Development',
+      provider: { '@type': 'Organization', name: 'That Software House' },
+      description: 'Custom AI solutions including LLM integrations, predictive analytics, and intelligent automation.',
+      areaServed: 'Worldwide',
+      serviceType: 'AI Software Development',
+    },
+  });
   const [activeTab, setActiveTab] = useState('healthcare');
 
   const aiPlatforms = [

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSEO } from '@/hooks/useSEO';
 import Hero from '../components/Hero';
 import Services from '../components/Services';
 import ValueProps from '../components/ValueProps';
@@ -8,6 +9,41 @@ import ContactFormSection from '../components/ContactFormSection';
 import './Home.css';
 
 const Home = () => {
+  useSEO({
+    title: 'That Software House | Product, Design & Engineering Studio',
+    description: 'That Software House builds secure, scalable products for web, mobile, and AI. Based in Austin, Texas and serving clients worldwide.',
+    keywords: 'software development, product design, engineering studio, web app, mobile app, AI, Austin TX',
+    canonicalUrl: 'https://thatsoftwarehouse.com/',
+    openGraph: {
+      title: 'That Software House | Product, Design & Engineering Studio',
+      description: 'End-to-end software development from people who\'ve built at scale.',
+      image: 'https://thatsoftwarehouse.com/og-image.png',
+      url: 'https://thatsoftwarehouse.com/',
+    },
+    structuredData: {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'That Software House',
+      url: 'https://thatsoftwarehouse.com',
+      logo: 'https://thatsoftwarehouse.com/favicon.svg',
+      description: 'Product, Design & Engineering Studio based in Austin, Texas.',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Austin',
+        addressRegion: 'TX',
+        addressCountry: 'US',
+      },
+      contactPoint: {
+        '@type': 'ContactPoint',
+        email: 'contact@thatsoftwarehouse.com',
+        contactType: 'sales',
+      },
+      sameAs: [
+        'https://www.linkedin.com/company/that-software-house/',
+        'https://www.instagram.com/thatsoftwarehouse/',
+      ],
+    },
+  });
   const awards = [
     'Forbes Business Awards',
     'Top App Dev Firm',

@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
 import DatePicker from 'react-datepicker';
+import { useSEO } from '@/hooks/useSEO';
 import 'react-datepicker/dist/react-datepicker.css';
 import './Contact.css';
 
 const Contact = () => {
+  useSEO({
+    title: 'Contact Us | That Software House',
+    description: 'Get in touch with That Software House. Schedule a call or send us a message about your project. Based in Austin, TX — serving clients worldwide.',
+    keywords: 'contact software house, hire developers, software consultation, Austin TX',
+    canonicalUrl: 'https://thatsoftwarehouse.com/contact',
+  });
   const [scheduleName, setScheduleName] = useState('');
   const [scheduleEmail, setScheduleEmail] = useState('');
   const [scheduleDate, setScheduleDate] = useState(null);
