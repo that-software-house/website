@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Zap, Bot, FileText, BarChart3, Eraser, RefreshCw, CircleDollarSign, Music } from 'lucide-react';
+import { Sparkles, ArrowRight, Zap, Bot, FileText, BarChart3, Eraser, RefreshCw, CircleDollarSign, Music, Users } from 'lucide-react';
 import { useSEO } from '@/hooks/useSEO';
 import './Projects.css';
 import SectionCta from '@/components/SectionCta';
@@ -102,6 +102,18 @@ const projects = [
     tags: ['Spotify', 'Music', 'Analytics'],
     apps: [
       { id: 'music-stats', name: 'Music Stats', description: 'View your Spotify listening stats' }
+    ]
+  },
+  {
+    id: 'leadflow',
+    title: 'LeadFlow AI',
+    subtitle: 'AI-Powered CRM',
+    description: 'Auto-capture leads from email, web forms, and social DMs with zero manual data entry. AI extracts contact info, intent, urgency, and deal size instantly.',
+    icon: Users,
+    gradient: 'from-indigo-500 to-blue-600',
+    tags: ['AI', 'CRM', 'Leads', 'SMB'],
+    apps: [
+      { id: 'leadflow-ai', name: 'LeadFlow AI', description: 'AI-powered lead capture and pipeline' }
     ]
   }
 ];

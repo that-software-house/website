@@ -439,6 +439,32 @@ export async function createBillingPortalSession() {
  * @param {string} url - The URL to extract content from
  * @returns {Promise<string>}
  */
+const LEADFLOW_API_BASE = '/api/leadflow';
+
+/**
+ * Extract structured lead data from raw text (email, DM, or form submission)
+ * @param {string} text - The raw text to extract lead data from
+ * @param {string} sourceType - The source type: 'email', 'dm', or 'form'
+ * @returns {Promise<Object>} - Extracted lead data
+ */
+export async function extractLead(text, sourceType) {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${LEADFLOW_API_BASE}/extract`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ text, sourceType }),
+  });
+
+  const data = await parseJsonSafe(response);
+  syncUsageFromResponse(response, data);
+  if (!response.ok) {
+    const message = data?.message || data?.error || 'Failed to extract lead data';
+    throw new Error(message);
+  }
+
+  return data?.lead || {};
+}
+
 export async function extractFromUrl(url) {
   // URL extraction is handled automatically by the generate endpoint
   // when sourceType is 'url'
@@ -472,6 +498,7 @@ export default {
   fetchInvoiceDocuments,
   createInvoiceChaserCheckout,
   createBillingPortalSession,
+  extractLead,
   extractFromUrl,
   extractFromYouTube,
 };

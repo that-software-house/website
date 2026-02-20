@@ -268,6 +268,39 @@ Return ONLY the rewritten text. Do not include phrases like "Here's the rewritte
 });
 
 /**
+ * LeadFlow AI Agent
+ * Extracts structured lead data from raw text (emails, DMs, form submissions)
+ */
+export const leadFlowAgent = new Agent({
+  name: 'LeadFlow AI Extractor',
+  model: 'gpt-4o-mini',
+  instructions: `You are an AI lead extraction agent for a CRM system. Given raw text from an email, social media DM, or form submission, extract structured lead data.
+
+EXTRACT THE FOLLOWING FIELDS:
+- name: The person's full name
+- company: Their company or business name
+- email: Their email address (if present)
+- phone: Their phone number (if present)
+- intent: A brief description of what they need (1 sentence)
+- urgency: Rate as "low", "medium", or "high" based on language cues (deadlines, budget mentions, urgency words)
+- deal_size: Estimated project value in USD (integer, no decimals). Infer from context if not explicit.
+- suggested_action: What the recipient should do next (e.g., "Schedule discovery call", "Send portfolio", "Send pricing")
+- summary: A 1-2 sentence summary of the opportunity
+
+GUIDELINES:
+- If a field cannot be determined, omit it or set to null
+- For deal_size, make a reasonable estimate based on the project scope if no budget is mentioned
+- Urgency signals: "ASAP", "this week", "urgent" = high; specific timeline = medium; "no rush", "exploring" = low
+- Be concise and actionable
+
+OUTPUT FORMAT:
+Return ONLY valid JSON with the extracted fields. No explanation, no markdown formatting, no code blocks. Just the raw JSON object.
+
+Example output:
+{"name":"Sarah Chen","company":"TechStart Inc","email":"sarah@techstart.io","phone":null,"intent":"Custom inventory management web application","urgency":"high","deal_size":15000,"suggested_action":"Schedule discovery call","summary":"Growing e-commerce startup needs custom inventory system, budget ~$15K, wants to move quickly."}`,
+});
+
+/**
  * Master Content Agent with Tools
  * Can delegate to other agents as tools
  */
