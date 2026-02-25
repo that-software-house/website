@@ -17,23 +17,52 @@ const MAX_FRAMES = 15;
 const YT_FRAME_COUNT = 8;
 const TARGET_WIDTH = 640;
 
-// Create a ytdl agent with YouTube cookies to bypass bot detection in production
-function getYtdlAgent() {
-  const raw = process.env.YOUTUBE_COOKIES;
-  if (!raw) return undefined;
-  try {
-    const cookies = JSON.parse(raw);
-    return ytdl.createAgent(cookies);
-  } catch (e) {
-    console.warn('Failed to parse YOUTUBE_COOKIES:', e.message);
-    return undefined;
-  }
-}
-
 function formatTimestamp(seconds) {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
   return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+function extractYouTubeVideoId(url) {
+  const patterns = [
+    /[?&]v=([a-zA-Z0-9_-]{11})/,
+    /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+function parseISODuration(iso) {
+  const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!match) return 0;
+  return parseInt(match[1] || 0) * 3600 + parseInt(match[2] || 0) * 60 + parseInt(match[3] || 0);
+}
+
+// Step 1: Always use YouTube Data API for metadata (never blocked)
+async function fetchYouTubeMetadata(videoId) {
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  if (!apiKey) throw new Error('YouTube API key not configured. Set YOUTUBE_API_KEY environment variable.');
+
+  const res = await fetch(
+    `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${apiKey}`
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message || 'YouTube API request failed.');
+  if (!data.items?.length) throw new Error('Video not found or is private.');
+
+  const item = data.items[0];
+  return {
+    title: item.snippet.title,
+    author: item.snippet.channelTitle,
+    duration: parseISODuration(item.contentDetails.duration),
+    thumbnail: item.snippet.thumbnails.maxres?.url
+      || item.snippet.thumbnails.high?.url
+      || item.snippet.thumbnails.default?.url,
+  };
 }
 
 function extractFrameAtTimestamp(videoUrl, timestamp) {
@@ -63,51 +92,54 @@ function extractFrameAtTimestamp(videoUrl, timestamp) {
   });
 }
 
-async function handleYouTube(youtubeUrl) {
-  // Get video info (duration, title, stream URL)
-  const agent = getYtdlAgent();
-  const info = await ytdl.getInfo(youtubeUrl, { agent });
-  const duration = parseInt(info.videoDetails.lengthSeconds, 10);
-  if (!duration || duration <= 0) throw new Error('Could not determine video duration.');
-
-  const metadata = {
-    title: info.videoDetails.title || 'YouTube Video',
-    author: info.videoDetails.author?.name || 'Unknown',
-    duration,
-  };
-
-  // Pick a streamable format (prefer mp4 with video)
-  const format = ytdl.chooseFormat(info.formats, {
-    quality: 'lowest',
-    filter: 'videoandaudio',
-  });
+// Step 2: Try ytdl-core for multi-frame extraction (works locally, may fail on cloud IPs)
+async function extractFramesViaYtdl(youtubeUrl, duration) {
+  const info = await ytdl.getInfo(youtubeUrl);
+  const format = ytdl.chooseFormat(info.formats, { quality: 'lowest', filter: 'videoandaudio' });
   if (!format?.url) throw new Error('No suitable video format found.');
 
-  // Calculate evenly-spaced timestamps across the video
   const frameCount = Math.min(YT_FRAME_COUNT, Math.max(2, Math.floor(duration / 10)));
   const interval = duration / (frameCount + 1);
-  const timestamps = [];
-  for (let i = 1; i <= frameCount; i++) {
-    timestamps.push(Math.floor(interval * i));
-  }
+  const timestamps = Array.from({ length: frameCount }, (_, i) => Math.floor(interval * (i + 1)));
 
-  // Extract frames in parallel
   const frames = [];
   const results = await Promise.allSettled(
     timestamps.map(async (ts) => {
       const buffer = await extractFrameAtTimestamp(format.url, ts);
-      const base64 = `data:image/jpeg;base64,${buffer.toString('base64')}`;
-      return { base64, timestamp: formatTimestamp(ts) };
+      return { base64: `data:image/jpeg;base64,${buffer.toString('base64')}`, timestamp: formatTimestamp(ts) };
     })
   );
-
-  for (const result of results) {
-    if (result.status === 'fulfilled') {
-      frames.push(result.value);
-    }
+  for (const r of results) {
+    if (r.status === 'fulfilled') frames.push(r.value);
   }
+  if (frames.length === 0) throw new Error('Frame extraction failed.');
+  return frames;
+}
 
-  if (frames.length === 0) throw new Error('Could not extract any frames from the YouTube video.');
+// Step 3: Fallback — use the single best thumbnail from YouTube Data API
+async function extractThumbnailFallback(thumbnailUrl) {
+  const res = await fetch(thumbnailUrl);
+  if (!res.ok) throw new Error('Could not fetch YouTube thumbnail.');
+  const buffer = Buffer.from(await res.arrayBuffer());
+  return [{ base64: `data:image/jpeg;base64,${buffer.toString('base64')}`, timestamp: '0:00' }];
+}
+
+async function handleYouTube(youtubeUrl) {
+  const videoId = extractYouTubeVideoId(youtubeUrl);
+  if (!videoId) throw new Error('Could not extract YouTube video ID from URL.');
+
+  // Always works — YouTube Data API is not bot-blocked
+  const meta = await fetchYouTubeMetadata(videoId);
+  const metadata = { title: meta.title, author: meta.author, duration: meta.duration };
+
+  // Try full frame extraction, fall back to thumbnail
+  let frames;
+  try {
+    frames = await extractFramesViaYtdl(youtubeUrl, meta.duration);
+  } catch (e) {
+    console.warn('ytdl-core frame extraction failed, falling back to thumbnail:', e.message);
+    frames = await extractThumbnailFallback(meta.thumbnail);
+  }
 
   return { frames, metadata };
 }
