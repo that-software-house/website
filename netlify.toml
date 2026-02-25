@@ -65,6 +65,16 @@
   status = 200
 
 [[redirects]]
+  from = "/api/video-analyzer/analyze"
+  to = "/.netlify/functions/video-analyzer"
+  status = 200
+
+[[redirects]]
+  from = "/api/video-analyzer/*"
+  to = "/.netlify/functions/video-analyzer/:splat"
+  status = 200
+
+[[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200

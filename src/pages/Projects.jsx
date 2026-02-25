@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Zap, Bot, FileText, BarChart3, Eraser, RefreshCw, CircleDollarSign, Music, Users } from 'lucide-react';
+import { Sparkles, ArrowRight, Zap, Bot, FileText, BarChart3, Eraser, RefreshCw, CircleDollarSign, Music, Users, Video } from 'lucide-react';
 import { useSEO } from '@/hooks/useSEO';
 import './Projects.css';
 import SectionCta from '@/components/SectionCta';
@@ -114,6 +114,18 @@ const projects = [
     tags: ['AI', 'CRM', 'Leads', 'SMB'],
     apps: [
       { id: 'leadflow-ai', name: 'LeadFlow AI', description: 'AI-powered lead capture and pipeline' }
+    ]
+  },
+  {
+    id: 'videoanalyzer',
+    title: 'Video Analyzer',
+    subtitle: 'AI Video Intelligence',
+    description: 'Upload a video to extract keyframes, get AI-powered analysis, and generate LinkedIn, Twitter, and carousel content automatically.',
+    icon: Video,
+    gradient: 'from-sky-500 to-violet-600',
+    tags: ['AI', 'Video', 'Content'],
+    apps: [
+      { id: 'video-analyzer', name: 'Video Analyzer', description: 'Analyze video and generate social content' }
     ]
   }
 ];

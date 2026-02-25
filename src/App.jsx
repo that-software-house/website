@@ -18,6 +18,7 @@ import AiSoftware from './pages/AiSoftware'
 import CustomSoftware from './pages/CustomSoftware'
 import ThankYou from './pages/ThankYou'
 import DataInsights from './pages/DataInsights'
+import VideoAnalyzer from './pages/VideoAnalyzer'
 import ValidateIdea from './pages/ValidateIdea'
 import BuildProduct from './pages/BuildProduct'
 import ScaleProduct from './pages/ScaleProduct'
@@ -49,6 +50,7 @@ function App() {
           <Route path="/scale-your-product" element={<ScaleProduct />} />
           <Route path="/thank-you" element={<ThankYou />} />
           <Route path="/data-insights" element={<DataInsights />} />
+          <Route path="/video-analyzer" element={<VideoAnalyzer />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

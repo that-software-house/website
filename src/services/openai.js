@@ -10,6 +10,7 @@ const DOC_API_BASE = '/api/doc-analyzer';
 const TONE_API_BASE = '/api/tone';
 const DATA_INSIGHTS_API_BASE = '/api/data-insights';
 const INVOICE_CHASER_API_BASE = '/api/invoice-chaser';
+const VIDEO_ANALYZER_API_BASE = '/api/video-analyzer';
 const BILLING_API_BASE = '/api/billing';
 const USAGE_UPDATED_EVENT = 'usage:updated';
 
@@ -465,6 +466,55 @@ export async function extractLead(text, sourceType) {
   return data?.lead || {};
 }
 
+/**
+ * Analyze video frames using AI vision and generate summary + social content
+ * @param {Array<{base64: string, timestamp: string}>} frames - Extracted video frames
+ * @param {boolean} generateContent - Whether to also generate social media content
+ * @returns {Promise<Object>} - Frame descriptions, summary, and optional content
+ */
+export async function analyzeVideoFrames(frames, generateContent = true, youtubeMetadata = null) {
+  const headers = await getAuthHeaders();
+  const payload = { frames, generateContent };
+  if (youtubeMetadata) payload.youtubeMetadata = youtubeMetadata;
+  const response = await fetch(`${VIDEO_ANALYZER_API_BASE}/analyze`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload),
+  });
+
+  const data = await parseJsonSafe(response);
+  syncUsageFromResponse(response, data);
+  if (!response.ok) {
+    const message = data?.message || data?.error || 'Failed to analyze video';
+    throw new Error(message);
+  }
+
+  return data || {};
+}
+
+/**
+ * Fetch YouTube video thumbnails + metadata (no AI, just frame extraction)
+ * @param {string} youtubeUrl - The YouTube URL
+ * @returns {Promise<{frames: Array, metadata: Object}>}
+ */
+export async function fetchYouTubeFrames(youtubeUrl) {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${VIDEO_ANALYZER_API_BASE}/youtube-frames`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ youtubeUrl }),
+  });
+
+  const data = await parseJsonSafe(response);
+  syncUsageFromResponse(response, data);
+  if (!response.ok) {
+    const message = data?.message || data?.error || 'Failed to fetch YouTube frames';
+    throw new Error(message);
+  }
+
+  return data || {};
+}
+
 export async function extractFromUrl(url) {
   // URL extraction is handled automatically by the generate endpoint
   // when sourceType is 'url'
@@ -498,6 +548,8 @@ export default {
   fetchInvoiceDocuments,
   createInvoiceChaserCheckout,
   createBillingPortalSession,
+  analyzeVideoFrames,
+  fetchYouTubeFrames,
   extractLead,
   extractFromUrl,
   extractFromYouTube,

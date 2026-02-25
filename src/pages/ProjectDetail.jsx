@@ -12,6 +12,7 @@ import ToneConverterApp from '../components/apps/ToneConverterApp';
 import InvoiceChaserApp from '../components/apps/InvoiceChaserApp';
 import MusicStatsApp from '../components/apps/MusicStatsApp';
 import LeadFlowApp from '../components/apps/LeadFlowApp';
+import VideoAnalyzerApp from '../components/apps/VideoAnalyzerApp';
 import UsageBanner from '../components/auth/UsageBanner';
 import './ProjectDetail.css';
 
@@ -103,13 +104,15 @@ function ProjectDetail() {
         return <MusicStatsApp />;
       case 'leadflow':
         return <LeadFlowApp />;
+      case 'videoanalyzer':
+        return <VideoAnalyzerApp />;
       default:
         return null;
     }
   };
 
   // Check if this project uses AI features (needs usage banner)
-  const usesAI = ['contentforge', 'docanalyzer', 'datainsights', 'toneconverter', 'invoicechaser', 'leadflow'].includes(project.id);
+  const usesAI = ['contentforge', 'docanalyzer', 'datainsights', 'toneconverter', 'invoicechaser', 'leadflow', 'videoanalyzer'].includes(project.id);
 
   return (
     <div className="project-detail-page">
