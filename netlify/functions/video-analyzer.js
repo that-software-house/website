@@ -1,8 +1,9 @@
 import { Agent, setOpenAIAPI, run } from '@openai/agents';
 import OpenAI from 'openai';
+import ytdl from '@distube/ytdl-core';
 import ffmpegPath from 'ffmpeg-static';
 import ffmpeg from 'fluent-ffmpeg';
-import { PassThrough, Readable } from 'stream';
+import { PassThrough } from 'stream';
 import { consumeRateLimit } from './_lib/rateLimit.js';
 import { extractSubpath, jsonResponse, methodNotAllowed, optionsResponse } from './_lib/http.js';
 
@@ -13,6 +14,7 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 const openai = new OpenAI();
 const MAX_FRAMES = 15;
 const YT_FRAME_COUNT = 8;
+const TARGET_WIDTH = 640;
 
 function formatTimestamp(seconds) {
   const mins = Math.floor(seconds / 60);
@@ -20,77 +22,26 @@ function formatTimestamp(seconds) {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-function extractYouTubeVideoId(url) {
-  const patterns = [
-    /[?&]v=([a-zA-Z0-9_-]{11})/,
-    /youtu\.be\/([a-zA-Z0-9_-]{11})/,
-    /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
-  ];
-  for (const p of patterns) {
-    const m = url.match(p);
-    if (m) return m[1];
-  }
-  return null;
-}
-
-async function fetchYouTubePageData(videoId) {
-  const res = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept-Language': 'en-US,en;q=0.9',
-    },
-  });
-  const html = await res.text();
-  const playerMatch = html.match(/var ytInitialPlayerResponse\s*=\s*(\{.+?\});/s);
-  if (!playerMatch) throw new Error('Could not parse YouTube page. The video may be private or unavailable.');
-  const player = JSON.parse(playerMatch[1]);
-  return {
-    title: player.videoDetails?.title || 'YouTube Video',
-    author: player.videoDetails?.author || 'Unknown',
-    duration: parseInt(player.videoDetails?.lengthSeconds, 10) || 0,
-    storyboardSpec: player.storyboards?.playerStoryboardSpecRenderer?.spec || null,
-  };
-}
-
-function parseStoryboardSpec(spec) {
-  const parts = spec.split('|');
-  const baseUrl = parts[0];
-  const levelIdx = parts.length - 1;
-  const levelData = parts[levelIdx].split('#');
-  const [tw, th, totalFrames, cols, rows, intervalMs, namePattern, sigh] = levelData;
-  return {
-    baseUrl,
-    levelNumber: levelIdx - 1,
-    frameW: parseInt(tw),
-    frameH: parseInt(th),
-    totalFrames: parseInt(totalFrames),
-    cols: parseInt(cols),
-    rows: parseInt(rows),
-    framesPerSheet: parseInt(cols) * parseInt(rows),
-    intervalSec: parseInt(intervalMs) / 1000,
-    namePattern,
-    sigh,
-  };
-}
-
-function cropFrameFromSheet(sheetBuffer, frameW, frameH, x, y) {
+function extractFrameAtTimestamp(videoUrl, timestamp) {
   return new Promise((resolve, reject) => {
     const chunks = [];
     const passthrough = new PassThrough();
+
     passthrough.on('data', (chunk) => chunks.push(chunk));
     passthrough.on('end', () => {
       const buffer = Buffer.concat(chunks);
-      if (buffer.length === 0) return reject(new Error('Empty cropped frame'));
+      if (buffer.length === 0) {
+        reject(new Error(`Empty frame at ${timestamp}s`));
+        return;
+      }
       resolve(buffer);
     });
     passthrough.on('error', reject);
-    const input = new Readable();
-    input.push(sheetBuffer);
-    input.push(null);
-    ffmpeg(input)
-      .inputFormat('image2pipe')
-      .videoFilter(`crop=${frameW}:${frameH}:${x}:${y}`)
+
+    ffmpeg(videoUrl)
+      .seekInput(timestamp)
       .frames(1)
+      .size(`${TARGET_WIDTH}x?`)
       .format('image2')
       .outputOptions(['-vcodec', 'mjpeg'])
       .on('error', reject)
@@ -99,54 +50,41 @@ function cropFrameFromSheet(sheetBuffer, frameW, frameH, x, y) {
 }
 
 async function handleYouTube(youtubeUrl) {
-  const videoId = extractYouTubeVideoId(youtubeUrl);
-  if (!videoId) throw new Error('Could not extract YouTube video ID from URL.');
+  const info = await ytdl.getInfo(youtubeUrl);
+  const duration = parseInt(info.videoDetails.lengthSeconds, 10);
+  if (!duration || duration <= 0) throw new Error('Could not determine video duration.');
 
-  const pageData = await fetchYouTubePageData(videoId);
-  const { duration, storyboardSpec } = pageData;
-  const metadata = { title: pageData.title, author: pageData.author, duration };
+  const metadata = {
+    title: info.videoDetails.title || 'YouTube Video',
+    author: info.videoDetails.author?.name || 'Unknown',
+    duration,
+  };
 
-  if (!storyboardSpec) {
-    const thumbRes = await fetch(`https://img.youtube.com/vi/${videoId}/hqdefault.jpg`);
-    if (!thumbRes.ok) throw new Error('Could not fetch YouTube thumbnail.');
-    const buf = Buffer.from(await thumbRes.arrayBuffer());
-    return {
-      frames: [{ base64: `data:image/jpeg;base64,${buf.toString('base64')}`, timestamp: '0:00' }],
-      metadata,
-    };
-  }
+  const format = ytdl.chooseFormat(info.formats, {
+    quality: 'lowest',
+    filter: 'videoandaudio',
+  });
+  if (!format?.url) throw new Error('No suitable video format found.');
 
-  const sb = parseStoryboardSpec(storyboardSpec);
-  const desiredCount = Math.min(YT_FRAME_COUNT, Math.max(2, sb.totalFrames));
-  const step = Math.floor(sb.totalFrames / (desiredCount + 1));
-  const selectedIndices = Array.from({ length: desiredCount }, (_, i) => step * (i + 1));
-
-  const sheetGroups = {};
-  for (const idx of selectedIndices) {
-    const sheetIdx = Math.floor(idx / sb.framesPerSheet);
-    if (!sheetGroups[sheetIdx]) sheetGroups[sheetIdx] = [];
-    sheetGroups[sheetIdx].push(idx);
+  const frameCount = Math.min(YT_FRAME_COUNT, Math.max(2, Math.floor(duration / 10)));
+  const interval = duration / (frameCount + 1);
+  const timestamps = [];
+  for (let i = 1; i <= frameCount; i++) {
+    timestamps.push(Math.floor(interval * i));
   }
 
   const frames = [];
-  for (const [sheetIdx, frameIndices] of Object.entries(sheetGroups)) {
-    const sheetName = sb.namePattern.replace('$M', sheetIdx);
-    let url = sb.baseUrl.replace('$L', String(sb.levelNumber)).replace('$N', sheetName);
-    url += '&sigh=' + sb.sigh;
-    const res = await fetch(url);
-    if (!res.ok) continue;
-    const sheetBuffer = Buffer.from(await res.arrayBuffer());
-    for (const frameIdx of frameIndices) {
-      try {
-        const localIdx = frameIdx % sb.framesPerSheet;
-        const col = localIdx % sb.cols;
-        const row = Math.floor(localIdx / sb.cols);
-        const x = col * sb.frameW;
-        const y = row * sb.frameH;
-        const timestamp = frameIdx * sb.intervalSec;
-        const frameBuf = await cropFrameFromSheet(sheetBuffer, sb.frameW, sb.frameH, x, y);
-        frames.push({ base64: `data:image/jpeg;base64,${frameBuf.toString('base64')}`, timestamp: formatTimestamp(timestamp) });
-      } catch { /* skip */ }
+  const results = await Promise.allSettled(
+    timestamps.map(async (ts) => {
+      const buffer = await extractFrameAtTimestamp(format.url, ts);
+      const base64 = `data:image/jpeg;base64,${buffer.toString('base64')}`;
+      return { base64, timestamp: formatTimestamp(ts) };
+    })
+  );
+
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      frames.push(result.value);
     }
   }
 
