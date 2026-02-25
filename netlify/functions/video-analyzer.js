@@ -16,6 +16,18 @@ const MAX_FRAMES = 15;
 const YT_FRAME_COUNT = 8;
 const TARGET_WIDTH = 640;
 
+function getYtdlAgent() {
+  const raw = process.env.YOUTUBE_COOKIES;
+  if (!raw) return undefined;
+  try {
+    const cookies = JSON.parse(raw);
+    return ytdl.createAgent(cookies);
+  } catch (e) {
+    console.warn('Failed to parse YOUTUBE_COOKIES:', e.message);
+    return undefined;
+  }
+}
+
 function formatTimestamp(seconds) {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
@@ -50,7 +62,8 @@ function extractFrameAtTimestamp(videoUrl, timestamp) {
 }
 
 async function handleYouTube(youtubeUrl) {
-  const info = await ytdl.getInfo(youtubeUrl);
+  const agent = getYtdlAgent();
+  const info = await ytdl.getInfo(youtubeUrl, { agent });
   const duration = parseInt(info.videoDetails.lengthSeconds, 10);
   if (!duration || duration <= 0) throw new Error('Could not determine video duration.');
 
