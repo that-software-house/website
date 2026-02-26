@@ -24,6 +24,7 @@ import BuildProduct from './pages/BuildProduct'
 import ScaleProduct from './pages/ScaleProduct'
 import ResetPassword from './pages/ResetPassword'
 import WebsiteCostEstimator from './pages/WebsiteCostEstimator'
+import LaunchReadiness from './pages/LaunchReadiness'
 import NotFound from './pages/NotFound'
 import './App.css'
 
@@ -53,6 +54,7 @@ function App() {
           <Route path="/data-insights" element={<DataInsights />} />
           <Route path="/video-analyzer" element={<VideoAnalyzer />} />
           <Route path="/website-cost-estimator" element={<WebsiteCostEstimator />} />
+          <Route path="/launch-readiness-checker" element={<LaunchReadiness />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

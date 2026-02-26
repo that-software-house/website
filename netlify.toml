@@ -70,6 +70,11 @@
   status = 200
 
 [[redirects]]
+  from = "/api/launch-checker-lead"
+  to = "/.netlify/functions/launch-checker-lead"
+  status = 200
+
+[[redirects]]
   from = "/api/video-analyzer/analyze"
   to = "/.netlify/functions/video-analyzer"
   status = 200

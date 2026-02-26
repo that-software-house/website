@@ -73,6 +73,15 @@
       <input type="text" name="estimateLow" />
       <input type="text" name="estimateHigh" />
     </form>
+    <form name="launch-readiness-checker" netlify netlify-honeypot="bot-field" hidden>
+      <input type="text" name="name" />
+      <input type="email" name="email" />
+      <input type="text" name="track" />
+      <textarea name="answers"></textarea>
+      <input type="text" name="overallScore" />
+      <textarea name="categoryScores"></textarea>
+      <textarea name="topGaps"></textarea>
+    </form>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
