@@ -5,7 +5,6 @@ import ytdl from '@distube/ytdl-core';
 import ffmpegPath from 'ffmpeg-static';
 import ffmpeg from 'fluent-ffmpeg';
 import { PassThrough } from 'stream';
-import { createHash } from 'crypto';
 import { videoSummaryAgent } from '../agents/videoAnalyzerAgents.js';
 import { linkedInAgent, twitterAgent, carouselAgent } from '../agents/index.js';
 
@@ -135,28 +134,57 @@ async function extractFramesViaYtdl(youtubeUrl, duration) {
   return frames;
 }
 
-function buildYouTubeThumbnailCandidates(videoId, duration, thumbnailUrls = []) {
-  const timeline = [
-    { suffix: '0.jpg', timestamp: formatTimestamp(0) },
-    { suffix: '1.jpg', timestamp: formatTimestamp(Math.floor(duration * 0.25)) },
-    { suffix: '2.jpg', timestamp: formatTimestamp(Math.floor(duration * 0.5)) },
-    { suffix: '3.jpg', timestamp: formatTimestamp(Math.floor(duration * 0.75)) },
-  ];
-  const qualityFallbacks = ['maxresdefault.jpg', 'sddefault.jpg', 'hqdefault.jpg', 'mqdefault.jpg', 'default.jpg']
-    .map((suffix) => ({ suffix, timestamp: formatTimestamp(0) }));
-
-  const urlCandidates = [
-    ...timeline.map((item) => ({ url: `https://i.ytimg.com/vi/${videoId}/${item.suffix}`, timestamp: item.timestamp })),
-    ...qualityFallbacks.map((item) => ({ url: `https://i.ytimg.com/vi/${videoId}/${item.suffix}`, timestamp: item.timestamp })),
-    ...thumbnailUrls.map((url) => ({ url, timestamp: formatTimestamp(0) })),
-  ];
-
+function uniqueUrls(urls) {
   const seen = new Set();
-  return urlCandidates.filter((candidate) => {
-    if (!candidate?.url || seen.has(candidate.url)) return false;
-    seen.add(candidate.url);
-    return true;
-  });
+  const output = [];
+  for (const url of urls) {
+    if (!url || seen.has(url)) continue;
+    seen.add(url);
+    output.push(url);
+  }
+  return output;
+}
+
+function buildYouTubeThumbnailCandidates(videoId, duration, thumbnailUrls = []) {
+  return [
+    {
+      bucket: 'start',
+      timestamp: formatTimestamp(0),
+      urls: uniqueUrls([
+        `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
+        `https://i.ytimg.com/vi/${videoId}/sddefault.jpg`,
+        `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+        `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
+        `https://i.ytimg.com/vi/${videoId}/default.jpg`,
+        `https://i.ytimg.com/vi/${videoId}/0.jpg`,
+        ...thumbnailUrls,
+      ]),
+    },
+    {
+      bucket: 'quarter',
+      timestamp: formatTimestamp(Math.floor(duration * 0.25)),
+      urls: uniqueUrls([
+        `https://i.ytimg.com/vi/${videoId}/hq1.jpg`,
+        `https://i.ytimg.com/vi/${videoId}/1.jpg`,
+      ]),
+    },
+    {
+      bucket: 'half',
+      timestamp: formatTimestamp(Math.floor(duration * 0.5)),
+      urls: uniqueUrls([
+        `https://i.ytimg.com/vi/${videoId}/hq2.jpg`,
+        `https://i.ytimg.com/vi/${videoId}/2.jpg`,
+      ]),
+    },
+    {
+      bucket: 'threeQuarter',
+      timestamp: formatTimestamp(Math.floor(duration * 0.75)),
+      urls: uniqueUrls([
+        `https://i.ytimg.com/vi/${videoId}/hq3.jpg`,
+        `https://i.ytimg.com/vi/${videoId}/3.jpg`,
+      ]),
+    },
+  ];
 }
 
 async function fetchThumbnailCandidate({ url, timestamp }) {
@@ -170,31 +198,27 @@ async function fetchThumbnailCandidate({ url, timestamp }) {
   if (buffer.length < 800) return null;
 
   const mime = contentType.split(';')[0] || 'image/jpeg';
-  const hash = createHash('sha1').update(buffer).digest('hex');
   return {
-    hash,
-    frame: {
-      base64: `data:${mime};base64,${buffer.toString('base64')}`,
-      timestamp,
-    },
+    base64: `data:${mime};base64,${buffer.toString('base64')}`,
+    timestamp,
   };
 }
 
 // Bot-safe fallback: fetch multiple thumbnail variants directly from YouTube image endpoints.
 async function extractThumbnailFallback(videoId, duration, thumbnailUrls = []) {
-  const candidates = buildYouTubeThumbnailCandidates(videoId, duration, thumbnailUrls);
+  const buckets = buildYouTubeThumbnailCandidates(videoId, duration, thumbnailUrls);
   const frames = [];
-  const seenHashes = new Set();
 
-  for (const candidate of candidates) {
-    try {
-      const result = await fetchThumbnailCandidate(candidate);
-      if (!result || seenHashes.has(result.hash)) continue;
-      seenHashes.add(result.hash);
-      frames.push(result.frame);
-      if (frames.length >= YT_FRAME_COUNT) break;
-    } catch (error) {
-      console.warn(`Thumbnail fetch failed for ${candidate.url}:`, error.message);
+  for (const bucket of buckets) {
+    for (const url of bucket.urls) {
+      try {
+        const frame = await fetchThumbnailCandidate({ url, timestamp: bucket.timestamp });
+        if (!frame) continue;
+        frames.push(frame);
+        break;
+      } catch (error) {
+        console.warn(`Thumbnail fetch failed for ${url}:`, error.message);
+      }
     }
   }
 
