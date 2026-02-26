@@ -23,6 +23,7 @@ import ValidateIdea from './pages/ValidateIdea'
 import BuildProduct from './pages/BuildProduct'
 import ScaleProduct from './pages/ScaleProduct'
 import ResetPassword from './pages/ResetPassword'
+import WebsiteCostEstimator from './pages/WebsiteCostEstimator'
 import NotFound from './pages/NotFound'
 import './App.css'
 
@@ -51,6 +52,7 @@ function App() {
           <Route path="/thank-you" element={<ThankYou />} />
           <Route path="/data-insights" element={<DataInsights />} />
           <Route path="/video-analyzer" element={<VideoAnalyzer />} />
+          <Route path="/website-cost-estimator" element={<WebsiteCostEstimator />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

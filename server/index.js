@@ -9,6 +9,7 @@ import { scheduleRouter } from './routes/schedule.js';
 import { invoiceChaserRouter } from './routes/invoiceChaser.js';
 import { leadFlowRouter } from './routes/leadFlow.js';
 import { videoAnalyzerRouter } from './routes/videoAnalyzer.js';
+import { costEstimatorLeadRouter } from './routes/costEstimatorLead.js';
 import { authMiddleware, rateLimitMiddleware, getUsage } from './middleware/rateLimit.js';
 
 const app = express();
@@ -36,6 +37,7 @@ app.use('/api/invoice-chaser', rateLimitMiddleware, invoiceChaserRouter);
 app.use('/api/leadflow', rateLimitMiddleware, leadFlowRouter);
 app.use('/api/video-analyzer', rateLimitMiddleware, videoAnalyzerRouter);
 app.use('/api/schedule', scheduleRouter);
+app.use('/api/cost-estimator-lead', costEstimatorLeadRouter);
 
 // Chat widget (no rate limit - for website visitors)
 app.use('/api/chat', chatRouter);
