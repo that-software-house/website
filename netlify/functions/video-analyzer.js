@@ -4,6 +4,7 @@ import ytdl from '@distube/ytdl-core';
 import ffmpegPath from 'ffmpeg-static';
 import ffmpeg from 'fluent-ffmpeg';
 import { PassThrough } from 'stream';
+import { createHash } from 'crypto';
 import { consumeRateLimit } from './_lib/rateLimit.js';
 import { extractSubpath, jsonResponse, methodNotAllowed, optionsResponse } from './_lib/http.js';
 
@@ -41,6 +42,21 @@ function parseISODuration(iso) {
   return parseInt(match[1] || 0) * 3600 + parseInt(match[2] || 0) * 60 + parseInt(match[3] || 0);
 }
 
+function withTimeout(promise, ms, errorMessage) {
+  let timeoutId;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(errorMessage)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
+}
+
+function isYouTubeBotCheckError(error) {
+  const message = (error?.message || String(error || '')).toLowerCase();
+  return message.includes("sign in to confirm you're not a bot")
+    || message.includes('sign in to confirm you are not a bot')
+    || message.includes('not a bot');
+}
+
 // Step 1: Always use YouTube Data API for metadata (never blocked)
 async function fetchYouTubeMetadata(videoId) {
   const apiKey = process.env.YOUTUBE_API_KEY;
@@ -54,6 +70,9 @@ async function fetchYouTubeMetadata(videoId) {
   if (!data.items?.length) throw new Error('Video not found or is private.');
 
   const item = data.items[0];
+  const thumbnailUrls = Object.values(item.snippet.thumbnails || {})
+    .map((thumb) => thumb?.url)
+    .filter(Boolean);
   return {
     title: item.snippet.title,
     author: item.snippet.channelTitle,
@@ -61,6 +80,7 @@ async function fetchYouTubeMetadata(videoId) {
     thumbnail: item.snippet.thumbnails.maxres?.url
       || item.snippet.thumbnails.high?.url
       || item.snippet.thumbnails.default?.url,
+    thumbnailUrls,
   };
 }
 
@@ -102,25 +122,85 @@ async function extractFramesViaYtdl(youtubeUrl, duration) {
   const timestamps = Array.from({ length: frameCount }, (_, i) => Math.floor(interval * (i + 1)));
 
   const frames = [];
-  const results = await Promise.allSettled(
-    timestamps.map(async (ts) => {
+  for (const ts of timestamps) {
+    try {
       const buffer = await extractFrameAtTimestamp(format.url, ts);
-      return { base64: `data:image/jpeg;base64,${buffer.toString('base64')}`, timestamp: formatTimestamp(ts) };
-    })
-  );
-  for (const r of results) {
-    if (r.status === 'fulfilled') frames.push(r.value);
+      frames.push({ base64: `data:image/jpeg;base64,${buffer.toString('base64')}`, timestamp: formatTimestamp(ts) });
+    } catch (error) {
+      console.warn(`Skipping frame at ${ts}s:`, error.message);
+    }
   }
   if (frames.length === 0) throw new Error('Frame extraction failed.');
   return frames;
 }
 
-// Step 3: Fallback — use the single best thumbnail from YouTube Data API
-async function extractThumbnailFallback(thumbnailUrl) {
-  const res = await fetch(thumbnailUrl);
-  if (!res.ok) throw new Error('Could not fetch YouTube thumbnail.');
+function buildYouTubeThumbnailCandidates(videoId, duration, thumbnailUrls = []) {
+  const timeline = [
+    { suffix: '0.jpg', timestamp: formatTimestamp(0) },
+    { suffix: '1.jpg', timestamp: formatTimestamp(Math.floor(duration * 0.25)) },
+    { suffix: '2.jpg', timestamp: formatTimestamp(Math.floor(duration * 0.5)) },
+    { suffix: '3.jpg', timestamp: formatTimestamp(Math.floor(duration * 0.75)) },
+  ];
+  const qualityFallbacks = ['maxresdefault.jpg', 'sddefault.jpg', 'hqdefault.jpg', 'mqdefault.jpg', 'default.jpg']
+    .map((suffix) => ({ suffix, timestamp: formatTimestamp(0) }));
+
+  const urlCandidates = [
+    ...timeline.map((item) => ({ url: `https://i.ytimg.com/vi/${videoId}/${item.suffix}`, timestamp: item.timestamp })),
+    ...qualityFallbacks.map((item) => ({ url: `https://i.ytimg.com/vi/${videoId}/${item.suffix}`, timestamp: item.timestamp })),
+    ...thumbnailUrls.map((url) => ({ url, timestamp: formatTimestamp(0) })),
+  ];
+
+  const seen = new Set();
+  return urlCandidates.filter((candidate) => {
+    if (!candidate?.url || seen.has(candidate.url)) return false;
+    seen.add(candidate.url);
+    return true;
+  });
+}
+
+async function fetchThumbnailCandidate({ url, timestamp }) {
+  const res = await fetch(url);
+  if (!res.ok) return null;
+
+  const contentType = res.headers.get('content-type') || 'image/jpeg';
+  if (!contentType.toLowerCase().startsWith('image/')) return null;
+
   const buffer = Buffer.from(await res.arrayBuffer());
-  return [{ base64: `data:image/jpeg;base64,${buffer.toString('base64')}`, timestamp: '0:00' }];
+  if (buffer.length < 800) return null;
+
+  const mime = contentType.split(';')[0] || 'image/jpeg';
+  const hash = createHash('sha1').update(buffer).digest('hex');
+  return {
+    hash,
+    frame: {
+      base64: `data:${mime};base64,${buffer.toString('base64')}`,
+      timestamp,
+    },
+  };
+}
+
+// Bot-safe fallback: fetch multiple thumbnail variants directly from YouTube image endpoints.
+async function extractThumbnailFallback(videoId, duration, thumbnailUrls = []) {
+  const candidates = buildYouTubeThumbnailCandidates(videoId, duration, thumbnailUrls);
+  const frames = [];
+  const seenHashes = new Set();
+
+  for (const candidate of candidates) {
+    try {
+      const result = await fetchThumbnailCandidate(candidate);
+      if (!result || seenHashes.has(result.hash)) continue;
+      seenHashes.add(result.hash);
+      frames.push(result.frame);
+      if (frames.length >= YT_FRAME_COUNT) break;
+    } catch (error) {
+      console.warn(`Thumbnail fetch failed for ${candidate.url}:`, error.message);
+    }
+  }
+
+  if (frames.length === 0) {
+    throw new Error('Could not fetch YouTube thumbnails.');
+  }
+  return frames;
 }
 
 async function handleYouTube(youtubeUrl) {
@@ -130,17 +210,37 @@ async function handleYouTube(youtubeUrl) {
   // Always works — YouTube Data API is not bot-blocked
   const meta = await fetchYouTubeMetadata(videoId);
   const metadata = { title: meta.title, author: meta.author, duration: meta.duration };
+  const thumbnailUrls = [meta.thumbnail, ...(meta.thumbnailUrls || [])].filter(Boolean);
 
-  // Try full frame extraction, fall back to thumbnail
-  let frames;
+  // Primary bot-safe path: collect multiple thumbnails up-front.
+  let thumbnailFrames = [];
   try {
-    frames = await extractFramesViaYtdl(youtubeUrl, meta.duration);
+    thumbnailFrames = await extractThumbnailFallback(videoId, meta.duration, thumbnailUrls);
   } catch (e) {
-    console.warn('ytdl-core frame extraction failed, falling back to thumbnail:', e.message);
-    frames = await extractThumbnailFallback(meta.thumbnail);
+    console.warn('YouTube thumbnail extraction failed:', e.message);
   }
 
-  return { frames, metadata };
+  // Secondary path: try full frame extraction from stream URL.
+  try {
+    const streamFrames = await withTimeout(
+      extractFramesViaYtdl(youtubeUrl, meta.duration),
+      20000,
+      'YouTube stream extraction timed out.'
+    );
+    return { frames: streamFrames, metadata };
+  } catch (e) {
+    if (isYouTubeBotCheckError(e)) {
+      console.warn('YouTube bot-check detected; using thumbnail fallback.');
+    } else {
+      console.warn('ytdl-core frame extraction failed; using thumbnail fallback:', e.message);
+    }
+  }
+
+  if (thumbnailFrames.length > 0) {
+    return { frames: thumbnailFrames, metadata };
+  }
+
+  throw new Error('Unable to extract frames from YouTube stream or thumbnails.');
 }
 
 // Define agents inline (Netlify functions can't share imports with server/)
