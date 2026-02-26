@@ -15,6 +15,7 @@ const openai = new OpenAI();
 
 const MAX_FRAMES = 15;
 const YT_FRAME_COUNT = 8;
+const YT_STORYBOARD_TARGET = 10;
 const TARGET_WIDTH = 640;
 
 function formatTimestamp(seconds) {
@@ -114,6 +115,10 @@ function extractFrameAtTimestamp(videoUrl, timestamp) {
 // Step 2: Try ytdl-core for multi-frame extraction (works locally, may fail on cloud IPs)
 async function extractFramesViaYtdl(youtubeUrl, duration) {
   const info = await ytdl.getInfo(youtubeUrl);
+  return extractFramesFromYtdlInfo(info, duration);
+}
+
+async function extractFramesFromYtdlInfo(info, duration) {
   const format = ytdl.chooseFormat(info.formats, { quality: 'lowest', filter: 'videoandaudio' });
   if (!format?.url) throw new Error('No suitable video format found.');
 
@@ -131,6 +136,119 @@ async function extractFramesViaYtdl(youtubeUrl, duration) {
     }
   }
   if (frames.length === 0) throw new Error('Frame extraction failed.');
+  return frames;
+}
+
+function chooseStoryboard(info) {
+  const storyboards = info?.videoDetails?.storyboards || info?.storyboards || [];
+  if (!Array.isArray(storyboards) || storyboards.length === 0) return null;
+
+  return [...storyboards]
+    .filter((sb) => sb?.templateUrl && sb.thumbnailCount > 0 && sb.columns > 0 && sb.rows > 0)
+    .sort((a, b) => {
+      if (b.thumbnailCount !== a.thumbnailCount) return b.thumbnailCount - a.thumbnailCount;
+      return (b.thumbnailWidth * b.thumbnailHeight) - (a.thumbnailWidth * a.thumbnailHeight);
+    })[0] || null;
+}
+
+function getEvenlySpacedIndices(total, desired) {
+  if (!Number.isFinite(total) || total <= 0 || desired <= 0) return [];
+  if (total === 1) return [0];
+
+  const count = Math.min(total, desired);
+  const step = (total - 1) / Math.max(1, count - 1);
+  const indices = new Set();
+
+  for (let i = 0; i < count; i += 1) {
+    indices.add(Math.min(total - 1, Math.round(i * step)));
+  }
+
+  return [...indices].sort((a, b) => a - b);
+}
+
+function resolveStoryboardPageUrl(templateUrl, pageIndex) {
+  if (templateUrl.includes('$M')) {
+    return templateUrl.replace('$M', String(pageIndex));
+  }
+  const replaced = templateUrl.replace(/M\d+(?=\.jpg|\.jpeg|\.webp)/i, `M${pageIndex}`);
+  return replaced;
+}
+
+function storyboardIntervalSeconds(interval) {
+  if (!Number.isFinite(interval) || interval <= 0) return 1;
+  return interval > 1000 ? interval / 1000 : interval;
+}
+
+function extractStoryboardTile(pageUrl, crop, timestamp) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    const passthrough = new PassThrough();
+
+    passthrough.on('data', (chunk) => chunks.push(chunk));
+    passthrough.on('end', () => {
+      const buffer = Buffer.concat(chunks);
+      if (buffer.length === 0) {
+        reject(new Error(`Empty storyboard tile from ${pageUrl}`));
+        return;
+      }
+      resolve({
+        base64: `data:image/jpeg;base64,${buffer.toString('base64')}`,
+        timestamp,
+      });
+    });
+    passthrough.on('error', reject);
+
+    ffmpeg(pageUrl)
+      .frames(1)
+      .videoFilters(`crop=${crop.width}:${crop.height}:${crop.x}:${crop.y}`)
+      .format('image2')
+      .outputOptions(['-vcodec', 'mjpeg'])
+      .on('error', reject)
+      .pipe(passthrough, { end: true });
+  });
+}
+
+async function extractFramesViaStoryboard(info, duration) {
+  const storyboard = chooseStoryboard(info);
+  if (!storyboard) throw new Error('No storyboard data available.');
+
+  const thumbnailCount = Math.max(1, storyboard.thumbnailCount);
+  const indices = getEvenlySpacedIndices(thumbnailCount, YT_STORYBOARD_TARGET);
+  if (indices.length === 0) throw new Error('No storyboard frames available.');
+
+  const frames = [];
+  const tilesPerPage = storyboard.columns * storyboard.rows;
+  const intervalSeconds = storyboardIntervalSeconds(storyboard.interval);
+
+  for (const index of indices) {
+    const pageIndex = Math.floor(index / tilesPerPage);
+    if (pageIndex >= storyboard.storyboardCount) continue;
+
+    const withinPage = index % tilesPerPage;
+    const row = Math.floor(withinPage / storyboard.columns);
+    const col = withinPage % storyboard.columns;
+    const pageUrl = resolveStoryboardPageUrl(storyboard.templateUrl, pageIndex);
+    const seconds = Math.min(duration, Math.max(0, Math.floor(index * intervalSeconds)));
+    const timestamp = formatTimestamp(seconds);
+
+    try {
+      const frame = await extractStoryboardTile(
+        pageUrl,
+        {
+          width: storyboard.thumbnailWidth,
+          height: storyboard.thumbnailHeight,
+          x: col * storyboard.thumbnailWidth,
+          y: row * storyboard.thumbnailHeight,
+        },
+        timestamp
+      );
+      frames.push(frame);
+    } catch (error) {
+      console.warn(`Storyboard frame ${index} extraction failed:`, error.message);
+    }
+  }
+
+  if (frames.length === 0) throw new Error('Storyboard extraction produced no frames.');
   return frames;
 }
 
@@ -245,19 +363,59 @@ async function handleYouTube(youtubeUrl) {
     console.warn('YouTube thumbnail extraction failed:', e.message);
   }
 
-  // Secondary path: try full frame extraction from stream URL.
+  // Pre-fetch info once so we can reuse it for stream + storyboard extraction.
+  let ytdlInfo = null;
   try {
-    const streamFrames = await withTimeout(
-      extractFramesViaYtdl(youtubeUrl, meta.duration),
+    ytdlInfo = await withTimeout(
+      ytdl.getInfo(youtubeUrl),
       20000,
-      'YouTube stream extraction timed out.'
+      'YouTube info extraction timed out.'
     );
-    return { frames: streamFrames, metadata };
   } catch (e) {
     if (isYouTubeBotCheckError(e)) {
-      console.warn('YouTube bot-check detected; using thumbnail fallback.');
+      console.warn('YouTube bot-check detected while fetching video info.');
     } else {
-      console.warn('ytdl-core frame extraction failed; using thumbnail fallback:', e.message);
+      console.warn('Could not fetch YouTube info:', e.message);
+    }
+  }
+
+  // Secondary path: try full frame extraction from stream URL.
+  if (ytdlInfo) {
+    try {
+      const streamFrames = await withTimeout(
+        extractFramesFromYtdlInfo(ytdlInfo, meta.duration),
+        20000,
+        'YouTube stream extraction timed out.'
+      );
+      return { frames: streamFrames, metadata };
+    } catch (e) {
+      if (isYouTubeBotCheckError(e)) {
+        console.warn('YouTube bot-check detected during stream extraction; trying storyboard fallback.');
+      } else {
+        console.warn('ytdl-core stream frame extraction failed; trying storyboard fallback:', e.message);
+      }
+    }
+
+    try {
+      const storyboardFrames = await withTimeout(
+        extractFramesViaStoryboard(ytdlInfo, meta.duration),
+        20000,
+        'YouTube storyboard extraction timed out.'
+      );
+      if (storyboardFrames.length >= YT_FRAME_COUNT) {
+        return { frames: storyboardFrames, metadata };
+      }
+
+      const mergedFrames = [...storyboardFrames];
+      for (const frame of thumbnailFrames) {
+        if (mergedFrames.length >= YT_FRAME_COUNT) break;
+        mergedFrames.push(frame);
+      }
+      if (mergedFrames.length > 0) {
+        return { frames: mergedFrames, metadata };
+      }
+    } catch (e) {
+      console.warn('Storyboard extraction failed; using thumbnail fallback:', e.message);
     }
   }
 
@@ -265,7 +423,7 @@ async function handleYouTube(youtubeUrl) {
     return { frames: thumbnailFrames, metadata };
   }
 
-  throw new Error('Unable to extract frames from YouTube stream or thumbnails.');
+  throw new Error('Unable to extract frames from YouTube stream, storyboard, or thumbnails.');
 }
 
 function safeParseJSON(text) {
