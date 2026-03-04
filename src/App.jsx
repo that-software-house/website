@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import ScrollToTop from './components/ScrollToTop'
 import Header from './components/Header'
 import Footer from './components/Footer'
@@ -25,42 +25,53 @@ import ScaleProduct from './pages/ScaleProduct'
 import ResetPassword from './pages/ResetPassword'
 import WebsiteCostEstimator from './pages/WebsiteCostEstimator'
 import LaunchReadiness from './pages/LaunchReadiness'
+import AtxDentistryPreview from './pages/AtxDentistryPreview'
 import NotFound from './pages/NotFound'
 import './App.css'
+
+function AppContent() {
+  const location = useLocation()
+  const isStandaloneRoute = location.pathname.startsWith('/atx-dentistry')
+
+  return (
+    <div className={`app ${isStandaloneRoute ? 'app--standalone' : ''}`}>
+      {!isStandaloneRoute && <Header />}
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/services" element={<ServicesPage />} />
+        <Route path="/seo" element={<SeoPage />} />
+        <Route path="/marketing" element={<MarketingPage />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/projects" element={<Projects />} />
+        <Route path="/projects/:projectId" element={<ProjectDetail />} />
+        <Route path="/ai-software" element={<AiSoftware />} />
+        <Route path="/custom-software" element={<CustomSoftware />} />
+        <Route path="/validate-your-idea" element={<ValidateIdea />} />
+        <Route path="/build-your-product" element={<BuildProduct />} />
+        <Route path="/scale-your-product" element={<ScaleProduct />} />
+        <Route path="/thank-you" element={<ThankYou />} />
+        <Route path="/data-insights" element={<DataInsights />} />
+        <Route path="/video-analyzer" element={<VideoAnalyzer />} />
+        <Route path="/website-cost-estimator" element={<WebsiteCostEstimator />} />
+        <Route path="/launch-readiness-checker" element={<LaunchReadiness />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/atx-dentistry" element={<AtxDentistryPreview />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      {!isStandaloneRoute && <Footer />}
+      {!isStandaloneRoute && <ChatWidget />}
+    </div>
+  )
+}
 
 function App() {
   return (
     <Router>
       <ScrollToTop />
-      <div className="app">
-        <Header />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/services" element={<ServicesPage />} />
-          <Route path="/seo" element={<SeoPage />} />
-          <Route path="/marketing" element={<MarketingPage />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/projects" element={<Projects />} />
-          <Route path="/projects/:projectId" element={<ProjectDetail />} />
-          <Route path="/ai-software" element={<AiSoftware />} />
-          <Route path="/custom-software" element={<CustomSoftware />} />
-          <Route path="/validate-your-idea" element={<ValidateIdea />} />
-          <Route path="/build-your-product" element={<BuildProduct />} />
-          <Route path="/scale-your-product" element={<ScaleProduct />} />
-          <Route path="/thank-you" element={<ThankYou />} />
-          <Route path="/data-insights" element={<DataInsights />} />
-          <Route path="/video-analyzer" element={<VideoAnalyzer />} />
-          <Route path="/website-cost-estimator" element={<WebsiteCostEstimator />} />
-          <Route path="/launch-readiness-checker" element={<LaunchReadiness />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <Footer />
-        <ChatWidget />
-      </div>
+      <AppContent />
     </Router>
   )
 }
