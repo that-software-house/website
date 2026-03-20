@@ -1,16 +1,47 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Video, Loader2, AlertCircle, Sparkles } from 'lucide-react';
+import { Video, Loader2, AlertCircle, Sparkles, Lock } from 'lucide-react';
 import './VideoAnalyzerApp.css';
 import { analyzeVideoFrames, fetchYouTubeFrames } from '@/services/openai';
+import AuthModal from '@/components/auth/AuthModal';
+import { useAuth } from '@/context/AuthContext';
 import VideoInput from './videoanalyzer/VideoInput';
 import FrameExtractor from './videoanalyzer/FrameExtractor';
 import FrameGallery from './videoanalyzer/FrameGallery';
 import VideoSummary from './videoanalyzer/VideoSummary';
 import ContentOutput from './videoanalyzer/ContentOutput';
 
+const DEFAULT_FRAME_COUNT = 15;
+const MIN_FRAME_COUNT = 2;
+const MAX_FRAME_COUNT = 15;
+const DEFAULT_QUALITY = 'standard';
+
+const QUALITY_OPTIONS = [
+  {
+    value: 'standard',
+    label: 'Standard',
+    description: '640px, faster extraction',
+    requiresAuth: false,
+  },
+  {
+    value: 'high',
+    label: 'High',
+    description: '1280px, sharper frames',
+    requiresAuth: true,
+  },
+  {
+    value: 'original',
+    label: 'Original',
+    description: 'Source resolution, largest files',
+    requiresAuth: true,
+  },
+];
+
 const VideoAnalyzerApp = () => {
+  const { isAuthenticated } = useAuth();
   const [videoSource, setVideoSource] = useState(null);
+  const [frameCount, setFrameCount] = useState(DEFAULT_FRAME_COUNT);
+  const [frameQuality, setFrameQuality] = useState(DEFAULT_QUALITY);
   const [extractedFrames, setExtractedFrames] = useState([]);
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractionProgress, setExtractionProgress] = useState('');
@@ -21,6 +52,7 @@ const VideoAnalyzerApp = () => {
   const [generateContent, setGenerateContent] = useState(true);
   const [error, setError] = useState('');
   const [youtubeMetadata, setYoutubeMetadata] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleVideoSelect = useCallback((source, errorMsg) => {
     setError(errorMsg || '');
@@ -31,6 +63,25 @@ const VideoAnalyzerApp = () => {
     setYoutubeMetadata(null);
     setVideoSource(source);
   }, []);
+
+  const handleFrameCountChange = useCallback((event) => {
+    const nextValue = Number.parseInt(event.target.value, 10);
+    if (!Number.isFinite(nextValue)) return;
+
+    setFrameCount(Math.min(MAX_FRAME_COUNT, Math.max(MIN_FRAME_COUNT, nextValue)));
+  }, []);
+
+  const handleQualityChange = useCallback((nextQuality) => {
+    const selectedOption = QUALITY_OPTIONS.find((option) => option.value === nextQuality);
+    if (!selectedOption) return;
+
+    if (selectedOption.requiresAuth && !isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    setFrameQuality(nextQuality);
+  }, [isAuthenticated]);
 
   const handleExtractionStart = useCallback(() => {
     setIsExtracting(true);
@@ -54,6 +105,12 @@ const VideoAnalyzerApp = () => {
     setIsExtracting(false);
     setExtractionProgress('');
   }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated && frameQuality !== DEFAULT_QUALITY) {
+      setFrameQuality(DEFAULT_QUALITY);
+    }
+  }, [frameQuality, isAuthenticated]);
 
   // Auto-fetch YouTube thumbnails when a YouTube source is selected
   useEffect(() => {
@@ -124,7 +181,6 @@ const VideoAnalyzerApp = () => {
     }
   };
 
-  const hasResults = summary || frameDescriptions || content;
   const isBusy = isExtracting || isAnalyzing;
 
   return (
@@ -143,8 +199,62 @@ const VideoAnalyzerApp = () => {
         <VideoInput onVideoSelect={handleVideoSelect} disabled={isBusy} />
 
         {videoSource && videoSource.type !== 'youtube' && (
+          <div className="vidanalyzer-options">
+            <div className="vidanalyzer-settings-grid">
+              <label className="vidanalyzer-field">
+                <span>Frames to extract</span>
+                <input
+                  type="number"
+                  min={MIN_FRAME_COUNT}
+                  max={MAX_FRAME_COUNT}
+                  step="1"
+                  value={frameCount}
+                  onChange={handleFrameCountChange}
+                  disabled={isBusy}
+                />
+                <small>Choose between {MIN_FRAME_COUNT} and {MAX_FRAME_COUNT} evenly spaced frames.</small>
+              </label>
+
+              <div className="vidanalyzer-field">
+                <span>Frame quality</span>
+                <div className="vidanalyzer-quality-grid" role="radiogroup" aria-label="Frame quality">
+                  {QUALITY_OPTIONS.map((option) => {
+                    const isLocked = option.requiresAuth && !isAuthenticated;
+                    const isSelected = frameQuality === option.value;
+
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        className={`vidanalyzer-quality-option ${isSelected ? 'selected' : ''} ${isLocked ? 'locked' : ''}`}
+                        onClick={() => handleQualityChange(option.value)}
+                        aria-pressed={isSelected}
+                        disabled={isBusy}
+                      >
+                        <span className="vidanalyzer-quality-head">
+                          <span>{option.label}</span>
+                          {isLocked && <Lock size={14} />}
+                        </span>
+                        <small>{option.description}</small>
+                      </button>
+                    );
+                  })}
+                </div>
+                {!isAuthenticated && (
+                  <small>
+                    Sign in to unlock High and Original quality extraction.
+                  </small>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {videoSource && videoSource.type !== 'youtube' && (
           <FrameExtractor
             videoSource={videoSource}
+            frameCount={frameCount}
+            quality={frameQuality}
             onExtractionStart={handleExtractionStart}
             onFrameExtracted={handleFrameExtracted}
             onExtractionComplete={handleExtractionComplete}
@@ -246,6 +356,8 @@ const VideoAnalyzerApp = () => {
           <ContentOutput content={content} />
         </motion.div>
       )}
+
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   );
 };

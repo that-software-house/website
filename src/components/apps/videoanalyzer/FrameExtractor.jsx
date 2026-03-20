@@ -1,11 +1,32 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 
-const DEFAULT_INTERVAL = 3; // seconds between frames
+const DEFAULT_FRAME_COUNT = 15;
+const MIN_FRAMES = 2;
 const MAX_FRAMES = 15;
-const JPEG_QUALITY = 0.7;
-const TARGET_WIDTH = 640;
+const QUALITY_PRESETS = {
+  standard: { jpegQuality: 0.7, targetWidth: 640 },
+  high: { jpegQuality: 0.9, targetWidth: 1280 },
+  original: { jpegQuality: 0.95, targetWidth: null },
+};
 
-const FrameExtractor = ({ videoSource, onExtractionStart, onFrameExtracted, onExtractionComplete, onError }) => {
+function clampFrameCount(value) {
+  if (!Number.isFinite(value)) return DEFAULT_FRAME_COUNT;
+  return Math.min(MAX_FRAMES, Math.max(MIN_FRAMES, Math.floor(value)));
+}
+
+function resolveQualityPreset(quality = 'standard') {
+  return QUALITY_PRESETS[quality] || QUALITY_PRESETS.standard;
+}
+
+const FrameExtractor = ({
+  videoSource,
+  frameCount = DEFAULT_FRAME_COUNT,
+  quality = 'standard',
+  onExtractionStart,
+  onFrameExtracted,
+  onExtractionComplete,
+  onError,
+}) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -34,16 +55,18 @@ const FrameExtractor = ({ videoSource, onExtractionStart, onFrameExtracted, onEx
         throw new Error('Could not determine video duration.');
       }
 
-      // Calculate timestamps
-      const interval = Math.max(DEFAULT_INTERVAL, duration / MAX_FRAMES);
-      const timestamps = [];
-      for (let t = 0; t < duration && timestamps.length < MAX_FRAMES; t += interval) {
-        timestamps.push(t);
-      }
+      const totalFrames = clampFrameCount(frameCount);
+      const interval = duration / totalFrames;
+      const maxSeekTime = Math.max(0, duration - 0.05);
+      const timestamps = Array.from({ length: totalFrames }, (_, index) => (
+        Math.min(maxSeekTime, (interval * index) + (interval / 2))
+      ));
+      const { jpegQuality, targetWidth } = resolveQualityPreset(quality);
 
       // Set canvas dimensions
-      const scale = TARGET_WIDTH / video.videoWidth;
-      canvas.width = TARGET_WIDTH;
+      const outputWidth = targetWidth ? Math.min(targetWidth, video.videoWidth) : video.videoWidth;
+      const scale = outputWidth / video.videoWidth;
+      canvas.width = outputWidth;
       canvas.height = Math.round(video.videoHeight * scale);
       const ctx = canvas.getContext('2d');
 
@@ -57,7 +80,7 @@ const FrameExtractor = ({ videoSource, onExtractionStart, onFrameExtracted, onEx
         });
 
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const base64 = canvas.toDataURL('image/jpeg', JPEG_QUALITY);
+        const base64 = canvas.toDataURL('image/jpeg', jpegQuality);
 
         const mins = Math.floor(timestamp / 60);
         const secs = Math.floor(timestamp % 60);
@@ -72,7 +95,7 @@ const FrameExtractor = ({ videoSource, onExtractionStart, onFrameExtracted, onEx
     } catch (err) {
       onError?.(err.message || 'Failed to extract frames from video.');
     }
-  }, [videoSource, onExtractionStart, onFrameExtracted, onExtractionComplete, onError]);
+  }, [frameCount, onError, onExtractionComplete, onExtractionStart, onFrameExtracted, quality, videoSource]);
 
   useEffect(() => {
     if (videoSource) {
