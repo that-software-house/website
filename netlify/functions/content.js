@@ -20,6 +20,8 @@ GUIDELINES:
 - End with a thought-provoking question or call-to-action
 - Add 3-5 relevant hashtags at the end
 - Keep the post between 150-300 words
+- short paragraphs
+- more explicit framing around lessons, results, and takeaways
 - Sound authentic and professional, not salesy
 - Use storytelling when appropriate
 - Make it scannable with bullet points or numbered lists if needed
@@ -34,7 +36,11 @@ const twitterAgent = new Agent({
   instructions: `You are an expert Twitter/X thread creator. Your job is to transform any content into an engaging thread.
 
 GUIDELINES:
-- Create 4-7 tweets
+- Create tweet thread if content is large.
+- Open - open fast
+- One idea per post or per tweet in a thread
+- Keep links out of the main body unless necessary
+- Avoid hashtag spam
 - First tweet MUST be a hook that makes people want to read more (use thread emoji)
 - Each tweet MUST be under 280 characters
 - Use line breaks within tweets for readability
@@ -60,6 +66,7 @@ GUIDELINES:
 - Use simple, impactful language
 - Each slide should make sense on its own
 - Build a narrative flow between slides
+- Script around visuals, not just narration
 - Use numbers or "Slide X of Y" formatting when appropriate
 
 OUTPUT FORMAT:
@@ -84,8 +91,6 @@ Return a bulleted list of key points, one insight per line. Each point should be
 
 // URL Fetcher
 async function fetchUrlContent(url) {
-  console.log(`Fetching URL: ${url}`);
-
   const response = await fetch(url, {
     headers: {
       'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -140,8 +145,6 @@ async function fetchUrlContent(url) {
   // Clean and limit
   content = content.replace(/\s+/g, ' ').replace(/\n\s*\n/g, '\n\n').trim();
   if (content.length > 10000) content = content.substring(0, 10000) + '...';
-
-  console.log(`Extracted ${content.length} characters from ${url}`);
 
   return { title, content: `Title: ${title}\n\n${content}`, url };
 }
