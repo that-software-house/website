@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Video, Loader2, AlertCircle, Sparkles, Lock } from 'lucide-react';
+import { Video, Loader2, AlertCircle, Sparkles, Lock, Clapperboard, Scissors } from 'lucide-react';
 import './VideoAnalyzerApp.css';
 import { analyzeUploadedVideo, analyzeVideoFrames, fetchYouTubeFrames } from '@/services/openai';
 import AuthModal from '@/components/auth/AuthModal';
@@ -16,6 +16,8 @@ const DEFAULT_FRAME_COUNT = 15;
 const MIN_FRAME_COUNT = 2;
 const MAX_FRAME_COUNT = 15;
 const DEFAULT_QUALITY = 'standard';
+const WORKFLOW_FRAMES = 'frames';
+const WORKFLOW_VIRAL = 'viral';
 
 const QUALITY_OPTIONS = [
   {
@@ -40,12 +42,23 @@ const QUALITY_OPTIONS = [
 
 const MotionDiv = motion.div;
 
+function normalizeYouTubeFrames(result) {
+  return (result.frames || []).map((frame, index) => ({
+    base64: frame.base64,
+    timestamp: frame.timestamp || `thumb-${index + 1}`,
+    rawTime: typeof frame.rawTime === 'number' ? frame.rawTime : index,
+  }));
+}
+
 const VideoAnalyzerApp = () => {
   const { isAuthenticated } = useAuth();
+  const [workflow, setWorkflow] = useState(WORKFLOW_FRAMES);
   const [videoSource, setVideoSource] = useState(null);
   const [frameCount, setFrameCount] = useState(DEFAULT_FRAME_COUNT);
   const [frameQuality, setFrameQuality] = useState(DEFAULT_QUALITY);
+  const [selectedFrames, setSelectedFrames] = useState([]);
   const [extractedFrames, setExtractedFrames] = useState([]);
+  const [frameExtractionKey, setFrameExtractionKey] = useState(0);
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractionProgress, setExtractionProgress] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -59,21 +72,33 @@ const VideoAnalyzerApp = () => {
   const [youtubeMetadata, setYoutubeMetadata] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  const handleVideoSelect = useCallback((source, errorMsg) => {
-    if (videoSource?.type === 'file' && videoSource?.src) {
-      URL.revokeObjectURL(videoSource.src);
-    }
-
-    setError(errorMsg || '');
+  const clearResults = useCallback(() => {
     setExtractedFrames([]);
+    setSelectedFrames([]);
     setFrameDescriptions(null);
     setSummary(null);
     setContent(null);
     setViralClips([]);
     setWarnings([]);
     setYoutubeMetadata(null);
+    setFrameExtractionKey(0);
+  }, []);
+
+  const handleVideoSelect = useCallback((source, errorMsg) => {
+    if (videoSource?.type === 'file' && videoSource?.src) {
+      URL.revokeObjectURL(videoSource.src);
+    }
+
+    setError(errorMsg || '');
+    clearResults();
     setVideoSource(source);
-  }, [videoSource]);
+  }, [clearResults, videoSource]);
+
+  const handleWorkflowChange = useCallback((nextWorkflow) => {
+    setWorkflow(nextWorkflow);
+    setError('');
+    clearResults();
+  }, [clearResults]);
 
   const handleFrameCountChange = useCallback((event) => {
     const nextValue = Number.parseInt(event.target.value, 10);
@@ -97,9 +122,14 @@ const VideoAnalyzerApp = () => {
   const handleExtractionStart = useCallback(() => {
     setIsExtracting(true);
     setExtractedFrames([]);
+    setSelectedFrames([]);
     setExtractionProgress('Loading video...');
     setError('');
     setWarnings([]);
+    setFrameDescriptions(null);
+    setSummary(null);
+    setContent(null);
+    setViralClips([]);
   }, []);
 
   const handleFrameExtracted = useCallback((_frame, current, total) => {
@@ -112,8 +142,8 @@ const VideoAnalyzerApp = () => {
     setExtractionProgress('');
   }, []);
 
-  const handleExtractionError = useCallback((msg) => {
-    setError(msg);
+  const handleExtractionError = useCallback((message) => {
+    setError(message);
     setIsExtracting(false);
     setExtractionProgress('');
   }, []);
@@ -124,100 +154,75 @@ const VideoAnalyzerApp = () => {
     }
   }, [frameQuality, isAuthenticated]);
 
+  useEffect(() => {
+    if (workflow === WORKFLOW_VIRAL && videoSource?.type !== 'file') {
+      setWorkflow(WORKFLOW_FRAMES);
+      clearResults();
+    }
+  }, [clearResults, videoSource, workflow]);
+
   useEffect(() => () => {
     if (videoSource?.type === 'file' && videoSource?.src) {
       URL.revokeObjectURL(videoSource.src);
     }
   }, [videoSource]);
 
-  // Auto-fetch YouTube thumbnails when a YouTube source is selected
-  useEffect(() => {
-    if (videoSource?.type !== 'youtube') {
-      setYoutubeMetadata(null);
+  const handleGenerateFrames = async () => {
+    if (!videoSource) {
+      setError('Please upload a video or paste a URL first.');
       return;
     }
 
-    let cancelled = false;
-    const fetchFrames = async () => {
+    setError('');
+    setWarnings([]);
+    setFrameDescriptions(null);
+    setSummary(null);
+    setContent(null);
+    setViralClips([]);
+    setSelectedFrames([]);
+
+    if (videoSource.type === 'youtube') {
       setIsExtracting(true);
       setExtractedFrames([]);
       setExtractionProgress('Fetching YouTube thumbnails...');
-      setError('');
-      setWarnings([]);
 
       try {
         const result = await fetchYouTubeFrames(videoSource.src);
-        if (cancelled) return;
-
-        const frames = (result.frames || []).map((f, i) => ({
-          base64: f.base64,
-          timestamp: f.timestamp || `thumb-${i + 1}`,
-        }));
-        setExtractedFrames(frames);
+        setExtractedFrames(normalizeYouTubeFrames(result));
         setYoutubeMetadata(result.metadata || null);
       } catch (err) {
-        if (!cancelled) setError(err.message || 'Failed to fetch YouTube thumbnails.');
+        setError(err.message || 'Failed to fetch YouTube thumbnails.');
       } finally {
-        if (!cancelled) {
-          setIsExtracting(false);
-          setExtractionProgress('');
-        }
-      }
-    };
-
-    fetchFrames();
-    return () => { cancelled = true; };
-  }, [videoSource]);
-
-  const handleAnalyze = async () => {
-    if (videoSource?.type === 'file') {
-      if (!videoSource.file) {
-        setError('Please upload a valid video file first.');
-        return;
-      }
-
-      setIsAnalyzing(true);
-      setError('');
-      setWarnings([]);
-      setFrameDescriptions(null);
-      setSummary(null);
-      setContent(null);
-      setViralClips([]);
-      setExtractedFrames([]);
-      setExtractionProgress('Uploading video and generating per-second analysis...');
-
-      try {
-        const result = await analyzeUploadedVideo(videoSource.file, generateContent);
-        setExtractedFrames(result.frames || []);
-        setFrameDescriptions(result.frameDescriptions || null);
-        setSummary(result.summary || null);
-        setContent(result.content || null);
-        setViralClips(result.viralClips || []);
-        setWarnings(result.warnings || []);
-      } catch (err) {
-        setError(err.message || 'Unable to analyze uploaded video right now.');
-      } finally {
-        setIsAnalyzing(false);
+        setIsExtracting(false);
         setExtractionProgress('');
       }
       return;
     }
 
-    if (extractedFrames.length === 0) {
-      setError('No frames to analyze. Please upload a video first.');
+    setYoutubeMetadata(null);
+    setFrameExtractionKey((current) => current + 1);
+  };
+
+  const handleAnalyzeSelectedFrames = async () => {
+    if (selectedFrames.length === 0) {
+      setError('Select at least one frame to analyze.');
       return;
     }
 
     setIsAnalyzing(true);
     setError('');
+    setWarnings([]);
     setFrameDescriptions(null);
     setSummary(null);
     setContent(null);
     setViralClips([]);
-    setWarnings([]);
 
     try {
-      const result = await analyzeVideoFrames(extractedFrames, generateContent, youtubeMetadata);
+      const result = await analyzeVideoFrames(
+        selectedFrames,
+        generateContent,
+        videoSource?.type === 'youtube' ? youtubeMetadata : null
+      );
 
       if (result.frameDescriptions) {
         setFrameDescriptions(result.frameDescriptions);
@@ -229,17 +234,52 @@ const VideoAnalyzerApp = () => {
         setContent(result.content);
       }
     } catch (err) {
-      setError(err.message || 'Unable to analyze video right now.');
+      setError(err.message || 'Unable to analyze selected frames right now.');
     } finally {
       setIsAnalyzing(false);
     }
   };
 
+  const handleGenerateViralClips = async () => {
+    if (!videoSource?.file) {
+      setError('Please upload a valid video file first.');
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setError('');
+    setWarnings([]);
+    setFrameDescriptions(null);
+    setSummary(null);
+    setContent(null);
+    setViralClips([]);
+    setSelectedFrames([]);
+    setExtractedFrames([]);
+    setYoutubeMetadata(null);
+    setExtractionProgress('Uploading video and generating clip candidates...');
+
+    try {
+      const result = await analyzeUploadedVideo(videoSource.file);
+      setViralClips(result.viralClips || []);
+      setWarnings(result.warnings || []);
+    } catch (err) {
+      console.error('handleGenerateViralClips failed:', err);
+      setError(err.message || 'Unable to generate viral clips right now.');
+    } finally {
+      setIsAnalyzing(false);
+      setExtractionProgress('');
+    }
+  };
+
   const isBusy = isExtracting || isAnalyzing;
   const isUploadedFile = videoSource?.type === 'file';
-  const showLegacyExtractionControls = videoSource && videoSource.type !== 'youtube' && videoSource.type !== 'file';
-  const canAnalyzeUploadedFile = Boolean(isUploadedFile && videoSource?.file && !isBusy);
-  const canAnalyzeExistingFrames = extractedFrames.length > 0 && !isExtracting;
+  const isFramesWorkflow = workflow === WORKFLOW_FRAMES;
+  const isViralWorkflow = workflow === WORKFLOW_VIRAL;
+  const canUseViralWorkflow = isUploadedFile;
+  const showFrameControls = isFramesWorkflow && videoSource && videoSource.type !== 'youtube';
+  const canGenerateFrames = Boolean(videoSource && isFramesWorkflow && !isBusy);
+  const canAnalyzeFrames = Boolean(isFramesWorkflow && extractedFrames.length > 0 && selectedFrames.length > 0 && !isBusy);
+  const canGenerateViralClips = Boolean(isViralWorkflow && isUploadedFile && videoSource?.file && !isBusy);
 
   return (
     <div className="vidanalyzer-app">
@@ -250,13 +290,45 @@ const VideoAnalyzerApp = () => {
           </div>
           <div>
             <h2>Video Analyzer</h2>
-            <p>Upload a video to extract frames, get AI analysis, and generate social content.</p>
+            <p>Choose a manual frame workflow or generate ranked viral clips from an uploaded video.</p>
           </div>
+        </div>
+
+        <div className="vidanalyzer-workflows" role="radiogroup" aria-label="Video analyzer workflow">
+          <button
+            type="button"
+            className={`vidanalyzer-workflow ${isFramesWorkflow ? 'active' : ''}`}
+            onClick={() => handleWorkflowChange(WORKFLOW_FRAMES)}
+            disabled={isBusy}
+          >
+            <span className="vidanalyzer-workflow-head">
+              <Clapperboard size={16} />
+              <span>Generate Frames</span>
+            </span>
+            <small>Choose frame count and quality, then analyze only the frames you keep.</small>
+          </button>
+
+          <button
+            type="button"
+            className={`vidanalyzer-workflow ${isViralWorkflow ? 'active' : ''} ${!canUseViralWorkflow ? 'locked' : ''}`}
+            onClick={() => canUseViralWorkflow && handleWorkflowChange(WORKFLOW_VIRAL)}
+            disabled={isBusy || !canUseViralWorkflow}
+          >
+            <span className="vidanalyzer-workflow-head">
+              <Scissors size={16} />
+              <span>Generate Viral Clips</span>
+            </span>
+            <small>
+              {canUseViralWorkflow
+                ? 'Automatically score one frame per second and return up to 3 ranked clip candidates.'
+                : 'Available only for uploaded files. Disabled for YouTube and linked video URLs.'}
+            </small>
+          </button>
         </div>
 
         <VideoInput onVideoSelect={handleVideoSelect} disabled={isBusy} />
 
-        {showLegacyExtractionControls && (
+        {showFrameControls && (
           <div className="vidanalyzer-options">
             <div className="vidanalyzer-settings-grid">
               <label className="vidanalyzer-field">
@@ -308,17 +380,26 @@ const VideoAnalyzerApp = () => {
           </div>
         )}
 
-        {isUploadedFile && (
+        {isFramesWorkflow && videoSource?.type === 'youtube' && (
           <div className="vidanalyzer-options">
             <div className="vidanalyzer-upload-note">
-              Uploaded files are processed server-side at 1 frame per second, then ranked into up to 3 viral clip candidates.
+              YouTube frame generation uses platform-provided thumbnails and storyboard frames, so frame quality is controlled by the source video.
             </div>
           </div>
         )}
 
-        {showLegacyExtractionControls && (
+        {isViralWorkflow && isUploadedFile && (
+          <div className="vidanalyzer-options">
+            <div className="vidanalyzer-upload-note">
+              Viral clip generation analyzes the uploaded source at 1 frame per second and trims up to 3 ranked clip candidates automatically.
+            </div>
+          </div>
+        )}
+
+        {isFramesWorkflow && videoSource?.type !== 'youtube' && (
           <FrameExtractor
             videoSource={videoSource}
+            extractionKey={frameExtractionKey}
             frameCount={frameCount}
             quality={frameQuality}
             onExtractionStart={handleExtractionStart}
@@ -335,74 +416,117 @@ const VideoAnalyzerApp = () => {
           </div>
         )}
 
-        {isExtracting && (
+        {(isExtracting || isAnalyzing) && (
           <div className="vidanalyzer-progress">
             <div className="vidanalyzer-progress-bar">
               <div className="vidanalyzer-progress-fill" />
             </div>
-            <p>{extractionProgress}</p>
+            <p>{extractionProgress || (isViralWorkflow ? 'Generating viral clips...' : 'Analyzing selected frames...')}</p>
           </div>
         )}
 
-        {(canAnalyzeUploadedFile || canAnalyzeExistingFrames) && (
-          <>
-            <div className="vidanalyzer-options">
-              <label className="vidanalyzer-checkbox">
-                <input
-                  type="checkbox"
-                  checked={generateContent}
-                  onChange={(e) => setGenerateContent(e.target.checked)}
-                  disabled={isAnalyzing}
-                />
-                <span>Also generate LinkedIn, Twitter & Carousel content</span>
-              </label>
-            </div>
+        <div className="vidanalyzer-actions-stack">
+          {isFramesWorkflow && (
+            <>
+              <div className="vidanalyzer-actions">
+                <button
+                  className="vidanalyzer-primary"
+                  onClick={handleGenerateFrames}
+                  disabled={!canGenerateFrames}
+                >
+                  {isExtracting ? (
+                    <>
+                      <Loader2 size={18} className="spinning" />
+                      <span>Generating Frames...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Clapperboard size={18} />
+                      <span>Generate Frames</span>
+                    </>
+                  )}
+                </button>
+              </div>
 
+              {extractedFrames.length > 0 && (
+                <>
+                  <div className="vidanalyzer-options">
+                    <label className="vidanalyzer-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={generateContent}
+                        onChange={(event) => setGenerateContent(event.target.checked)}
+                        disabled={isAnalyzing}
+                      />
+                      <span>Also generate LinkedIn, Twitter & Carousel content</span>
+                    </label>
+                  </div>
+
+                  <div className="vidanalyzer-actions">
+                    <button
+                      className="vidanalyzer-primary"
+                      onClick={handleAnalyzeSelectedFrames}
+                      disabled={!canAnalyzeFrames}
+                    >
+                      {isAnalyzing ? (
+                        <>
+                          <Loader2 size={18} className="spinning" />
+                          <span>Analyzing Selected Frames...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles size={18} />
+                          <span>Analyze Selected Frames</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </>
+              )}
+            </>
+          )}
+
+          {isViralWorkflow && (
             <div className="vidanalyzer-actions">
               <button
                 className="vidanalyzer-primary"
-                onClick={handleAnalyze}
-                disabled={isAnalyzing}
+                onClick={handleGenerateViralClips}
+                disabled={!canGenerateViralClips}
               >
                 {isAnalyzing ? (
                   <>
                     <Loader2 size={18} className="spinning" />
-                    <span>{isUploadedFile ? 'Finding viral clips...' : 'Analyzing video...'}</span>
+                    <span>Generating Viral Clips...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles size={18} />
-                    <span>{isUploadedFile ? 'Analyze Video And Generate Clips' : 'Analyze Video'}</span>
+                    <Scissors size={18} />
+                    <span>Generate Viral Clips</span>
                   </>
                 )}
               </button>
             </div>
-          </>
-        )}
-
-        {isAnalyzing && (
-          <div className="vidanalyzer-progress">
-            <div className="vidanalyzer-progress-bar">
-              <div className="vidanalyzer-progress-fill" />
-            </div>
-            <p>{extractionProgress || 'Sending frames to AI for analysis...'}</p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {/* Frame Gallery */}
-      {extractedFrames.length > 0 && (
+      {isFramesWorkflow && extractedFrames.length > 0 && (
         <MotionDiv
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
         >
-          <FrameGallery frames={extractedFrames} frameDescriptions={frameDescriptions} />
+          <FrameGallery
+            frames={extractedFrames}
+            frameDescriptions={frameDescriptions}
+            selectable={isFramesWorkflow}
+            showDownload
+            onSelectionChange={setSelectedFrames}
+          />
         </MotionDiv>
       )}
 
-      {/* Video Summary */}
-      {summary && (
+      {isFramesWorkflow && summary && (
         <MotionDiv
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -412,7 +536,7 @@ const VideoAnalyzerApp = () => {
         </MotionDiv>
       )}
 
-      {((viralClips && viralClips.length > 0) || (warnings && warnings.length > 0)) && (
+      {isViralWorkflow && ((viralClips && viralClips.length > 0) || (warnings && warnings.length > 0)) && (
         <MotionDiv
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -422,8 +546,7 @@ const VideoAnalyzerApp = () => {
         </MotionDiv>
       )}
 
-      {/* Generated Content */}
-      {content && (
+      {isFramesWorkflow && content && (
         <MotionDiv
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}

@@ -20,6 +20,7 @@ function resolveQualityPreset(quality = 'standard') {
 
 const FrameExtractor = ({
   videoSource,
+  extractionKey = 0,
   frameCount = DEFAULT_FRAME_COUNT,
   quality = 'standard',
   onExtractionStart,
@@ -98,10 +99,10 @@ const FrameExtractor = ({
   }, [frameCount, onError, onExtractionComplete, onExtractionStart, onFrameExtracted, quality, videoSource]);
 
   useEffect(() => {
-    if (videoSource) {
+    if (videoSource && extractionKey > 0) {
       extractFrames();
     }
-  }, [videoSource, extractFrames]);
+  }, [videoSource, extractionKey, extractFrames]);
 
   return (
     <>

@@ -22,6 +22,16 @@ async function parseJsonSafe(response) {
   }
 }
 
+function parseTextAsJsonSafe(text) {
+  if (!text) return null;
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
 async function getAuthHeaders() {
   const headers = {
     'Content-Type': 'application/json',
@@ -493,15 +503,13 @@ export async function analyzeVideoFrames(frames, generateContent = true, youtube
 }
 
 /**
- * Analyze an uploaded video file server-side, extract per-second frames, and generate viral clip candidates.
+ * Analyze an uploaded video file server-side and generate ranked viral clip candidates.
  * @param {File} file - The uploaded video file
- * @param {boolean} generateContent - Whether to also generate social media content
  * @returns {Promise<Object>}
  */
-export async function analyzeUploadedVideo(file, generateContent = true) {
+export async function analyzeUploadedVideo(file) {
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('generateContent', String(generateContent));
 
   const authHeaders = await getAuthHeaders();
   delete authHeaders['Content-Type'];
@@ -512,10 +520,21 @@ export async function analyzeUploadedVideo(file, generateContent = true) {
     body: formData,
   });
 
-  const data = await parseJsonSafe(response);
+  const rawBody = await response.text();
+  const data = parseTextAsJsonSafe(rawBody);
   syncUsageFromResponse(response, data);
   if (!response.ok) {
-    const message = data?.message || data?.error || 'Failed to analyze uploaded video';
+    const textSnippet = rawBody ? rawBody.trim().slice(0, 400) : '';
+    console.error('analyzeUploadedVideo failed', {
+      status: response.status,
+      statusText: response.statusText,
+      body: textSnippet || rawBody || null,
+      data,
+    });
+    const message = data?.message
+      || data?.error
+      || textSnippet
+      || `Failed to analyze uploaded video (HTTP ${response.status})`;
     throw new Error(message);
   }
 

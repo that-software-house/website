@@ -140,3 +140,6 @@ vite.config.ts.timestamp-*
 
 # Claude files
 .claude
+
+# Local Netlify folder
+.netlify

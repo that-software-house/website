@@ -38,6 +38,7 @@ const FRAME_DESCRIPTION_CONCURRENCY = 4;
 const MIN_CLIP_SECONDS = 5;
 const MAX_CLIP_SECONDS = 20;
 const MAX_VIRAL_CLIPS = 3;
+const MAX_VIRAL_ANALYSIS_FRAMES = 45;
 
 function formatTimestamp(seconds) {
   const safeSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
@@ -118,23 +119,6 @@ function parseISODuration(iso) {
   const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
   if (!match) return 0;
   return parseInt(match[1] || 0, 10) * 3600 + parseInt(match[2] || 0, 10) * 60 + parseInt(match[3] || 0, 10);
-}
-
-async function mapWithConcurrency(items, concurrency, mapper) {
-  const results = new Array(items.length);
-  let nextIndex = 0;
-
-  async function worker() {
-    while (nextIndex < items.length) {
-      const currentIndex = nextIndex;
-      nextIndex += 1;
-      results[currentIndex] = await mapper(items[currentIndex], currentIndex);
-    }
-  }
-
-  const workerCount = Math.min(concurrency, items.length);
-  await Promise.all(Array.from({ length: workerCount }, () => worker()));
-  return results;
 }
 
 function ffprobeAsync(inputPath) {
@@ -764,69 +748,6 @@ OUTPUT FORMAT (JSON only, no markdown):
 IMPORTANT: Return ONLY valid JSON. No explanations, no markdown code blocks.`,
 });
 
-const viralClipAnalysisAgent = new Agent({
-  name: 'Viral Clip Analyzer',
-  model: 'gpt-4o',
-  instructions: `You are a short-form video strategist. Given chronological one-frame-per-second descriptions from an uploaded video, identify the strongest viral-worthy segments.
-
-Focus on moments that feel:
-- energetic
-- motivating
-- emotionally resonant
-- surprising
-- highly clear in a single glance
-- likely to get rewatched or shared
-
-Rules:
-- Work only from the supplied timestamps.
-- Recommend up to 3 non-overlapping clip windows.
-- Prefer clips between 5 and 20 seconds.
-- Each clip must be a contiguous time range.
-- Rank best first.
-- Score all values from 0 to 100.
-
-OUTPUT FORMAT (JSON only, no markdown):
-{
-  "title": "Concise descriptive title",
-  "videoType": "tutorial|presentation|vlog|demo|interview|other",
-  "summary": "2-4 sentence overview",
-  "keyMoments": [
-    { "timestamp": "0:05", "description": "What happens" }
-  ],
-  "topics": ["topic1", "topic2"],
-  "hashtags": ["#tag1", "#tag2"],
-  "tone": "professional|casual|educational|entertaining|inspirational",
-  "targetAudience": "Audience description",
-  "scoredMoments": [
-    {
-      "rawTime": 5,
-      "timestamp": "0:05",
-      "score": 88,
-      "hookStrength": 84,
-      "energy": 90,
-      "emotion": 76,
-      "novelty": 71,
-      "clarity": 85,
-      "shareability": 87,
-      "explanation": "Why this second stands out",
-      "viralTraits": ["energetic", "motivating"]
-    }
-  ],
-  "viralClips": [
-    {
-      "startSecond": 5,
-      "endSecond": 12,
-      "score": 91,
-      "title": "Short clip title",
-      "reason": "Why this segment is viral-worthy",
-      "viralTraits": ["energetic", "motivating"]
-    }
-  ]
-}
-
-IMPORTANT: Return ONLY valid JSON. No explanations, no markdown code blocks.`,
-});
-
 const linkedInAgent = new Agent({
   name: 'LinkedIn Content Creator',
   model: 'gpt-4o',
@@ -937,17 +858,6 @@ async function describeFrame(base64Data, timestamp) {
   return response.choices[0]?.message?.content || 'Unable to describe frame.';
 }
 
-async function buildFrameDescriptions(frames) {
-  return mapWithConcurrency(frames, FRAME_DESCRIPTION_CONCURRENCY, async (frame) => {
-    const description = await describeFrame(frame.base64, frame.timestamp);
-    return {
-      timestamp: frame.timestamp,
-      rawTime: frame.rawTime,
-      description,
-    };
-  });
-}
-
 async function summarizeFrameDescriptions(frameDescriptions, youtubeMetadata = null) {
   const metaContext = youtubeMetadata
     ? `\nYouTube Video Title: ${youtubeMetadata.title}\nAuthor: ${youtubeMetadata.author}\n`
@@ -963,16 +873,94 @@ Total frames analyzed: ${frameDescriptions.length}`;
   return safeParseJSON(summaryResult.finalOutput) || buildFallbackSummary();
 }
 
-async function analyzeViralClipCandidates(frameDescriptions, durationSeconds) {
-  const prompt = `Analyze this uploaded video represented as one frame per second.
+function selectFramesForViralAnalysis(frames) {
+  if (frames.length <= MAX_VIRAL_ANALYSIS_FRAMES) return frames;
 
-Duration in seconds: ${Math.floor(durationSeconds)}
+  const step = (frames.length - 1) / Math.max(1, MAX_VIRAL_ANALYSIS_FRAMES - 1);
+  const selected = [];
 
-Frame descriptions:
-${frameDescriptions.map((frame) => `[${frame.timestamp} | rawTime=${frame.rawTime}] ${frame.description}`).join('\n\n')}`;
+  for (let index = 0; index < MAX_VIRAL_ANALYSIS_FRAMES; index += 1) {
+    selected.push(frames[Math.min(frames.length - 1, Math.round(index * step))]);
+  }
 
-  const result = await run(viralClipAnalysisAgent, prompt);
-  return safeParseJSON(result.finalOutput);
+  return selected;
+}
+
+async function analyzeViralClipCandidates(frames, durationSeconds) {
+  const sampledFrames = selectFramesForViralAnalysis(frames);
+  const content = [
+    {
+      type: 'text',
+      text: `You are a short-form video strategist. Analyze these sampled frames from an uploaded video timeline and identify the strongest viral-worthy clip sections.
+
+Focus on moments that feel energetic, motivating, emotionally resonant, surprising, visually clear at a glance, and likely to be rewatched or shared.
+
+Rules:
+- Work only from the supplied timestamps.
+- Recommend up to 3 non-overlapping clip windows.
+- Prefer clips between 5 and 20 seconds.
+- Each clip must be a contiguous time range.
+- Rank best first.
+- Score all values from 0 to 100.
+- Use only timestamps you can support from the sampled timeline.
+
+Video duration: ${Math.floor(durationSeconds)} seconds
+Sampled timestamps:
+${sampledFrames.map((frame, index) => `${index + 1}. ${frame.timestamp} (rawTime=${frame.rawTime})`).join('\n')}
+
+Return JSON only in this format:
+{
+  "scoredMoments": [
+    {
+      "rawTime": 5,
+      "timestamp": "0:05",
+      "score": 88,
+      "hookStrength": 84,
+      "energy": 90,
+      "emotion": 76,
+      "novelty": 71,
+      "clarity": 85,
+      "shareability": 87,
+      "explanation": "Why this moment stands out",
+      "viralTraits": ["energetic", "motivating"]
+    }
+  ],
+  "viralClips": [
+    {
+      "startSecond": 5,
+      "endSecond": 12,
+      "score": 91,
+      "title": "Short clip title",
+      "reason": "Why this segment is viral-worthy",
+      "viralTraits": ["energetic", "motivating"]
+    }
+  ]
+}`,
+    },
+  ];
+
+  sampledFrames.forEach((frame) => {
+    content.push({
+      type: 'text',
+      text: `Timestamp ${frame.timestamp} (rawTime=${frame.rawTime})`,
+    });
+    content.push({
+      type: 'image_url',
+      image_url: {
+        url: frame.base64,
+        detail: 'low',
+      },
+    });
+  });
+
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content }],
+    response_format: { type: 'json_object' },
+    max_tokens: 1800,
+  });
+
+  return safeParseJSON(response.choices[0]?.message?.content || '');
 }
 
 async function generateContentFromSummary(summary) {
@@ -1026,11 +1014,10 @@ function validateUploadedVideo(file) {
 }
 
 async function handleUploadedVideoAnalysis(event) {
-  const { fields, files } = await parseMultipart(event);
+  const { files } = await parseMultipart(event);
   const file = files.find((candidate) => candidate.fieldName === 'file') || files[0];
   validateUploadedVideo(file);
 
-  const generateContent = String(fields.generateContent || 'true') === 'true';
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'video-analyzer-'));
   const ext = getFileExtension(file.filename, file.mimeType);
   const videoPath = path.join(tempDir, `upload${ext}`);
@@ -1050,35 +1037,22 @@ async function handleUploadedVideoAnalysis(event) {
     }
 
     const frames = await extractPerSecondFrames(videoPath, metadata.duration, framesDir);
-    const frameDescriptions = await buildFrameDescriptions(frames);
-
     let analysis = null;
-    let summary = buildFallbackSummary();
     let scoredMoments = [];
     let viralClips = [];
     let clipGenerationWarning = null;
 
     try {
-      analysis = await analyzeViralClipCandidates(frameDescriptions, metadata.duration);
+      analysis = await analyzeViralClipCandidates(frames, metadata.duration);
     } catch (error) {
       console.error('Viral clip analysis failed:', error.message);
     }
 
     if (analysis) {
-      summary = {
-        title: analysis.title || summary.title,
-        videoType: analysis.videoType || summary.videoType,
-        summary: analysis.summary || summary.summary,
-        keyMoments: Array.isArray(analysis.keyMoments) ? analysis.keyMoments : [],
-        topics: Array.isArray(analysis.topics) ? analysis.topics : [],
-        hashtags: Array.isArray(analysis.hashtags) ? analysis.hashtags : [],
-        tone: analysis.tone || summary.tone,
-        targetAudience: analysis.targetAudience || summary.targetAudience,
-      };
       scoredMoments = normalizeScoredMoments(analysis.scoredMoments, frames);
       viralClips = normalizeViralClips(analysis.viralClips, scoredMoments, metadata.duration);
     } else {
-      clipGenerationWarning = 'AI ranking failed. Returning extracted frames without generated clips.';
+      clipGenerationWarning = 'AI ranking failed. No clip candidates were generated.';
     }
 
     if (viralClips.length > 0) {
@@ -1088,21 +1062,7 @@ async function handleUploadedVideoAnalysis(event) {
       }
     }
 
-    let content = null;
-    if (generateContent) {
-      try {
-        content = await generateContentFromSummary(summary);
-      } catch (error) {
-        console.error('Content generation failed:', error.message);
-      }
-    }
-
     return {
-      frames,
-      frameDescriptions,
-      summary,
-      content,
-      scoredMoments,
       viralClips,
       videoMetadata: {
         duration: metadata.duration,
