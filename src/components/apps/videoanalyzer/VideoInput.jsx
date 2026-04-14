@@ -43,7 +43,13 @@ const VideoInput = ({ onVideoSelect, disabled }) => {
 
     setFileName(file.name);
     const objectUrl = URL.createObjectURL(file);
-    onVideoSelect({ type: 'file', src: objectUrl, name: file.name });
+    onVideoSelect({
+      type: 'file',
+      src: objectUrl,
+      name: file.name,
+      file,
+      size: file.size,
+    });
   };
 
   const handleDrop = (e) => {

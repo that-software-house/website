@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Video, Loader2, AlertCircle, Sparkles, Lock } from 'lucide-react';
 import './VideoAnalyzerApp.css';
-import { analyzeVideoFrames, fetchYouTubeFrames } from '@/services/openai';
+import { analyzeUploadedVideo, analyzeVideoFrames, fetchYouTubeFrames } from '@/services/openai';
 import AuthModal from '@/components/auth/AuthModal';
 import { useAuth } from '@/context/AuthContext';
 import VideoInput from './videoanalyzer/VideoInput';
@@ -10,6 +10,7 @@ import FrameExtractor from './videoanalyzer/FrameExtractor';
 import FrameGallery from './videoanalyzer/FrameGallery';
 import VideoSummary from './videoanalyzer/VideoSummary';
 import ContentOutput from './videoanalyzer/ContentOutput';
+import ViralClips from './videoanalyzer/ViralClips';
 
 const DEFAULT_FRAME_COUNT = 15;
 const MIN_FRAME_COUNT = 2;
@@ -37,6 +38,8 @@ const QUALITY_OPTIONS = [
   },
 ];
 
+const MotionDiv = motion.div;
+
 const VideoAnalyzerApp = () => {
   const { isAuthenticated } = useAuth();
   const [videoSource, setVideoSource] = useState(null);
@@ -49,20 +52,28 @@ const VideoAnalyzerApp = () => {
   const [frameDescriptions, setFrameDescriptions] = useState(null);
   const [summary, setSummary] = useState(null);
   const [content, setContent] = useState(null);
+  const [viralClips, setViralClips] = useState([]);
+  const [warnings, setWarnings] = useState([]);
   const [generateContent, setGenerateContent] = useState(true);
   const [error, setError] = useState('');
   const [youtubeMetadata, setYoutubeMetadata] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleVideoSelect = useCallback((source, errorMsg) => {
+    if (videoSource?.type === 'file' && videoSource?.src) {
+      URL.revokeObjectURL(videoSource.src);
+    }
+
     setError(errorMsg || '');
     setExtractedFrames([]);
     setFrameDescriptions(null);
     setSummary(null);
     setContent(null);
+    setViralClips([]);
+    setWarnings([]);
     setYoutubeMetadata(null);
     setVideoSource(source);
-  }, []);
+  }, [videoSource]);
 
   const handleFrameCountChange = useCallback((event) => {
     const nextValue = Number.parseInt(event.target.value, 10);
@@ -88,9 +99,10 @@ const VideoAnalyzerApp = () => {
     setExtractedFrames([]);
     setExtractionProgress('Loading video...');
     setError('');
+    setWarnings([]);
   }, []);
 
-  const handleFrameExtracted = useCallback((frame, current, total) => {
+  const handleFrameExtracted = useCallback((_frame, current, total) => {
     setExtractionProgress(`Extracting frame ${current} of ${total}...`);
   }, []);
 
@@ -112,6 +124,12 @@ const VideoAnalyzerApp = () => {
     }
   }, [frameQuality, isAuthenticated]);
 
+  useEffect(() => () => {
+    if (videoSource?.type === 'file' && videoSource?.src) {
+      URL.revokeObjectURL(videoSource.src);
+    }
+  }, [videoSource]);
+
   // Auto-fetch YouTube thumbnails when a YouTube source is selected
   useEffect(() => {
     if (videoSource?.type !== 'youtube') {
@@ -125,6 +143,7 @@ const VideoAnalyzerApp = () => {
       setExtractedFrames([]);
       setExtractionProgress('Fetching YouTube thumbnails...');
       setError('');
+      setWarnings([]);
 
       try {
         const result = await fetchYouTubeFrames(videoSource.src);
@@ -151,6 +170,39 @@ const VideoAnalyzerApp = () => {
   }, [videoSource]);
 
   const handleAnalyze = async () => {
+    if (videoSource?.type === 'file') {
+      if (!videoSource.file) {
+        setError('Please upload a valid video file first.');
+        return;
+      }
+
+      setIsAnalyzing(true);
+      setError('');
+      setWarnings([]);
+      setFrameDescriptions(null);
+      setSummary(null);
+      setContent(null);
+      setViralClips([]);
+      setExtractedFrames([]);
+      setExtractionProgress('Uploading video and generating per-second analysis...');
+
+      try {
+        const result = await analyzeUploadedVideo(videoSource.file, generateContent);
+        setExtractedFrames(result.frames || []);
+        setFrameDescriptions(result.frameDescriptions || null);
+        setSummary(result.summary || null);
+        setContent(result.content || null);
+        setViralClips(result.viralClips || []);
+        setWarnings(result.warnings || []);
+      } catch (err) {
+        setError(err.message || 'Unable to analyze uploaded video right now.');
+      } finally {
+        setIsAnalyzing(false);
+        setExtractionProgress('');
+      }
+      return;
+    }
+
     if (extractedFrames.length === 0) {
       setError('No frames to analyze. Please upload a video first.');
       return;
@@ -161,6 +213,8 @@ const VideoAnalyzerApp = () => {
     setFrameDescriptions(null);
     setSummary(null);
     setContent(null);
+    setViralClips([]);
+    setWarnings([]);
 
     try {
       const result = await analyzeVideoFrames(extractedFrames, generateContent, youtubeMetadata);
@@ -182,6 +236,10 @@ const VideoAnalyzerApp = () => {
   };
 
   const isBusy = isExtracting || isAnalyzing;
+  const isUploadedFile = videoSource?.type === 'file';
+  const showLegacyExtractionControls = videoSource && videoSource.type !== 'youtube' && videoSource.type !== 'file';
+  const canAnalyzeUploadedFile = Boolean(isUploadedFile && videoSource?.file && !isBusy);
+  const canAnalyzeExistingFrames = extractedFrames.length > 0 && !isExtracting;
 
   return (
     <div className="vidanalyzer-app">
@@ -198,7 +256,7 @@ const VideoAnalyzerApp = () => {
 
         <VideoInput onVideoSelect={handleVideoSelect} disabled={isBusy} />
 
-        {videoSource && videoSource.type !== 'youtube' && (
+        {showLegacyExtractionControls && (
           <div className="vidanalyzer-options">
             <div className="vidanalyzer-settings-grid">
               <label className="vidanalyzer-field">
@@ -250,7 +308,15 @@ const VideoAnalyzerApp = () => {
           </div>
         )}
 
-        {videoSource && videoSource.type !== 'youtube' && (
+        {isUploadedFile && (
+          <div className="vidanalyzer-options">
+            <div className="vidanalyzer-upload-note">
+              Uploaded files are processed server-side at 1 frame per second, then ranked into up to 3 viral clip candidates.
+            </div>
+          </div>
+        )}
+
+        {showLegacyExtractionControls && (
           <FrameExtractor
             videoSource={videoSource}
             frameCount={frameCount}
@@ -278,7 +344,7 @@ const VideoAnalyzerApp = () => {
           </div>
         )}
 
-        {extractedFrames.length > 0 && !isExtracting && (
+        {(canAnalyzeUploadedFile || canAnalyzeExistingFrames) && (
           <>
             <div className="vidanalyzer-options">
               <label className="vidanalyzer-checkbox">
@@ -301,12 +367,12 @@ const VideoAnalyzerApp = () => {
                 {isAnalyzing ? (
                   <>
                     <Loader2 size={18} className="spinning" />
-                    <span>Analyzing video...</span>
+                    <span>{isUploadedFile ? 'Finding viral clips...' : 'Analyzing video...'}</span>
                   </>
                 ) : (
                   <>
                     <Sparkles size={18} />
-                    <span>Analyze Video</span>
+                    <span>{isUploadedFile ? 'Analyze Video And Generate Clips' : 'Analyze Video'}</span>
                   </>
                 )}
               </button>
@@ -326,35 +392,45 @@ const VideoAnalyzerApp = () => {
 
       {/* Frame Gallery */}
       {extractedFrames.length > 0 && (
-        <motion.div
+        <MotionDiv
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
         >
           <FrameGallery frames={extractedFrames} frameDescriptions={frameDescriptions} />
-        </motion.div>
+        </MotionDiv>
       )}
 
       {/* Video Summary */}
       {summary && (
-        <motion.div
+        <MotionDiv
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, delay: 0.1 }}
         >
           <VideoSummary summary={summary} />
-        </motion.div>
+        </MotionDiv>
+      )}
+
+      {((viralClips && viralClips.length > 0) || (warnings && warnings.length > 0)) && (
+        <MotionDiv
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.15 }}
+        >
+          <ViralClips clips={viralClips} warnings={warnings} />
+        </MotionDiv>
       )}
 
       {/* Generated Content */}
       {content && (
-        <motion.div
+        <MotionDiv
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, delay: 0.2 }}
         >
           <ContentOutput content={content} />
-        </motion.div>
+        </MotionDiv>
       )}
 
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />

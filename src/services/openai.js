@@ -493,6 +493,36 @@ export async function analyzeVideoFrames(frames, generateContent = true, youtube
 }
 
 /**
+ * Analyze an uploaded video file server-side, extract per-second frames, and generate viral clip candidates.
+ * @param {File} file - The uploaded video file
+ * @param {boolean} generateContent - Whether to also generate social media content
+ * @returns {Promise<Object>}
+ */
+export async function analyzeUploadedVideo(file, generateContent = true) {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('generateContent', String(generateContent));
+
+  const authHeaders = await getAuthHeaders();
+  delete authHeaders['Content-Type'];
+
+  const response = await fetch(`${VIDEO_ANALYZER_API_BASE}/analyze-upload`, {
+    method: 'POST',
+    headers: authHeaders,
+    body: formData,
+  });
+
+  const data = await parseJsonSafe(response);
+  syncUsageFromResponse(response, data);
+  if (!response.ok) {
+    const message = data?.message || data?.error || 'Failed to analyze uploaded video';
+    throw new Error(message);
+  }
+
+  return data || {};
+}
+
+/**
  * Fetch YouTube video thumbnails + metadata (no AI, just frame extraction)
  * @param {string} youtubeUrl - The YouTube URL
  * @returns {Promise<{frames: Array, metadata: Object}>}
@@ -548,6 +578,7 @@ export default {
   fetchInvoiceDocuments,
   createInvoiceChaserCheckout,
   createBillingPortalSession,
+  analyzeUploadedVideo,
   analyzeVideoFrames,
   fetchYouTubeFrames,
   extractLead,
