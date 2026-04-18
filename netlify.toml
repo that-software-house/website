@@ -1,97 +1,10 @@
 [build]
   command = "yarn build"
   publish = "dist"
-  functions = "netlify/functions"
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["@openai/agents", "openai", "@supabase/supabase-js"]
-
-[functions.video-analyzer]
-  external_node_modules = ["@openai/agents", "openai", "@supabase/supabase-js", "busboy", "xlsx", "ffmpeg-static", "ffprobe-static"]
-  included_files = ["node_modules/ffmpeg-static/ffmpeg", "node_modules/ffprobe-static/bin/linux/x64/ffprobe"]
-
-
-
-[[redirects]]
-  from = "/api/content/generate"
-  to = "/.netlify/functions/content"
-  status = 200
-
-[[redirects]]
-  from = "/api/content/*"
-  to = "/.netlify/functions/content/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/api/data-insights/analyze"
-  to = "/.netlify/functions/data-insights"
-  status = 200
-
-[[redirects]]
-  from = "/api/data-insights/*"
-  to = "/.netlify/functions/data-insights/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/api/doc-analyzer/*"
-  to = "/.netlify/functions/doc-analyzer/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/api/tone/*"
-  to = "/.netlify/functions/tone/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/api/invoice-chaser/*"
-  to = "/.netlify/functions/invoice-chaser/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/api/chat"
-  to = "/.netlify/functions/chat"
-  status = 200
-
-[[redirects]]
-  from = "/api/billing/*"
-  to = "/.netlify/functions/billing/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/api/usage"
-  to = "/.netlify/functions/usage"
-  status = 200
-
-[[redirects]]
-  from = "/api/schedule"
-  to = "/.netlify/functions/schedule"
-  status = 200
-
-[[redirects]]
-  from = "/api/cost-estimator-lead"
-  to = "/.netlify/functions/cost-estimator-lead"
-  status = 200
-
-[[redirects]]
-  from = "/api/launch-checker-lead"
-  to = "/.netlify/functions/launch-checker-lead"
-  status = 200
-
-[[redirects]]
-  from = "/api/video-analyzer/analyze"
-  to = "/.netlify/functions/video-analyzer"
-  status = 200
-
-[[redirects]]
-  from = "/api/video-analyzer/*"
-  to = "/.netlify/functions/video-analyzer/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
+  external_node_modules = ["openai"]
 
 # SPA fallback - must be last
 [[redirects]]
