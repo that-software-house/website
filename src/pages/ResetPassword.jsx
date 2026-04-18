@@ -68,7 +68,7 @@ const ResetPassword = () => {
     try {
       await updatePassword(password);
       setSuccess('Password updated successfully. Redirecting...');
-      setTimeout(() => navigate('/projects/invoice-chaser', { replace: true }), 1200);
+      setTimeout(() => navigate('/vault/invoicechaser', { replace: true }), 1200);
     } catch (err) {
       setError(err.message || 'Failed to update password.');
     } finally {

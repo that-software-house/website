@@ -115,18 +115,19 @@ const TextCleanerApp = () => {
     title: 'AI Text Cleaner - Clean ChatGPT & LLM Output | Free Online Tool',
     description: 'Free AI text cleaner tool to remove hidden characters, normalize quotes, fix spacing, and clean up ChatGPT, Claude, and LLM outputs. Instantly standardize AI-generated text for professional use.',
     keywords: 'AI text cleaner, clean ChatGPT text, LLM text cleaner, remove hidden characters, normalize quotes, clean AI output, text sanitizer, ChatGPT formatting, AI text formatter, clean GPT output, remove invisible characters, text standardizer',
-    canonicalUrl: 'https://thatsoftwarehouse.com/projects/textcleaner',
+    canonicalUrl: 'https://labs.thatsoftwarehouse.com/textcleaner',
     openGraph: {
       title: 'AI Text Cleaner - Clean & Standardize LLM Output',
       description: 'Free tool to clean up AI-generated text. Remove hidden characters, fix quotes, normalize spacing from ChatGPT and other LLMs.',
       type: 'website',
+      url: 'https://labs.thatsoftwarehouse.com/textcleaner',
     },
     structuredData: {
       '@context': 'https://schema.org',
       '@type': 'WebApplication',
       name: 'AI Text Cleaner',
       description: 'Free online tool to clean and standardize AI-generated text from ChatGPT, Claude, and other LLMs. Removes hidden characters, normalizes quotes, and fixes formatting.',
-      url: 'https://thatsoftwarehouse.com/projects/textcleaner',
+      url: 'https://labs.thatsoftwarehouse.com/textcleaner',
       applicationCategory: 'UtilitiesApplication',
       operatingSystem: 'Web Browser',
       offers: {

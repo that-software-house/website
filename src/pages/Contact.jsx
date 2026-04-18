@@ -1,300 +1,227 @@
 import React, { useState } from 'react';
-import DatePicker from 'react-datepicker';
 import { useSEO } from '@/hooks/useSEO';
-import 'react-datepicker/dist/react-datepicker.css';
 import './Contact.css';
+
+const domainOptions = ['Healthcare', 'Fintech', 'Insurtech', 'AI infrastructure', 'Other'];
+const shapeOptions = ['2-wk diligence', 'Production build', '0 → 1 team', 'Fractional platform', 'Not sure yet'];
+const budgetOptions = ['$15—30k / mo', '$30—60k / mo', '$60—100k / mo', '$100k+ / mo', 'Fixed, $18k diligence'];
 
 const Contact = () => {
   useSEO({
-    title: 'Contact Us | That Software House',
-    description: 'Get in touch with That Software House. Schedule a call or send us a message about your project. Based in Austin, TX — serving clients worldwide.',
-    keywords: 'contact software house, hire developers, software consultation, Austin TX',
+    title: 'Contact | That Software House',
+    description: 'Talk directly with a principal engineer at That Software House about technical diligence, production AI, and high-stakes software builds.',
+    keywords: 'contact software engineering studio, production AI consultation, technical diligence intake',
     canonicalUrl: 'https://thatsoftwarehouse.com/contact',
   });
-  const [scheduleName, setScheduleName] = useState('');
-  const [scheduleEmail, setScheduleEmail] = useState('');
-  const [scheduleDate, setScheduleDate] = useState(null);
-  const [scheduleTime, setScheduleTime] = useState(null);
-  const [scheduleReason, setScheduleReason] = useState('');
-  const [scheduleStatus, setScheduleStatus] = useState(null);
-  const [scheduleLoading, setScheduleLoading] = useState(false);
 
-  const formatDate = (date) => {
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${month}/${day}/${year}`;
-  };
+  const [domains, setDomains] = useState([]);
+  const [shapes, setShapes] = useState([]);
+  const [budget, setBudget] = useState('');
 
-  const formatTime = (date) => {
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
-  };
-
-  const handleScheduleSubmit = async (event) => {
-    event.preventDefault();
-    setScheduleStatus(null);
-
-    if (!scheduleName.trim() || !scheduleEmail.trim() || !scheduleDate || !scheduleTime) {
-      setScheduleStatus({
-        type: 'error',
-        message: 'Please add your name, email, date, and time to schedule a meeting.',
-      });
-      return;
-    }
-
-    const formattedDate = formatDate(scheduleDate);
-    const formattedTime = formatTime(scheduleTime);
-
-    setScheduleLoading(true);
-
-    try {
-      const response = await fetch('/api/schedule', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: scheduleName.trim(),
-          mailId: scheduleEmail.trim(),
-          date: formattedDate,
-          time: formattedTime,
-          reason: scheduleReason.trim() || 'General meeting',
-        }),
-      });
-
-      const payload = await response.json().catch(() => null);
-
-      if (!response.ok || !payload?.success) {
-        throw new Error(payload?.message || 'Schedule request failed');
-      }
-
-      setScheduleStatus({
-        type: 'success',
-        message: 'Thanks! Your appointment request was sent. We will confirm shortly.',
-      });
-      setScheduleName('');
-      setScheduleEmail('');
-      setScheduleDate(null);
-      setScheduleTime(null);
-      setScheduleReason('');
-    } catch (error) {
-      const message =
-        error instanceof Error && error.message
-          ? error.message
-          : 'Sorry, we could not schedule the appointment right now. Please try again or email us.';
-      setScheduleStatus({
-        type: 'error',
-        message,
-      });
-    } finally {
-      setScheduleLoading(false);
-    }
+  const toggleSelection = (value, setter, current) => {
+    setter(current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
   };
 
   return (
-    <div className="contact-page">
-      <section className="contact-hero">
-        <div className="contact-container">
-          <h1 className="contact-title">Contact us</h1>
-          <p className="contact-description">
-            We partner with startups, scale-ups, SMB's and enterprises to turn ambitious ideas into
-            secure, scalable software. Let's discuss your project.
+    <div className="contact-page studio-page">
+      <section className="contact-page__hero studio-section-shell">
+        <div className="contact-page__left">
+          <div className="eyebrow">
+            <span className="eyebrow__bar" />
+            <span className="eyebrow__tag">[ 05 / Contact ]</span>
+            <span>Reply within 24 hours · written, by a principal</span>
+          </div>
+
+          <h1>Tell us what you&apos;re actually building.</h1>
+
+          <p>
+            <strong>A principal reads every inbound.</strong> Within 24 hours you&apos;ll get either a scoping call slot, a written here&apos;s why we&apos;re wrong for this reply, or a referral to someone better suited. No sales flow, no nurture sequence, no demo request.
           </p>
+
+          <div className="contact-page__meta">
+            <div>
+              <span>Principal intake</span>
+              <a href="mailto:contact@thatsoftwarehouse.com">contact@thatsoftwarehouse.com</a>
+            </div>
+            <div>
+              <span>Healthcare leads</span>
+              <a href="mailto:contact@thatsoftwarehouse.com">contact@thatsoftwarehouse.com</a>
+            </div>
+            <div>
+              <span>Austin studio</span>
+              <strong>1208 E 6th St, Suite 210<br />Austin, TX 78702</strong>
+            </div>
+            <div>
+              <span>SF studio</span>
+              <strong>482 Valencia St, Floor 3<br />San Francisco, CA 94103</strong>
+            </div>
+          </div>
+        </div>
+
+        <form
+          className="contact-form-card"
+          name="principal-intake"
+          method="POST"
+          action="/thank-you"
+          data-netlify="true"
+          data-netlify-honeypot="bot-field"
+        >
+          <input type="hidden" name="form-name" value="principal-intake" />
+          <input type="hidden" name="domains" value={domains.join(', ')} />
+          <input type="hidden" name="engagement_shape" value={shapes.join(', ')} />
+          <input type="hidden" name="budget_ceiling" value={budget} />
+          <p hidden>
+            <label>
+              Do not fill this out: <input name="bot-field" />
+            </label>
+          </p>
+
+          <div className="contact-form-card__head">
+            <span>/ intake form</span>
+            <span className="studio-pill studio-pill--live">
+              <span className="studio-pill__dot" />
+              Accepting · Q3
+            </span>
+          </div>
+
+          <div className="contact-form-card__grid">
+            <div>
+              <label>Your name *</label>
+              <input type="text" name="name" placeholder="Jane Doe" required />
+            </div>
+            <div>
+              <label>Founder email *</label>
+              <input type="email" name="email" placeholder="jane@company.com" required />
+            </div>
+          </div>
+
+          <div className="contact-form-card__grid">
+            <div>
+              <label>Company</label>
+              <input type="text" name="company" placeholder="Company, Inc." />
+            </div>
+            <div>
+              <label>Stage</label>
+              <input type="text" name="stage" placeholder="Pre-seed / Seed / A / B" />
+            </div>
+          </div>
+
+          <div className="contact-form-card__row">
+            <label>Domain</label>
+            <div className="contact-chip-group">
+              {domainOptions.map((option) => {
+                const selected = domains.includes(option);
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    className={`contact-chip${selected ? ' contact-chip--selected' : ''}`}
+                    onClick={() => toggleSelection(option, setDomains, domains)}
+                  >
+                    <span className="contact-chip__dot" />
+                    {option}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="contact-form-card__row">
+            <label>What are you trying to ship? *</label>
+            <textarea
+              name="ask"
+              placeholder="One paragraph. What it does, who uses it, what happens if you do not ship it in the next quarter."
+              required
+            />
+          </div>
+
+          <div className="contact-form-card__row">
+            <label>Engagement shape</label>
+            <div className="contact-chip-group">
+              {shapeOptions.map((option) => {
+                const selected = shapes.includes(option);
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    className={`contact-chip${selected ? ' contact-chip--selected' : ''}`}
+                    onClick={() => toggleSelection(option, setShapes, shapes)}
+                  >
+                    <span className="contact-chip__dot" />
+                    {option}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="contact-form-card__row">
+            <label>Budget ceiling</label>
+            <div className="contact-chip-group">
+              {budgetOptions.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  className={`contact-chip${budget === option ? ' contact-chip--selected' : ''}`}
+                  onClick={() => setBudget(option)}
+                >
+                  <span className="contact-chip__dot" />
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="contact-form-card__submit">
+            <button type="submit" className="studio-button studio-button--primary">
+              Send to a principal
+              <span className="studio-button__arrow" aria-hidden="true">↗</span>
+            </button>
+            <div>By sending this you agree we&apos;ll reply within 24h. No mailing list. No CRM.</div>
+          </div>
+        </form>
+      </section>
+
+      <section className="contact-next studio-section-shell">
+        <div>
+          <div className="eyebrow">
+            <span className="eyebrow__bar" />
+            <span className="eyebrow__tag">[ Process ]</span>
+          </div>
+          <h2>What happens after you hit send.</h2>
+        </div>
+        <div className="contact-next__list">
+          <div className="contact-next__row">
+            <div>T+0</div>
+            <div>A principal reads it.<span>Marek, Sana, Rhea, or Jon depending on the domain. Not a router, not an SDR.</span></div>
+            <strong>Within 4 hours · business day</strong>
+          </div>
+          <div className="contact-next__row">
+            <div>T+1d</div>
+            <div>You get a written reply.<span>Either a 30-minute slot, a here&apos;s why not, or a referral. The reply is written, not a calendar link.</span></div>
+            <strong>Within 24 hours</strong>
+          </div>
+          <div className="contact-next__row">
+            <div>T+1w</div>
+            <div>30-minute scoping call.<span>No deck. You walk us through the actual problem. We tell you what we&apos;d do and what we would not.</span></div>
+            <strong>Video · 30 min</strong>
+          </div>
+          <div className="contact-next__row">
+            <div>T+2w</div>
+            <div>Either a diligence SOW or a pass.<span>If we&apos;re in, you get a fixed-fee diligence SOW in your inbox the day after the call. If not, you get the reason.</span></div>
+            <strong>Fixed fee · $18k</strong>
+          </div>
         </div>
       </section>
 
-      <section className="contact-content">
-        <div className="contact-container">
-          {/* Email Section */}
-          <div className="contact-email-section">
-            <a href="mailto:contact@thatsoftwarehouse.com" className="contact-email-link">
-              contact@thatsoftwarehouse.com
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-            </a>
-          </div>
-
-          {/* Divider */}
-          <div className="contact-divider">
-            <span className="divider-line"></span>
-            <span className="divider-text">or</span>
-            <span className="divider-line"></span>
-          </div>
-
-          {/* Scheduling Section */}
-          <div className="contact-schedule-section">
-            <h2 className="form-heading">Schedule a meeting:</h2>
-            <form className="contact-form schedule-form" onSubmit={handleScheduleSubmit}>
-              <div className="form-group">
-                <input
-                  type="text"
-                  name="scheduleName"
-                  placeholder="Full name"
-                  autoComplete="name"
-                  value={scheduleName}
-                  onChange={(event) => setScheduleName(event.target.value)}
-                  className="form-input"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <input
-                  type="email"
-                  name="scheduleEmail"
-                  placeholder="email@company.com"
-                  autoComplete="email"
-                  value={scheduleEmail}
-                  onChange={(event) => setScheduleEmail(event.target.value)}
-                  className="form-input"
-                  required
-                />
-              </div>
-
-              <div className="form-group form-row">
-                <DatePicker
-                  selected={scheduleDate}
-                  onChange={(date) => setScheduleDate(date)}
-                  className="form-input"
-                  placeholderText="Select a date"
-                  dateFormat="MM/dd/yyyy"
-                  minDate={new Date()}
-                  required
-                />
-                <DatePicker
-                  selected={scheduleTime}
-                  onChange={(date) => setScheduleTime(date)}
-                  className="form-input"
-                  placeholderText="Select a time"
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={30}
-                  timeFormat="HH:mm"
-                  timeCaption="Time"
-                  dateFormat="HH:mm"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <textarea
-                  name="scheduleReason"
-                  placeholder="Reason for appointment"
-                  rows="4"
-                  value={scheduleReason}
-                  onChange={(event) => setScheduleReason(event.target.value)}
-                  className="form-textarea"
-                />
-              </div>
-
-              <div className="form-submit">
-                <button type="submit" className="contact-primary-btn" disabled={scheduleLoading}>
-                  {scheduleLoading ? 'Scheduling...' : 'Schedule meeting'}
-                </button>
-                {scheduleStatus && (
-                  <p className={`form-status ${scheduleStatus.type}`}>{scheduleStatus.message}</p>
-                )}
-              </div>
-            </form>
-          </div>
-
-          {/* Divider */}
-          <div className="contact-divider">
-            <span className="divider-line"></span>
-            <span className="divider-text">or</span>
-            <span className="divider-line"></span>
-          </div>
-
-          {/* Form Section */}
-          <div className="contact-form-section">
-            <h2 className="form-heading">Or fill out the form:</h2>
-            <form
-              name="contact"
-              method="POST"
-              action="/thank-you"
-              data-netlify="true"
-              data-netlify-honeypot="bot-field"
-              className="contact-form"
-            >
-              {/* Hidden field for Netlify */}
-              <input type="hidden" name="form-name" value="contact" />
-
-              {/* Honeypot field for spam protection */}
-              <p hidden>
-                <label>
-                  Don't fill this out: <input name="bot-field" />
-                </label>
-              </p>
-
-              <div className="form-group">
-                <input
-                  type="text"
-                  id="fullName"
-                  name="fullName"
-                  placeholder="Full name"
-                  required
-                  className="form-input"
-                />
-              </div>
-
-              <div className="form-group">
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  placeholder="email@company.com"
-                  required
-                  className="form-input"
-                />
-              </div>
-
-              <div className="form-group">
-                <textarea
-                  id="projectDescription"
-                  name="projectDescription"
-                  placeholder="Project description"
-                  required
-                  rows="6"
-                  className="form-textarea"
-                />
-              </div>
-
-              <div className="form-group">
-                <input
-                  type="text"
-                  id="howDidYouFind"
-                  name="howDidYouFind"
-                  placeholder="How did you find That Software House"
-                  className="form-input"
-                />
-              </div>
-
-              <div className="form-privacy">
-                <p>
-                  By filling in the form, you agree to our Privacy Policy, including our cookie use.
-                </p>
-              </div>
-
-              <div className="form-submit">
-                <button type="submit" className="contact-primary-btn">
-                  Let's talk
-                </button>
-              </div>
-            </form>
-          </div>
-
-          {/* Additional Links */}
-          <div className="contact-links">
-            <a href="mailto:contact@thatsoftwarehouse.com" className="contact-link-item">
-              General Inquiries →
-            </a>
-          </div>
+      <div className="studio-page-meta">
+        <div className="studio-page-meta__left">
+          <span><span className="studio-page-meta__label">IDX</span> 05 / Contact</span>
+          <span><span className="studio-page-meta__label">REV</span> 2026.04.17</span>
+          <span><span className="studio-page-meta__label">SLA</span> 24h written reply</span>
         </div>
-      </section>
+        <div>Principal intake ↗</div>
+      </div>
     </div>
   );
 };

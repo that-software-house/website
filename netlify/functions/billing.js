@@ -195,8 +195,8 @@ async function createCheckoutSession(user, siteUrl) {
   params.set('line_items[0][price]', stripeInvoiceChaserPriceId);
   params.set('line_items[0][quantity]', '1');
   params.set('allow_promotion_codes', 'true');
-  params.set('success_url', `${siteUrl}/projects/invoice-chaser?billing=success`);
-  params.set('cancel_url', `${siteUrl}/projects/invoice-chaser?billing=cancel`);
+  params.set('success_url', `${siteUrl}/vault/invoicechaser?billing=success`);
+  params.set('cancel_url', `${siteUrl}/vault/invoicechaser?billing=cancel`);
   params.set('client_reference_id', user.id);
   params.set('metadata[supabase_user_id]', user.id);
   params.set('metadata[plan]', INVOICE_CHASER_PLAN);
@@ -214,7 +214,7 @@ async function createPortalSession(user, siteUrl) {
 
   const params = new URLSearchParams();
   params.set('customer', customerId);
-  params.set('return_url', `${siteUrl}/projects/invoice-chaser`);
+  params.set('return_url', `${siteUrl}/vault/invoicechaser`);
   return stripeRequest('/billing_portal/sessions', params);
 }
 

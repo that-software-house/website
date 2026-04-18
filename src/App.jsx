@@ -3,17 +3,21 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import ScrollToTop from './components/ScrollToTop'
 import Header from './components/Header'
 import Footer from './components/Footer'
-import ChatWidget from './components/ChatWidget'
 import Home from './pages/Home'
 import About from './pages/About'
 import Contact from './pages/Contact'
 import ServicesPage from './pages/ServicesPage'
+import LegacyServicesPage from './pages/LegacyServicesPage'
 import SeoPage from './pages/SeoPage'
 import MarketingPage from './pages/MarketingPage'
 import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
-import Projects from './pages/Projects'
+import Vault from './pages/Vault'
 import ProjectDetail from './pages/ProjectDetail'
+import Work from './pages/Work'
+import Approach from './pages/Approach'
+import Team from './pages/Team'
+import AiLab from './pages/AiLab'
 import AiSoftware from './pages/AiSoftware'
 import CustomSoftware from './pages/CustomSoftware'
 import ThankYou from './pages/ThankYou'
@@ -23,6 +27,7 @@ import ValidateIdea from './pages/ValidateIdea'
 import BuildProduct from './pages/BuildProduct'
 import ScaleProduct from './pages/ScaleProduct'
 import ResetPassword from './pages/ResetPassword'
+import SMBModernization from './pages/SMBModernization'
 import WebsiteCostEstimator from './pages/WebsiteCostEstimator'
 import LaunchReadiness from './pages/LaunchReadiness'
 import NotFound from './pages/NotFound'
@@ -32,18 +37,26 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
-      <div className="app">
+      <div className="app app-shell">
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
           <Route path="/services" element={<ServicesPage />} />
+          <Route path="/modernization" element={<SMBModernization />} />
+          <Route path="/work" element={<Work />} />
+          <Route path="/approach" element={<Approach />} />
+          <Route path="/team" element={<Team />} />
+          <Route path="/ai-lab" element={<AiLab />} />
+          <Route path="/contact" element={<Contact />} />
+
+          <Route path="/about" element={<About />} />
+          <Route path="/small-business-websites" element={<LegacyServicesPage />} />
+          <Route path="/legacy/services" element={<LegacyServicesPage />} />
           <Route path="/seo" element={<SeoPage />} />
           <Route path="/marketing" element={<MarketingPage />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
-          <Route path="/projects" element={<Projects />} />
+          <Route path="/vault" element={<Vault />} />
           <Route path="/projects/:projectId" element={<ProjectDetail />} />
           <Route path="/ai-software" element={<AiSoftware />} />
           <Route path="/custom-software" element={<CustomSoftware />} />
@@ -59,7 +72,6 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Footer />
-        <ChatWidget />
       </div>
     </Router>
   )

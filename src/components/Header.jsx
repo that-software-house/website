@@ -1,50 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, Sparkles, X, ChevronDown } from 'lucide-react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import './Header.css';
 
+const navItems = [
+  { to: '/services', label: 'Services', number: '01' },
+  { to: '/work', label: 'Work', number: '02' },
+  { to: '/vault', label: 'Vault', number: '03' },
+  { to: '/approach', label: 'Approach', number: '04' },
+  { to: '/team', label: 'Team', number: '05' },
+  { to: '/contact', label: 'Contact', number: '06' },
+];
+
 const Header = () => {
-  const [isVisible, setIsVisible] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [servicesOpen, setServicesOpen] = useState(false);
   const location = useLocation();
-
-  const navItems = [
-    { to: '/ai-software', label: 'AI Solutions' },
-    { to: '/custom-software', label: 'Custom Software' },
-    { to: '/projects', label: 'Projects' },
-    { to: '/about', label: 'About us' },
-  ];
-
-  const serviceItems = [
-    { to: '/validate-your-idea', label: 'Validate your idea' },
-    { to: '/build-your-product', label: 'Build your product' },
-    { to: '/scale-your-product', label: 'Scale your product' },
-    { to: '/services', label: 'SMB Web Package' },
-    { to: '/seo', label: 'SEO & Growth' },
-    { to: '/marketing', label: 'Marketing' },
-  ];
-
-  const isServicesActive = ['/validate-your-idea', '/build-your-product', '/scale-your-product', '/services', '/seo', '/marketing'].includes(location.pathname);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (isMenuOpen) return;
-      setIsScrolled(window.scrollY > 12);
-      setIsVisible(true);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [isMenuOpen]);
 
   useEffect(() => {
     setIsMenuOpen(false);
+    document.body.style.overflow = '';
   }, [location.pathname]);
 
   useEffect(() => {
@@ -56,59 +30,37 @@ const Header = () => {
   }, [isMenuOpen]);
 
   return (
-    <header className={`header ${isVisible ? 'visible' : 'hidden'} ${isMenuOpen ? 'expanded' : ''} ${isScrolled ? 'scrolled' : 'at-top'}`}>
-      <div className="header-container">
-        <div className="logo">
-          <Link to="/" aria-label="Home">
-            tsh
-          </Link>
-          <span className="ai-pill">
-            <Sparkles size={14} />
-            Develop faster with AI
+    <header className="studio-header">
+      <div className="studio-header__inner">
+        <Link to="/" className="studio-logo" aria-label="That Software House home">
+          <span className="studio-logo__mark">tsh</span>
+          <span className="studio-logo__wordmark">
+            That Software House <em>— est. 2020</em>
           </span>
-        </div>
+        </Link>
 
-        <nav className="nav" aria-label="Primary navigation">
-          {/* Services Dropdown */}
-          <div
-            className="nav-dropdown"
-            onMouseEnter={() => setServicesOpen(true)}
-            onMouseLeave={() => setServicesOpen(false)}
-          >
-            <button
-              className={`nav-link nav-dropdown-trigger ${isServicesActive ? 'active' : ''}`}
-              aria-expanded={servicesOpen}
-            >
-              Services
-              <ChevronDown size={14} className={`dropdown-chevron ${servicesOpen ? 'open' : ''}`} />
-            </button>
-            <div className={`nav-dropdown-menu ${servicesOpen ? 'open' : ''}`}>
-              {serviceItems.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={`nav-dropdown-item ${location.pathname === item.to ? 'active' : ''}`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          </div>
+        <nav className="studio-nav" aria-label="Primary navigation">
           {navItems.map((item) => (
-            <Link
+            <NavLink
               key={item.to}
               to={item.to}
-              className={`nav-link ${location.pathname.startsWith(item.to) ? 'active' : ''}`}
+              className={({ isActive }) =>
+                `studio-nav__link${isActive ? ' studio-nav__link--active' : ''}`
+              }
             >
-              {item.label}
-            </Link>
+              <span className="studio-nav__number">{item.number}</span>
+              <span>{item.label}</span>
+            </NavLink>
           ))}
         </nav>
 
-        <div className="cta-wrapper">
-          <Link to="/contact" className="cta-primary">Let&apos;s chat</Link>
+        <div className="studio-header__actions">
+          <Link to="/contact" className="studio-availability">
+            <span className="studio-availability__dot" />
+            <span>2 slots open · Q3</span>
+          </Link>
           <button
-            className="menu-toggle"
+            className="studio-menu-toggle"
             aria-label="Toggle navigation"
             aria-expanded={isMenuOpen}
             onClick={() => setIsMenuOpen((prev) => !prev)}
@@ -118,47 +70,41 @@ const Header = () => {
         </div>
       </div>
 
-      <div className={`mobile-drawer ${isMenuOpen ? 'open' : ''}`}>
-        <div className="mobile-drawer-inner">
-          <div className="mobile-meta">
-            <p>Product studio crafting AI-era experiences.</p>
-            <div className="meta-tags">
-              <span>Design systems</span>
-              <span>AI apps</span>
-              <span>Growth stacks</span>
+      <div className={`studio-mobile-drawer${isMenuOpen ? ' studio-mobile-drawer--open' : ''}`}>
+        <div className="studio-mobile-drawer__inner">
+          <div className="studio-mobile-meta">
+            <p>Senior engineers for healthcare, fintech, and production AI.</p>
+            <div className="studio-mobile-meta__tags">
+              <span>Technical diligence</span>
+              <span>Production builds</span>
+              <span>Fractional platform</span>
             </div>
           </div>
-          <div className="mobile-nav-links">
+
+          <div className="studio-mobile-nav">
             {navItems.map((item) => (
-              <Link
+              <NavLink
                 key={item.to}
                 to={item.to}
-                className={`nav-link ${location.pathname.startsWith(item.to) ? 'active' : ''}`}
+                className={({ isActive }) =>
+                  `studio-mobile-nav__link${isActive ? ' studio-mobile-nav__link--active' : ''}`
+                }
               >
+                <span className="studio-mobile-nav__number">{item.number}</span>
                 {item.label}
-              </Link>
+              </NavLink>
             ))}
-            <div className="mobile-nav-section">
-              <span className="mobile-nav-label">Services</span>
-              {serviceItems.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={`nav-link ${location.pathname === item.to ? 'active' : ''}`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
           </div>
-          <Link to="/contact" className="cta-primary drawer-cta">
-            Book a call
+
+          <Link to="/contact" className="studio-button studio-button--primary">
+            Start a conversation
+            <span className="studio-button__arrow" aria-hidden="true">↗</span>
           </Link>
         </div>
       </div>
 
       <div
-        className={`nav-overlay ${isMenuOpen ? 'visible' : ''}`}
+        className={`studio-nav-overlay${isMenuOpen ? ' studio-nav-overlay--visible' : ''}`}
         onClick={() => setIsMenuOpen(false)}
         aria-hidden
       />

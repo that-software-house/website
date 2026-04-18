@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Sparkles, Bot } from 'lucide-react';
 import { useSEO } from '@/hooks/useSEO';
-import { projects } from './Projects';
+import { projects } from './Vault';
 import ContentForgeApp from '../components/apps/ContentForgeApp';
 import DocAnalyzerApp from '../components/apps/DocAnalyzerApp';
 import DataInsightsApp from '../components/apps/DataInsightsApp';
@@ -32,8 +32,8 @@ function ProjectDetail() {
     : "The project you're looking for does not exist.";
 
   const seoUrl = project
-    ? `${siteUrl}/projects/${project.id}`
-    : `${siteUrl}/projects`;
+    ? `${siteUrl}/vault/${project.id}`
+    : `${siteUrl}/vault`;
 
   useSEO({
     title: seoTitle,
@@ -58,9 +58,9 @@ function ProjectDetail() {
         <div className="project-not-found">
           <h2>Project Not Found</h2>
           <p>The project you're looking for doesn't exist.</p>
-          <Link to="/projects" className="back-link">
+          <Link to="/vault" className="back-link">
             <ArrowLeft className="w-5 h-5" />
-            Back to Projects
+            Back to Vault
           </Link>
         </div>
       </div>
@@ -118,9 +118,9 @@ function ProjectDetail() {
     <div className="project-detail-page">
       {/* Back Navigation */}
       <nav className="project-detail-nav">
-        <Link to="/projects" className="back-link">
+        <Link to="/vault" className="back-link">
           <ArrowLeft className="w-5 h-5" />
-          Back to Projects
+          Back to Vault
         </Link>
       </nav>
 

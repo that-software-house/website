@@ -28,18 +28,19 @@ const ToneConverterApp = () => {
     title: 'AI Tone Converter - Change Text Tone Instantly | Free Online Tool',
     description: 'Free AI tone converter to transform your writing style. Convert text to professional, casual, friendly, persuasive, or any tone. Perfect for emails, social media, and business communication.',
     keywords: 'tone converter, AI tone changer, text tone converter, writing style converter, professional tone, casual tone, change text tone, rewrite text tone, AI writing assistant, email tone converter',
-    canonicalUrl: 'https://thatsoftwarehouse.com/projects/toneconverter',
+    canonicalUrl: 'https://labs.thatsoftwarehouse.com/toneconverter',
     openGraph: {
       title: 'AI Tone Converter - Transform Your Writing Style',
       description: 'Free tool to convert text to any tone - professional, casual, friendly, persuasive, and more.',
       type: 'website',
+      url: 'https://labs.thatsoftwarehouse.com/toneconverter',
     },
     structuredData: {
       '@context': 'https://schema.org',
       '@type': 'WebApplication',
       name: 'AI Tone Converter',
       description: 'Free online tool to convert text to different tones and writing styles using AI.',
-      url: 'https://thatsoftwarehouse.com/projects/toneconverter',
+      url: 'https://labs.thatsoftwarehouse.com/toneconverter',
       applicationCategory: 'UtilitiesApplication',
       operatingSystem: 'Web Browser',
       offers: {

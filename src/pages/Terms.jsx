@@ -128,7 +128,7 @@ const Terms = () => {
             <h3 className="terms-section-title">9. Privacy Policy</h3>
             <p>
               Your use of the Site is also governed by our Privacy Policy, which you can find here:
-              <a href="/privacy-policy" className="terms-link"> https://thatsoftwarehouse.com/privacy-policy</a>
+              <a href="/privacy" className="terms-link"> https://thatsoftwarehouse.com/privacy</a>
             </p>
             <p>
               This Privacy Policy explains how TSH collects, uses, retains, discloses, and protects personal data.
