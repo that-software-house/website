@@ -1,0 +1,31 @@
+# That Software House (TSH)
+
+Senior engineering studio based in Austin and San Francisco. We build critical technical infrastructure for high-stakes founders and modern AI-driven solutions for established local businesses.
+
+## Core Mission
+- **High-Stakes Founders:** Production AI, HIPAA-scoped healthcare systems, and fintech infrastructure.
+- **Main Street Modernization:** Migrating SMBs (CPAs, Lawyers, Dental) from legacy WordPress to high-performance, zero-maintenance stacks.
+
+## Key Services
+- **Main Street Modernization:** $749 migration launch + $89/mo technical support.
+- **AI-Powered Intelligence:** 24/7 Chat-based Virtual Receptionists and Private RAG (Knowledge) Vaults.
+- **High-Velocity Startups:** Senior-only engineering squad for Seed/Series A feature shipping.
+- **Generative SEO & GEO:** Optimizing brands for LLM (ChatGPT, Perplexity, Claude) citations.
+- **High-Stakes Founder Design:** Pitch deck engineering and technical narrative development ($412M+ raised).
+
+## Technical Stack
+- **Frontend:** React (Vite), Next.js, Framer, Webflow.
+- **Backend:** Node.js, Python, PostgreSQL, Supabase.
+- **AI/ML:** RAG (Retrieval-Augmented Generation), vLLM, Vector Databases.
+- **Infrastructure:** Self-hosted Lab (Mac Mini), Netlify, AWS.
+
+## Strategic URLs
+- **Main Site:** https://thatsoftwarehouse.com
+- **Technical Vault:** /vault (Proprietary Infrastructure Modules)
+- **Interactive AI Lab:** /ai-lab (Live RAG Demos)
+- **SMB Modernization:** /modernization ($749 Offer)
+- **TSH Labs:** https://labs.thatsoftwarehouse.com (Internal Utilities)
+
+## Leadership
+- **Snehal Shah:** CTO & Co-Founder (Technical Strategy, AI Engineering)
+- **Ash Saniesales:** COO & Co-Founder (Operations, Conversion-First Growth)

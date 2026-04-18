@@ -1,0 +1,136 @@
+.vault-page {
+  background-color: var(--studio-bg);
+}
+
+.vault-hero {
+  max-width: 800px;
+}
+
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 40px;
+  margin-top: 40px;
+}
+
+@media (max-width: 768px) {
+  .modules-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.module-card {
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--line-soft);
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.module-card:hover {
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.module-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--accent);
+  letter-spacing: 0.12em;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.module-header h2 {
+  font-family: var(--font-display);
+  font-size: 32px;
+  margin-bottom: 20px;
+  letter-spacing: -0.01em;
+}
+
+.module-description {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--fg-dim);
+  margin-bottom: 24px;
+  flex-grow: 1;
+}
+
+.module-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.stat-pill {
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--fg-mute);
+}
+
+.module-cta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--fg);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.module-cta:hover {
+  color: var(--accent);
+}
+
+/* Labs Section */
+.vault-labs {
+  margin-top: 60px;
+}
+
+.labs-cta {
+  padding: 60px;
+  background: linear-gradient(90deg, oklch(0.21 0.009 260 / 0.4), transparent);
+  border: 1px solid var(--line-soft);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 40px;
+}
+
+@media (max-width: 900px) {
+  .labs-cta {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 40px;
+  }
+}
+
+.labs-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-mute);
+  display: block;
+  margin-bottom: 12px;
+}
+
+.labs-content h2 {
+  font-family: var(--font-display);
+  font-size: 42px;
+  margin-bottom: 20px;
+}
+
+.labs-content p {
+  max-width: 50ch;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--fg-dim);
+}
