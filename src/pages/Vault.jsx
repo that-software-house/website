@@ -8,6 +8,7 @@ const modules = [
     id: 'leadflow',
     title: 'LeadFlow AI',
     tag: 'Operations Infrastructure',
+    tags: ['AI', 'CRM', 'Leads', 'SMB'],
     description: 'Auto-capture leads from email, web forms, and social DMs with zero manual data entry. Built for high-volume service businesses that cannot afford to lose a lead in the "inbox black hole."',
     stats: ['99.4% Extraction Accuracy', 'Real-time Triage', 'CRM Integration'],
     cta: 'View Module'
@@ -16,6 +17,7 @@ const modules = [
     id: 'invoicechaser',
     title: 'Invoice Chaser',
     tag: 'Financial Infrastructure',
+    tags: ['AI', 'Finance', 'Collections', 'SMB'],
     description: 'A collections copilot that prioritizes overdue accounts by risk and generates technical, firm follow-up drafts. It treats cash flow as a data problem, not a manual chore.',
     stats: ['3.1x Faster Close Speed', 'Risk-Based Prioritization', 'Automated Drafts'],
     cta: 'View Module'
@@ -109,4 +111,5 @@ const Vault = () => {
   );
 };
 
+export { modules as projects };
 export default Vault;
