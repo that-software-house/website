@@ -26,6 +26,7 @@ const modules = [
     id: 'docanalyzer',
     title: 'Document RAG Vault',
     tag: 'Knowledge Infrastructure',
+    tags: ['AI', 'Documents', 'Analysis', 'Legal'],
     description: 'The foundation of our CPA and Law Firm modernizations. It turns thousands of static PDFs and records into a private, searchable AI brain for your staff.',
     stats: ['1,400+ Docs/sec Indexing', 'HIPAA/SOC2 Ready', 'Semantic Retrieval'],
     cta: 'Explore RAG'
@@ -34,6 +35,7 @@ const modules = [
     id: 'videoanalyzer',
     title: 'Video Intelligence',
     tag: 'Content Engineering',
+    tags: ['AI', 'Video', 'Content', 'GEO'],
     description: 'Extract technical insights, keyframes, and multi-platform content from raw video. The engine behind our GEO (Generative Engine Optimization) strategy.',
     stats: ['Multi-Model Analysis', 'Automated Social Maps', 'Vector-Based Search'],
     cta: 'View Engine'
