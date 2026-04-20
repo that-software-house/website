@@ -433,6 +433,94 @@
   color: var(--fg-mute);
 }
 
+.home-services {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 40px;
+  padding: 60px 48px 0;
+}
+
+.home-services__header h2 {
+  max-width: 18ch;
+  font-family: var(--font-display);
+  font-size: clamp(32px, 3.6vw, 56px);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-top: 28px;
+}
+
+.home-services__list {
+  display: grid;
+}
+
+.home-service-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 1fr auto 28px;
+  gap: 32px;
+  align-items: center;
+  padding: 26px 0;
+  border-bottom: 1px solid var(--line-soft);
+  text-decoration: none;
+  color: var(--fg);
+  transition: background 0.12s;
+}
+
+.home-service-row:first-child {
+  border-top: 1px solid var(--line-soft);
+}
+
+.home-service-row:hover {
+  background: oklch(0.21 0.009 260 / 0.25);
+}
+
+.home-service-row:hover .home-service-row__name {
+  color: var(--accent);
+}
+
+.home-service-row__num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-mute);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.home-service-row__name {
+  font-family: var(--font-display);
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  transition: color 0.12s;
+}
+
+.home-service-row__desc {
+  max-width: 44ch;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--fg-dim);
+  margin: 0;
+}
+
+.home-service-row__tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-mute);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.home-service-row__arr {
+  color: var(--fg-mute);
+  font-size: 18px;
+  transition: transform 0.15s;
+}
+
+.home-service-row:hover .home-service-row__arr {
+  transform: translate(2px, -2px);
+  color: var(--accent);
+}
+
 .home-approach {
   display: grid;
   grid-template-columns: 220px 1fr;
@@ -565,11 +653,21 @@
 
   .home-studio,
   .home-approach,
+  .home-services,
   .home-quote {
     grid-template-columns: 1fr;
     gap: 24px;
     padding-left: 28px;
     padding-right: 28px;
+  }
+
+  .home-service-row {
+    grid-template-columns: 40px 1fr auto 24px;
+    gap: 20px;
+  }
+
+  .home-service-row__desc {
+    display: none;
   }
 
   .home-cases {

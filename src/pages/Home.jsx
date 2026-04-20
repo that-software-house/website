@@ -36,6 +36,37 @@ const cases = [
   },
 ];
 
+const services = [
+  {
+    number: '01',
+    name: 'Enterprise Apps & AI',
+    description: 'LLM integrations, agent workflows, and production AI systems for healthcare, fintech, and high-stakes software teams.',
+    href: '/enterprise-ai',
+    tag: 'Engagements from $18k',
+  },
+  {
+    number: '02',
+    name: 'Fractional Leadership',
+    description: 'A senior CTO or principal engineer embedded with your team—part-time, fully accountable, without the full-time hiring risk.',
+    href: '/fractional-leadership',
+    tag: 'From $8k / month',
+  },
+  {
+    number: '03',
+    name: 'SEO & Marketing',
+    description: 'GEO-ready content, technical SEO, and growth strategy for technical products that are hard to explain.',
+    href: '/seo-marketing',
+    tag: 'From $1,000 / month',
+  },
+  {
+    number: '04',
+    name: 'Websites for SMBs',
+    description: 'High-performance websites for local businesses—built to convert, not built to look good in a screenshot.',
+    href: '/smb-websites',
+    tag: 'From $2,500',
+  },
+];
+
 const approach = [
   {
     number: '01',
@@ -259,9 +290,27 @@ const Home = () => {
         ))}
       </section>
 
+      <section className="home-services studio-section-shell">
+        <div className="home-services__header">
+          <div className="home-studio__label">03 / What we build</div>
+          <h2>Four practice areas. One team.</h2>
+        </div>
+        <div className="home-services__list">
+          {services.map((svc) => (
+            <Link key={svc.number} to={svc.href} className="home-service-row">
+              <div className="home-service-row__num">{svc.number}</div>
+              <div className="home-service-row__name">{svc.name}</div>
+              <p className="home-service-row__desc">{svc.description}</p>
+              <span className="home-service-row__tag">{svc.tag}</span>
+              <span className="home-service-row__arr" aria-hidden="true">↗</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <section className="home-approach studio-section-shell">
         <div>
-          <div className="home-studio__label">03 / How we work</div>
+          <div className="home-studio__label">04 / How we work</div>
           <h2>Four phases. No discovery decks.</h2>
         </div>
         <div className="home-approach__list">
@@ -277,7 +326,7 @@ const Home = () => {
       </section>
 
       <section className="home-quote studio-section-shell">
-        <div className="home-quote__label">04 / Word from</div>
+        <div className="home-quote__label">05 / Word from</div>
         <div>
           <blockquote>
             The TSH team shipped our first production model in seven weeks. Our in-house attempt took ten months and never left staging.
@@ -294,7 +343,7 @@ const Home = () => {
 
       <section className="studio-big-cta">
         <div>
-          <div className="studio-big-cta__meta">05 / Start a conversation</div>
+          <div className="studio-big-cta__meta">06 / Start a conversation</div>
           <h2 className="studio-big-cta__title">
             Tell us what you&apos;re <em>actually</em> trying to ship.
           </h2>

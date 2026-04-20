@@ -28,6 +28,10 @@ import BuildProduct from './pages/BuildProduct'
 import ScaleProduct from './pages/ScaleProduct'
 import ResetPassword from './pages/ResetPassword'
 import SMBModernization from './pages/SMBModernization'
+import EnterpriseAI from './pages/EnterpriseAI'
+import FractionalLeadership from './pages/FractionalLeadership'
+import SeoMarketing from './pages/SeoMarketing'
+import SMBWebsites from './pages/SMBWebsites'
 import WebsiteCostEstimator from './pages/WebsiteCostEstimator'
 import LaunchReadiness from './pages/LaunchReadiness'
 import NotFound from './pages/NotFound'
@@ -43,6 +47,10 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/modernization" element={<SMBModernization />} />
+          <Route path="/enterprise-ai" element={<EnterpriseAI />} />
+          <Route path="/fractional-leadership" element={<FractionalLeadership />} />
+          <Route path="/seo-marketing" element={<SeoMarketing />} />
+          <Route path="/smb-websites" element={<SMBWebsites />} />
           <Route path="/work" element={<Work />} />
           <Route path="/approach" element={<Approach />} />
           <Route path="/team" element={<Team />} />
