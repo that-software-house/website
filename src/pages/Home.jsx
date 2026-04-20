@@ -103,15 +103,15 @@ const Home = () => {
           <div className="eyebrow">
             <span className="eyebrow__bar" />
             <span className="eyebrow__tag">[ 01 ]</span>
-            <span>AI-first engineering studio · Austin × SF</span>
+            <span>Senior engineering studio · Austin × SF</span>
           </div>
 
           <h1 className="home-hero__title">
-            We build <em>production AI</em> for founders who <span>cannot afford</span> to get it wrong.
+            We treat <em>business technology</em> as <span>critical infrastructure</span>.
           </h1>
 
           <p className="home-hero__copy">
-            <strong>Senior engineers only. No juniors on your codebase.</strong> <span>/</span> Healthcare and fintech since 2020. Average tenure on the team is 9.4 years. The person you meet on the first call is the person who writes your code.
+            <strong>Senior engineers only. No juniors on your codebase.</strong> <span>/</span> Bridging the gap between high-level enterprise AI and the practical needs of local businesses. We deliver deployments, not slide decks. Every line of code is built to be a long-term business asset.
           </p>
 
           <div className="home-hero__actions">
