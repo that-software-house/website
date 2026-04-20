@@ -16,6 +16,12 @@
   font-weight: 600;
 }
 
+.modernization-features,
+.modernization-pricing,
+.modernization-cases {
+  padding: var(--section-pad-y) var(--section-pad-x);
+}
+
 .features-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));

@@ -6,6 +6,10 @@
   max-width: 800px;
 }
 
+.vault-modules {
+  padding: var(--section-pad-y) var(--section-pad-x);
+}
+
 .modules-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
