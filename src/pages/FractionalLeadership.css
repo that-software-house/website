@@ -1,0 +1,230 @@
+.fractional-page {
+  padding-top: 18px;
+}
+
+.fractional-hero__content h1 {
+  margin: 42px 0 28px;
+  font-family: var(--font-display);
+  font-size: clamp(48px, 5.5vw, 88px);
+  font-weight: 400;
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+}
+
+.fractional-hero__content h1 em {
+  color: var(--accent);
+  font-style: italic;
+}
+
+.fractional-hero__sub {
+  max-width: 58ch;
+  margin-bottom: 42px;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--fg-dim);
+}
+
+.fractional-hero__actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.fractional-hero__card {
+  margin-top: 6px;
+}
+
+.fractional-card__label {
+  margin-bottom: 20px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+
+.fractional-card__items {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.fractional-card__items > div {
+  padding-bottom: 18px;
+  border-bottom: 1px dashed var(--line-soft);
+}
+
+.fractional-card__items > div:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.fractional-card__items strong {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.fractional-card__items span {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--fg-dim);
+}
+
+.fractional-offerings {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 40px;
+  padding: 60px 48px 0;
+}
+
+.fractional-offerings__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+
+.fractional-offering {
+  padding: 24px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: linear-gradient(180deg, oklch(0.21 0.009 260 / 0.4), oklch(0.19 0.009 260 / 0.15));
+}
+
+.fractional-offering__num {
+  margin-bottom: 16px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--fg-mute);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.fractional-offering h3 {
+  margin-bottom: 10px;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.fractional-offering p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--fg-dim);
+  margin: 0;
+}
+
+.fractional-formats {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 40px;
+  padding: 60px 48px 0;
+}
+
+.fractional-formats > div:first-child h2 {
+  max-width: 22ch;
+  margin-top: 18px;
+  font-family: var(--font-display);
+  font-size: clamp(32px, 3.6vw, 54px);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.fractional-formats__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.fractional-format {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 28px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: linear-gradient(180deg, oklch(0.21 0.009 260 / 0.3), oklch(0.19 0.009 260 / 0.1));
+}
+
+.fractional-format--featured {
+  border-color: oklch(0.88 0.19 120 / 0.35);
+  background: linear-gradient(180deg, oklch(0.88 0.19 120 / 0.06), oklch(0.88 0.19 120 / 0.02));
+}
+
+.fractional-format__badge {
+  margin-bottom: -4px;
+}
+
+.fractional-format__top {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fractional-format__top h3 {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.fractional-format__detail {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-mute);
+  letter-spacing: 0.08em;
+}
+
+.fractional-format__price {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  color: var(--accent);
+}
+
+.fractional-format p {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--fg-dim);
+  margin: 0;
+}
+
+@media (max-width: 1180px) {
+  .studio-page-hero.studio-section-shell {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .fractional-offerings,
+  .fractional-formats {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+
+  .fractional-offerings__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .fractional-formats__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .fractional-hero__content h1 {
+    font-size: clamp(38px, 10vw, 56px);
+  }
+
+  .fractional-offerings__grid {
+    grid-template-columns: 1fr;
+  }
+}

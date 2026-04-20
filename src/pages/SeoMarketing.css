@@ -1,0 +1,251 @@
+.seo-marketing-page {
+  padding-top: 18px;
+}
+
+.seo-mkt-hero__content h1 {
+  margin: 42px 0 28px;
+  font-family: var(--font-display);
+  font-size: clamp(48px, 5.5vw, 92px);
+  font-weight: 400;
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+}
+
+.seo-mkt-hero__content h1 em {
+  color: var(--accent);
+  font-style: italic;
+}
+
+.seo-mkt-hero__sub {
+  max-width: 58ch;
+  margin-bottom: 42px;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--fg-dim);
+}
+
+.seo-mkt-hero__actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.seo-mkt-hero__results {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--line-soft);
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  overflow: hidden;
+  align-self: end;
+}
+
+.seo-mkt-result {
+  padding: 28px 24px;
+  background: var(--bg);
+}
+
+.seo-mkt-result div {
+  font-family: var(--font-display);
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+
+.seo-mkt-result span {
+  display: block;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+
+.seo-mkt-services {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 40px;
+  padding: 60px 48px 0;
+}
+
+.seo-mkt-services__list {
+  display: grid;
+}
+
+.seo-mkt-service-row {
+  display: grid;
+  grid-template-columns: 50px 1fr 2fr;
+  gap: 32px;
+  align-items: start;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.seo-mkt-service-row:first-child {
+  border-top: 1px solid var(--line-soft);
+}
+
+.seo-mkt-service-row__num {
+  padding-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-mute);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.seo-mkt-service-row__name {
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: -0.02em;
+}
+
+.seo-mkt-service-row__desc {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--fg-dim);
+  margin: 0;
+}
+
+.seo-mkt-pricing {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 40px;
+  padding: 60px 48px 0;
+}
+
+.seo-mkt-pricing > div:first-child h2 {
+  max-width: 22ch;
+  margin-top: 18px;
+  font-family: var(--font-display);
+  font-size: clamp(32px, 3.6vw, 54px);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.seo-mkt-pricing > div:first-child p {
+  max-width: 44ch;
+  margin-top: 18px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--fg-dim);
+}
+
+.seo-mkt-pricing__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.seo-mkt-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 28px;
+  border: 1px solid var(--line-soft);
+  border-radius: 6px;
+  background: linear-gradient(180deg, oklch(0.21 0.009 260 / 0.4), oklch(0.19 0.009 260 / 0.15));
+}
+
+.seo-mkt-plan--featured {
+  border-color: oklch(0.88 0.19 120 / 0.35);
+  background: linear-gradient(180deg, oklch(0.88 0.19 120 / 0.06), oklch(0.88 0.19 120 / 0.02));
+}
+
+.seo-mkt-plan h3 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.seo-mkt-plan__price {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.seo-mkt-plan__price span {
+  font-family: var(--font-display);
+  font-size: 40px;
+  letter-spacing: -0.025em;
+}
+
+.seo-mkt-plan__price small {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--fg-mute);
+  letter-spacing: 0.06em;
+}
+
+.seo-mkt-plan__commit {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--fg-mute);
+  letter-spacing: 0.08em;
+  margin-top: -8px;
+}
+
+.seo-mkt-plan__items {
+  flex: 1;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.seo-mkt-plan__items li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--fg-dim);
+}
+
+.seo-mkt-plan__items li::before {
+  content: '—';
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+@media (max-width: 1180px) {
+  .seo-mkt-services,
+  .seo-mkt-pricing {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+
+  .seo-mkt-pricing__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .seo-mkt-service-row {
+    grid-template-columns: 40px 1fr;
+    gap: 20px;
+  }
+
+  .seo-mkt-service-row__desc {
+    grid-column: 2;
+  }
+
+  .seo-mkt-hero__results {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .seo-mkt-hero__content h1 {
+    font-size: clamp(38px, 10vw, 56px);
+  }
+}
