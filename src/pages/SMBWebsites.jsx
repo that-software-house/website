@@ -34,17 +34,18 @@ const features = [
 const packages = [
   {
     name: 'Launch',
-    price: '$2,500',
+    price: '$749',
     period: 'one-time',
-    delivery: '10–14 days',
+    delivery: '7–14 days',
     items: [
+      'Brand new fully functional website',
       'Up to 6 pages',
-      'Custom design',
+      'Custom design (no templates)',
       'Mobile-first & fast',
       'Basic SEO setup',
-      'Contact form & map',
-      'Google Analytics 4',
+      'Contact form & Google Analytics 4',
     ],
+    note: 'No AI services — pure website.',
     featured: false,
   },
   {
@@ -205,6 +206,7 @@ const SMBWebsites = () => {
                   <li key={item}>{item}</li>
                 ))}
               </ul>
+              {pkg.note && <p className="smb-web-package__note">{pkg.note}</p>}
               <Link to="/contact" className={`studio-button ${pkg.featured ? 'studio-button--primary' : 'studio-button--secondary'}`}>
                 Get started
                 <span className="studio-button__arrow" aria-hidden="true">↗</span>
@@ -273,7 +275,7 @@ const SMBWebsites = () => {
           <span><span className="studio-page-meta__label">REV</span> 2026.04.20</span>
           <span><span className="studio-page-meta__label">LOC</span> Austin, TX · 30.26°N, 97.74°W</span>
         </div>
-        <div>From $2,500 ↗</div>
+        <div>From $749 ↗</div>
       </div>
     </div>
   );
