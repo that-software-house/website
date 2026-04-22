@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSEO } from '@/hooks/useSEO';
 import './Contact.css';
 
@@ -7,6 +8,7 @@ const shapeOptions = ['2-wk diligence', 'Production build', '0 → 1 team', 'Fra
 const budgetOptions = ['$15—30k / mo', '$30—60k / mo', '$60—100k / mo', '$100k+ / mo', 'Fixed, $18k diligence'];
 
 const Contact = () => {
+  const navigate = useNavigate();
   useSEO({
     title: 'Contact | That Software House',
     description: 'Talk directly with a principal engineer at That Software House about technical diligence, production AI, and high-stakes software builds.',
@@ -17,9 +19,32 @@ const Contact = () => {
   const [domains, setDomains] = useState([]);
   const [shapes, setShapes] = useState([]);
   const [budget, setBudget] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const toggleSelection = (value, setter, current) => {
     setter(current.includes(value) ? current.filter((item) => item !== value) : [...current, value]);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    const formData = new FormData(e.target);
+    const data = new URLSearchParams(formData).toString();
+
+    try {
+      await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: data,
+      });
+      navigate('/thank-you');
+    } catch (error) {
+      console.error('Form submission error:', error);
+      alert('There was an error sending your message. Please try again or email us directly.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -61,8 +86,7 @@ const Contact = () => {
         <form
           className="contact-form-card"
           name="principal-intake"
-          method="POST"
-          action="/thank-you"
+          onSubmit={handleSubmit}
           data-netlify="true"
           data-netlify-honeypot="bot-field"
         >
@@ -173,9 +197,13 @@ const Contact = () => {
           </div>
 
           <div className="contact-form-card__submit">
-            <button type="submit" className="studio-button studio-button--primary">
-              Send to a principal
-              <span className="studio-button__arrow" aria-hidden="true">↗</span>
+            <button 
+              type="submit" 
+              className="studio-button studio-button--primary"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Sending...' : 'Send to a principal'}
+              {!isSubmitting && <span className="studio-button__arrow" aria-hidden="true">↗</span>}
             </button>
             <div>By sending this you agree we&apos;ll reply within 24h. No mailing list. No CRM.</div>
           </div>
