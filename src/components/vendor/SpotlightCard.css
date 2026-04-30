@@ -1,0 +1,35 @@
+.card-spotlight {
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+  --spotlight-color: var(--color-home-yellow-wash-soft);
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-10);
+}
+
+.card-spotlight::before {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-base);
+  background:
+    radial-gradient(
+      circle at var(--mouse-x) var(--mouse-y),
+      var(--spotlight-color),
+      var(--color-hero-clear) 78%
+    );
+  content: '';
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-layout) var(--ease);
+}
+
+.card-spotlight:hover::before,
+.card-spotlight:focus-within::before {
+  opacity: 0.72;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-spotlight::before {
+    transition: none;
+  }
+}

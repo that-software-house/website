@@ -1,208 +1,358 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useSEO } from '@/hooks/useSEO';
-import './ServicesPage.css';
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { useSEO } from '@/hooks/useSEO'
+import './ServicesPage.css'
 
 const services = [
   {
-    number: '01',
-    title: 'Main Street Modernization',
-    body: "Starting at $749, we build established local businesses—law firms, dental clinics, CPAs—a brand new, fully functional website on high-performance modern stacks. No AI add-ons, no bloated plugins—just a fast, secure site built to convert from day one.",
+    id: '01',
+    slug: 'main-street',
+    label: 'Local Business',
+    name: 'Main Street Modernization',
+    tagline: 'A real website that works as hard as you do.',
+    description:
+      'Starting at $749, we build established local businesses—law firms, dental clinics, CPAs—a brand new, fully functional website on high-performance modern stacks. No AI add-ons, no bloated plugins—just a fast, secure site built to convert from day one.',
     bullets: [
-      "Brand new fully functional website from $749",
-      "Migration from legacy WordPress or existing site included",
-      "Zero-plugin dependency for maximum stability",
-      "Technical SEO, high-speed performance, and mobile-first design",
+      'Brand new fully functional website',
+      'Mobile-first, performance-optimized',
+      'Contact forms, booking integrations',
+      'SEO-ready from launch',
+      'Built on modern stacks (Next.js, Astro)',
     ],
-    panel: [
-      ["Starting at", "$749"],
-      ["Includes", "Full website (no AI)"],
-      ["Maintenance", "$89 / mo"],
-      ["Timeline", "7–14 days"],
-    ],
-    cta: 'Start modernization',
+    stack: {
+      label: 'Breakeven Stack',
+      rows: [
+        { k: 'Starting at', v: '$749' },
+        { k: 'Includes', v: 'Full website (no AI)' },
+        { k: 'Maintenance', v: '$89 / mo' },
+        { k: 'Timeline', v: '7–14 days' },
+      ],
+    },
+    who: ['Dental Clinics', 'Law Firms', 'CPAs', 'Auto Body', 'Salons'],
     href: '/modernization',
   },
   {
-    number: '02',
-    title: 'AI-Powered Intelligence',
-    body: 'We turn your firm’s private records into a searchable "AI Brain." Our custom RAG models allow you to instantly find information in old client files, and our 24/7 AI Receptionist handles client intake so you don’t have to.',
+    id: '02',
+    slug: 'website-management',
+    label: 'Ongoing Care',
+    name: 'Website Management',
+    tagline: 'We keep it fast, secure, and alive.',
+    description:
+      'Websites break, go stale, and drift from what they promised. We handle the full lifecycle—hosting, updates, edits, monitoring, and performance—so you never have to think about it again.',
     bullets: [
-      'Custom AI Chat-First Intake & Receptionist',
-      'Private RAG (Knowledge) migration for internal docs',
-      'Automated meeting prep and client summaries',
-      'HIPAA & SOC 2 compliance readiness',
+      'Uptime monitoring & incident response',
+      'Content updates on request',
+      'Security patches & dependency updates',
+      'Monthly performance reports',
+      'Priority support queue',
     ],
-    panel: [
-      ['Launch', 'Custom Scope'],
-      ['Impact', 'Instant Search'],
-      ['Team', '1-2 Senior Eng.'],
-      ['Focus', 'Internal Data'],
-    ],
-    cta: 'Incorporate AI',
+    stack: {
+      label: 'Retainer',
+      rows: [
+        { k: 'Starting at', v: '$89 / mo' },
+        { k: 'Includes', v: 'Hosting + support' },
+        { k: 'Edit requests', v: 'Unlimited small' },
+        { k: 'Response time', v: '< 24 hrs' },
+      ],
+    },
+    who: ['Small businesses', 'Clinics', 'Agencies offloading'],
+    href: '/contact',
   },
   {
-    number: '03',
-    title: 'High-Velocity Startups',
-    body: 'For solo founders or funded teams that need to ship production-grade features immediately. We drop in as your senior product squad, building MVPs in weeks and hardening your prototype for scale and investment.',
+    id: '03',
+    slug: 'seo-marketing',
+    label: 'Growth',
+    name: 'SEO & Marketing',
+    tagline: 'Found. Clicked. Converted.',
+    description:
+      'We pair technical SEO with content strategy built on real search data. No vanity traffic. We target the queries your actual customers use and build the authority that compounds over time.',
     bullets: [
-      'Full-stack build: Web, Mobile, & Backend',
-      'Senior engineers only (no learning on your dime)',
-      'Investor-ready tech due diligence',
-      'Rapid prototype-to-production cycles',
+      'Technical SEO audit & remediation',
+      'Local SEO for multi-location businesses',
+      'Content strategy & production',
+      'Google Business Profile optimization',
+      'Monthly ranking & traffic reporting',
     ],
-    panel: [
-      ['Timeline', '4–12 weeks'],
-      ['Team size', '2–4 engineers'],
-      ['Code ownership', 'Yours, day 1'],
-      ['Rate', 'Custom Fee'],
-    ],
-    cta: 'Build my MVP',
+    stack: {
+      label: 'Growth Retainer',
+      rows: [
+        { k: 'Starting at', v: '$499 / mo' },
+        { k: 'Includes', v: 'Audit + ongoing' },
+        { k: 'First results', v: '60–90 days' },
+        { k: 'Reporting', v: 'Monthly' },
+      ],
+    },
+    who: ['Local businesses', 'Multi-location', 'E-commerce'],
+    href: '/seo-marketing',
   },
   {
-    number: '04',
-    title: 'Generative SEO & GEO',
-    body: 'For e-commerce and high-intent brands. We move beyond keywords to GEO (Generative Engine Optimization). We ensure your brand is the one LLMs—ChatGPT, Perplexity, Claude—recommend when users ask for solutions in your niche.',
+    id: '04',
+    slug: 'startups',
+    label: 'Startups',
+    name: 'Startup Product Development',
+    tagline: 'From zero to something shippable.',
+    description:
+      'For seed and Series A teams who need to build fast without hiring a full team. We step in as your engineering partner—product strategy, UX, full-stack engineering, and launch. Senior judgment, no agency overhead.',
     bullets: [
-      'Technical SEO audit for e-commerce scale',
-      'GEO: Optimizing for LLM brand citation',
-      'Entity-based content architecture',
-      'Conversion-leak audits for checkout flows',
+      'Product strategy & roadmap',
+      'UX/UI design to production',
+      'Full-stack engineering (Next.js, Node, Python)',
+      'Auth, billing, infra, CI/CD',
+      'Embedded sprint cadence with founders',
     ],
-    panel: [
-      ['Focus', 'E-com / Scale'],
-      ['Strategy', 'GEO-First'],
-      ['Metric', 'LLM Citations'],
-      ['Type', 'Select Retainer'],
-    ],
-    cta: 'Secure my brand',
+    stack: {
+      label: 'Engagement',
+      rows: [
+        { k: 'Starting at', v: '$8,500 / mo' },
+        { k: 'Includes', v: 'Design + eng' },
+        { k: 'Team size', v: '2–4 seniors' },
+        { k: 'Min. term', v: '3 months' },
+      ],
+    },
+    who: ['Seed Founders', 'Series A Teams', 'Technical co-founder gaps'],
+    href: '/build-your-product',
   },
   {
-    number: '05',
-    title: 'High-Stakes Founder Design',
-    body: 'We engineer pitch decks and investor slides for founders who cannot afford to lose a round. We’ve helped startups raise millions by perfecting the technical narrative and visual clarity required for Series A+ diligence.',
+    id: '05',
+    slug: 'custom-software',
+    label: 'Enterprise',
+    name: 'Custom Software & AI',
+    tagline: 'Purpose-built tools that fit how you actually work.',
+    description:
+      "For businesses with processes that off-the-shelf software can't handle. We build internal tools, workflow automation, and AI-powered systems tailored to your operations—not the other way around.",
     bullets: [
-      'Series A/B Pitch Deck Engineering',
-      'Technical Narrative & Storytelling',
-      'Data Visualization for Due Diligence',
-      'Founder Branding & Slide Systems',
+      'Internal tools & admin dashboards',
+      'Process automation & workflow systems',
+      'Custom AI engines & LLM integrations',
+      'Legacy system modernization',
+      'API integrations & data pipelines',
     ],
-    panel: [
-      ['Outcome', 'Round Success'],
-      ['Team', 'Lead Designer'],
-      ['Focus', 'Investor Clarity'],
-      ['Track Record', '$412M+ Raised'],
-    ],
-    cta: 'Perfect my deck',
+    stack: {
+      label: 'Project-Based',
+      rows: [
+        { k: 'Starting at', v: '$15,000' },
+        { k: 'Scope', v: 'Discovery first' },
+        { k: 'Delivery', v: '4–16 weeks' },
+        { k: 'Support', v: 'Included 90 days' },
+      ],
+    },
+    who: ['Healthcare ops', 'Fintech', 'SaaS teams', 'Operators'],
+    href: '/custom-software',
   },
-];
+  {
+    id: '06',
+    slug: 'consulting',
+    label: 'End-to-End',
+    name: 'Scale & Growth Consulting',
+    tagline: 'Strategic guidance for teams at an inflection point.',
+    description:
+      "Sometimes you don't need more code—you need someone who's been in the room before. We advise growth-stage teams on architecture decisions, team structure, vendor selection, and technical strategy.",
+    bullets: [
+      'Technical due diligence',
+      'Architecture & stack review',
+      'Build vs. buy recommendations',
+      'Engineering team structure',
+      'Vendor & platform selection',
+    ],
+    stack: {
+      label: 'Advisory',
+      rows: [
+        { k: 'Starting at', v: '$2,500 / mo' },
+        { k: 'Cadence', v: 'Bi-weekly calls' },
+        { k: 'Access', v: 'Async + sync' },
+        { k: 'Term', v: 'Month-to-month' },
+      ],
+    },
+    who: ['Series A–C', 'PE-backed ops', 'CTOs without bandwidth'],
+    href: '/contact',
+  },
+]
 
-const noFit = [
-  'Generic social media "growth" services. We don’t chase views; we chase conversions.',
-  'Maintenance of existing legacy WordPress sites. We migrate; we don’t patch.',
-  'Projects where leadership prefers "cheap" over "senior quality."',
-  'Staff augmentation without a technical roadmap. We lead; we do not fill chairs.',
-  'Engagements focused only on vanity metrics instead of business data.',
-];
+const stats = [
+  {
+    n: '20+',
+    label: 'Products shipped',
+    sub: 'Healthcare, fintech, SaaS, AI, local ops',
+  },
+  {
+    n: '25+',
+    label: 'Years founding-team experience',
+    sub: "Senior judgment from people who've built at scale",
+  },
+  {
+    n: '$749',
+    label: 'Starting price',
+    sub: 'For a fully functional local business website',
+  },
+  {
+    n: '2',
+    label: 'Studios',
+    sub: 'Austin + San Francisco',
+  },
+]
 
-const ServicesPage = () => {
-  useSEO({
-    title: 'Services | That Software House',
-    description: 'Main Street Modernization, AI-Powered Intelligence, High-Velocity Startups, and Selective Growth Support for established businesses.',
-    keywords: 'WordPress migration, AI virtual receptionist, startup software engineering, conversion-first marketing, software studio Austin',
-    canonicalUrl: 'https://thatsoftwarehouse.com/services',
-  });
-
+function PricingCard({ stack }) {
   return (
-    <div className="studio-page services-page">
-      <section className="studio-page-hero studio-section-shell">
-        <div>
-          <div className="eyebrow">
-            <span className="eyebrow__bar" />
-            <span className="eyebrow__tag">[ 02 / Services ]</span>
-            <span>Technical Infrastructure for Business.</span>
-          </div>
-          <h1>Infrastructure for Main Street and Beyond.</h1>
+    <div className="sp-pricing-card">
+      <div className="sp-pricing-card__label">{stack.label}</div>
+      {stack.rows.map((row, i) => (
+        <div key={i} className={`sp-pricing-card__row${i === 0 ? ' sp-pricing-card__row--first' : ''}`}>
+          <span>{row.k}</span>
+          <strong>{row.v}</strong>
         </div>
-        <div className="studio-page-hero__copy">
-          <strong>No digital fossils. No vanity metrics.</strong> We build the technical foundation your business needs to grow. From $749 modernizations for local leaders to custom AI engines for funded startups.
-        </div>
-      </section>
+      ))}
+    </div>
+  )
+}
 
-      <section className="services-list studio-section-shell">
-        {services.map((service) => (
-          <article key={service.number} className="service-row">
-            <div className="service-row__index">
-              Service
-              <em>{service.number}</em>
-            </div>
-            <div>
-              <h2>{service.title}</h2>
-            </div>
-            <div className="service-row__body">
-              <p>{service.body}</p>
-              <ul>
-                {service.bullets.map((item) => (
-                  <li key={item}>{item}</li>
+function ServiceRow({ svc, isOpen, onToggle }) {
+  return (
+    <div className="sp-service-row">
+      <button
+        className="sp-service-row__header"
+        onClick={onToggle}
+        aria-expanded={isOpen}
+      >
+        <div className="sp-service-row__id">
+          <div className="sp-service-row__id-label">Service</div>
+          <div className="sp-service-row__id-num">{svc.id}</div>
+        </div>
+        <div className="sp-service-row__meta">
+          <div className="sp-service-row__category">{svc.label}</div>
+          <div className="sp-service-row__name">{svc.name}</div>
+        </div>
+        <div className={`sp-service-row__toggle${isOpen ? ' sp-service-row__toggle--open' : ''}`}>
+          +
+        </div>
+      </button>
+
+      <div className={`sp-service-row__body${isOpen ? ' sp-service-row__body--open' : ''}`}>
+        <div className="sp-service-row__body-inner">
+          <div className="sp-service-row__spacer" />
+          <div className="sp-service-row__content">
+            <div className="sp-service-row__left">
+              <p className="sp-service-row__desc">{svc.description}</p>
+              <ul className="sp-service-row__bullets">
+                {svc.bullets.map((b, i) => (
+                  <li key={i}>
+                    <span className="sp-bullet-dash">—</span>
+                    <span>{b}</span>
+                  </li>
                 ))}
               </ul>
+              <div className="sp-service-row__tags">
+                {svc.who.map((tag, i) => (
+                  <span key={i} className="sp-tag">{tag}</span>
+                ))}
+              </div>
             </div>
-            <div className="service-row__panel">
-              <h3>Engagement shape</h3>
-              {service.panel.map(([key, value]) => (
-                <div key={key} className="service-row__panel-row">
-                  <span>{key}</span>
-                  <strong>{value}</strong>
-                </div>
-              ))}
-              <Link to={service.href || "/contact"} className="service-row__panel-cta">
-                {service.cta} ↗
+            <div className="sp-service-row__right">
+              <PricingCard stack={svc.stack} />
+              <Link to={svc.href} className="sp-cta-btn">
+                Start a conversation
               </Link>
             </div>
-          </article>
-        ))}
-      </section>
-
-      <section className="services-refuse studio-section-shell">
-        <div>
-          <h2>Work we will not take.</h2>
-          <div className="services-refuse__sub">clarity is faster than pretense</div>
-        </div>
-        <ul>
-          {noFit.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="studio-big-cta">
-        <div>
-          <div className="studio-big-cta__meta">03 / Start a conversation</div>
-          <h2 className="studio-big-cta__title">
-            Bring us the messy version. We can work from <em>that</em>.
-          </h2>
-          <div className="studio-big-cta__meta studio-big-cta__fine">
-            We will tell you quickly whether this needs a migration, a custom build, or a pass.
           </div>
         </div>
-        <div className="studio-big-cta__actions">
-          <Link to="/contact" className="studio-button studio-button--primary">
-            Talk to us
-            <span className="studio-button__arrow" aria-hidden="true">↗</span>
-          </Link>
+      </div>
+    </div>
+  )
+}
+
+function ServicesPage() {
+  const [openIdx, setOpenIdx] = useState(null)
+
+  useSEO({
+    title: 'Services | That Software House',
+    description:
+      'Main Street Modernization, Website Management, SEO & Marketing, Startup Product Development, Custom Software & AI, and Scale & Growth Consulting.',
+    keywords:
+      'WordPress migration, AI virtual receptionist, startup software engineering, conversion-first marketing, software studio Austin',
+    canonicalUrl: 'https://thatsoftwarehouse.com/services',
+  })
+
+  const toggle = (i) => setOpenIdx((prev) => (prev === i ? null : i))
+
+  return (
+    <div className="sp-page">
+      {/* Hero */}
+      <section className="sp-hero">
+        <div className="sp-hero__inner">
+          <div className="sp-hero__left">
+            <h1 className="sp-hero__h1">
+              Infrastructure<br />
+              for Main<br />
+              Street and<br />
+              Beyond.
+            </h1>
+          </div>
+          <div className="sp-hero__right">
+            <p className="sp-hero__body">
+              <strong>No digital fossils. No vanity metrics.</strong> We build the technical foundation your business needs to grow. From $749 modernizations for local leaders to custom AI engines for funded startups.
+            </p>
+            <div className="sp-hero__actions">
+              <a href="#services" className="sp-btn sp-btn--primary">See all services</a>
+              <Link to="/contact" className="sp-btn sp-btn--secondary">Start a conversation</Link>
+            </div>
+          </div>
         </div>
       </section>
 
-      <div className="studio-page-meta">
-        <div className="studio-page-meta__left">
-          <span><span className="studio-page-meta__label">IDX</span> 02 / Services</span>
-          <span><span className="studio-page-meta__label">REV</span> 2026.04.17</span>
-          <span><span className="studio-page-meta__label">MIN</span> $749 Launch</span>
+      {/* Stats strip */}
+      <section className="sp-stats">
+        <div className="sp-stats__inner">
+          {stats.map((s, i) => (
+            <div key={i} className="sp-stat">
+              <div className="sp-stat__num">{s.n}</div>
+              <div className="sp-stat__label">{s.label}</div>
+              <div className="sp-stat__sub">{s.sub}</div>
+            </div>
+          ))}
         </div>
-        <div>Reply within 24h ↗</div>
-      </div>
-    </div>
-  );
-};
+      </section>
 
-export default ServicesPage;
+      {/* Services accordion */}
+      <section id="services" className="sp-services">
+        <div className="sp-services__inner">
+          <div className="sp-services__header">
+            <div className="sp-services__eyebrow">What we build</div>
+            <h2 className="sp-services__h2">Six ways we can work together.</h2>
+          </div>
+
+          {services.map((svc, i) => (
+            <ServiceRow
+              key={svc.id}
+              svc={svc}
+              isOpen={openIdx === i}
+              onToggle={() => toggle(i)}
+            />
+          ))}
+          <div className="sp-services__divider" />
+        </div>
+      </section>
+
+      {/* CTA section */}
+      <section className="sp-cta-section">
+        <div className="sp-cta-section__inner">
+          <div className="sp-cta-section__copy">
+            <div className="sp-cta-section__eyebrow">How we work with you</div>
+            <h2 className="sp-cta-section__h2">
+              A senior team that<br />stays close to the work.
+            </h2>
+            <p className="sp-cta-section__body">
+              We work directly with the people closest to the business, explain tradeoffs in plain language, and keep momentum visible from first audit to launch.
+            </p>
+          </div>
+          <div className="sp-cta-section__action">
+            <Link to="/contact" className="sp-btn sp-btn--primary sp-btn--lg">
+              Start a conversation
+            </Link>
+            <p className="sp-cta-section__note">Usually respond within a few hours.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+export default ServicesPage

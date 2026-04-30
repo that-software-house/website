@@ -1,50 +1,73 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import './Footer.css';
+import { Link } from 'react-router-dom'
+import './Footer.css'
 
-const Footer = () => {
+const footerGroups = [
+  {
+    title: 'Company',
+    links: [
+      { label: 'Work', path: '/work' },
+      { label: 'Approach', path: '/approach' },
+      { label: 'Team', path: '/team' },
+      { label: 'Contact', path: '/contact' },
+    ],
+  },
+  {
+    title: 'Services',
+    links: [
+      { label: 'Custom Software', path: '/services' },
+      { label: 'AI Development', path: '/services' },
+      { label: 'Staff Augmentation', path: '/services' },
+      { label: 'SEO & Marketing', path: '/services' },
+      { label: 'SMB Websites', path: '/services' },
+    ],
+  },
+  {
+    title: 'Resources',
+    links: [
+      { label: 'Vault', path: '/vault' },
+      { label: 'Case Notes', path: '/work' },
+      { label: 'Build Process', path: '/approach' },
+    ],
+  },
+]
+
+function Footer() {
   return (
-    <>
-      <footer className="studio-footer">
-        <div>
-          <div className="studio-footer__sig">That Software House</div>
-          <div className="studio-footer__meta">
-            Austin, TX · San Francisco, CA
-            <br />
-            <em>contact@thatsoftwarehouse.com</em>
-            <br />
-            Operating since 2020 · senior team only
-          </div>
-        </div>
-        <div>
-          <h4>Site</h4>
-          <Link to="/">Home</Link>
-          <Link to="/services">Services</Link>
-          <Link to="/work">Work</Link>
-          <Link to="/vault">Vault</Link>
-          <Link to="/approach">Approach</Link>
-        </div>
-        <div>
-          <h4>Company</h4>
-          <Link to="/team">Team</Link>
-          <Link to="/contact">Contact</Link>
-          <Link to="/privacy">Privacy</Link>
-          <Link to="/terms">Terms</Link>
-        </div>
-        <div>
-          <h4>Scope</h4>
-          <span className="studio-footer__plain">Healthcare / HIPAA</span>
-          <span className="studio-footer__plain">Fintech / SOC 2</span>
-          <span className="studio-footer__plain">Production AI</span>
-          <span className="studio-footer__plain">Technical diligence</span>
-        </div>
-      </footer>
-      <div className="studio-footer-bottom">
-        <span>© 2026 That Software House, LLC</span>
-        <span>Built by the team. No CMS. No trackers.</span>
-      </div>
-    </>
-  );
-};
+    <footer className="site-footer">
+      <div className="site-footer__inner">
+        <nav className="site-footer__nav" aria-label="Footer navigation">
+          {footerGroups.map((group) => (
+            <section className="site-footer__group" key={group.title}>
+              <h2>{group.title}</h2>
+              <ul>
+                {group.links.map((link) => (
+                  <li key={`${group.title}-${link.label}`}>
+                    <Link to={link.path}>{link.label}</Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
 
-export default Footer;
+          <section className="site-footer__group">
+            <h2>Contact</h2>
+            <ul>
+              <li>
+                <a href="mailto:contact@thatsoftwarehouse.com">
+                  contact@thatsoftwarehouse.com
+                </a>
+              </li>
+            </ul>
+          </section>
+        </nav>
+
+        <div className="site-footer__bottom">
+          <span>&copy; 2026 That Software House</span>
+          <span>Austin, Texas</span>
+        </div>
+      </div>
+    </footer>
+  )
+}
+
+export default Footer

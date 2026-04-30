@@ -1,0 +1,807 @@
+.architecture-artifact {
+  --artifact-scale: 1;
+  --artifact-rotate-x: 30deg;
+  --artifact-rotate-z: -6deg;
+  --artifact-y: 0px;
+  --artifact-detail-opacity: 0.9;
+  --artifact-label-opacity: 0.96;
+  --artifact-kernel-opacity: 0.82;
+  --artifact-rail-opacity: 0.74;
+  --artifact-port-opacity: 0.72;
+  --artifact-connector-opacity: 0.24;
+  --artifact-spine-opacity: 0;
+  --artifact-signal-opacity: 0;
+  --artifact-signal-offset: 960;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.architecture-artifact__stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: calc((var(--space-192) * 2) + var(--space-16));
+  max-height: calc(100svh - var(--space-64));
+  overflow: visible;
+  perspective: calc(var(--space-192) * 7);
+}
+
+.architecture-artifact__stage::before,
+.architecture-artifact__stage::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+.architecture-artifact__stage::before {
+  inset: var(--space-24);
+  background:
+    radial-gradient(circle at 58% 30%, var(--hero-glow-yellow), var(--color-hero-clear) 34%),
+    radial-gradient(circle at 38% 72%, var(--hero-glow-sky), var(--color-hero-clear) 42%);
+  filter: blur(var(--space-32));
+  opacity: 0.58;
+}
+
+.architecture-artifact__stage::after {
+  right: 12%;
+  bottom: 9%;
+  left: 12%;
+  height: var(--space-64);
+  background: var(--color-system-shadow);
+  filter: blur(var(--space-48));
+  opacity: 0.62;
+}
+
+.architecture-artifact__object {
+  position: relative;
+  z-index: var(--z-content);
+  width: min(100%, calc((var(--space-192) * 3) + var(--space-128)));
+  aspect-ratio: 720 / 480;
+  transform:
+    translateY(var(--artifact-y))
+    scale(var(--artifact-scale))
+    rotateX(var(--artifact-rotate-x))
+    rotateZ(var(--artifact-rotate-z));
+  transform-origin: center;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.architecture-artifact__floor {
+  position: absolute;
+  right: 7%;
+  bottom: 2%;
+  left: 7%;
+  height: 18%;
+  background: var(--color-system-shadow);
+  filter: blur(var(--space-48));
+  opacity: 0.58;
+  transform: translateZ(calc(var(--space-128) * -1));
+}
+
+.architecture-artifact__plate {
+  position: absolute;
+  inset: 6% 5%;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      135deg,
+      var(--color-system-plate-highlight),
+      var(--color-system-plate-soft) 13%,
+      var(--color-system-plate) 56%,
+      var(--color-system-plate-strong)
+    ),
+    var(--color-system-plate);
+  border-radius: var(--radius-10);
+  box-shadow:
+    0 0 0 var(--size-frame-line) var(--color-system-plate-line-strong),
+    inset 0 var(--size-frame-line) 0 var(--color-system-plate-highlight),
+    inset 0 calc(var(--space-8) * -1) var(--space-32) var(--color-system-plate-strong),
+    0 var(--space-24) var(--space-96) var(--color-system-shadow);
+  transform-style: preserve-3d;
+}
+
+.architecture-artifact__plate::before,
+.architecture-artifact__plate::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.architecture-artifact__plate::before {
+  background:
+    linear-gradient(
+      115deg,
+      var(--color-system-plate-highlight),
+      var(--color-hero-clear) 22%,
+      var(--color-hero-clear) 78%,
+      var(--color-system-plate-strong)
+    );
+  opacity: 0.34;
+}
+
+.architecture-artifact__plate::after {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      var(--color-hero-clear) 0,
+      var(--color-hero-clear) var(--space-16),
+      var(--color-system-plate-line) var(--space-16),
+      var(--color-system-plate-line) calc(var(--space-16) + var(--size-frame-line))
+    );
+  opacity: calc(var(--artifact-detail-opacity) * 0.14);
+}
+
+.architecture-artifact__plate-light,
+.architecture-artifact__plate-grid,
+.architecture-artifact__plate-channel,
+.architecture-artifact__plate-spine {
+  position: absolute;
+  pointer-events: none;
+}
+
+.architecture-artifact__plate-light {
+  inset: 0;
+  background:
+    radial-gradient(circle at 26% 22%, var(--hero-glow-sky), var(--color-hero-clear) 30%),
+    radial-gradient(circle at 78% 28%, var(--hero-glow-yellow), var(--color-hero-clear) 28%),
+    radial-gradient(circle at 62% 78%, var(--hero-glow-mint), var(--color-hero-clear) 34%);
+  opacity: 0.42;
+}
+
+.architecture-artifact__plate-grid {
+  inset: var(--space-24);
+  opacity: calc(var(--artifact-detail-opacity) * 0.44);
+  box-shadow: 0 0 0 var(--size-frame-line) var(--color-system-plate-line);
+  background:
+    repeating-linear-gradient(
+      to right,
+      var(--color-system-plate-line) 0,
+      var(--color-system-plate-line) var(--size-frame-line),
+      var(--color-hero-clear) var(--size-frame-line),
+      var(--color-hero-clear) var(--space-32)
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      var(--color-system-plate-line) 0,
+      var(--color-system-plate-line) var(--size-frame-line),
+      var(--color-hero-clear) var(--size-frame-line),
+      var(--color-hero-clear) var(--space-32)
+    );
+}
+
+.architecture-artifact__plate-channel {
+  background: var(--color-system-plate-line-strong);
+  opacity: calc(var(--artifact-detail-opacity) * 0.52);
+}
+
+.architecture-artifact__plate-channel--x {
+  top: 50%;
+  right: var(--space-24);
+  left: var(--space-24);
+  height: var(--size-frame-line);
+}
+
+.architecture-artifact__plate-channel--y {
+  top: var(--space-24);
+  bottom: var(--space-24);
+  left: 50%;
+  width: var(--size-frame-line);
+}
+
+.architecture-artifact__plate-spine {
+  top: var(--space-24);
+  right: 18%;
+  bottom: var(--space-24);
+  width: var(--space-4);
+  background: var(--color-yellow);
+  border-radius: var(--radius-3);
+  box-shadow:
+    0 0 0 var(--space-4) var(--color-yellow-dim),
+    0 var(--space-8) var(--space-24) var(--color-system-shadow);
+  opacity: var(--artifact-spine-opacity);
+  transform: translateZ(var(--space-48));
+}
+
+.architecture-artifact__connectors,
+.architecture-artifact__signal {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  transform: translateZ(var(--space-96));
+}
+
+.architecture-artifact__connectors {
+  opacity: var(--artifact-connector-opacity);
+}
+
+.architecture-artifact__connectors polyline {
+  fill: none;
+  stroke: var(--color-system-plate-line-strong);
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  stroke-width: calc(var(--size-frame-line) * 2);
+  vector-effect: non-scaling-stroke;
+}
+
+.architecture-artifact__signal {
+  opacity: var(--artifact-signal-opacity);
+}
+
+.architecture-artifact__signal polyline {
+  fill: none;
+  stroke: var(--color-yellow);
+  stroke-dasharray: 960;
+  stroke-dashoffset: var(--artifact-signal-offset);
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  stroke-width: calc(var(--size-frame-line) * 4);
+  vector-effect: non-scaling-stroke;
+}
+
+.architecture-artifact__kernel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: var(--z-content);
+  display: grid;
+  place-items: center;
+  width: var(--space-96);
+  height: var(--space-96);
+  color: var(--color-white);
+  background:
+    radial-gradient(circle at 30% 18%, var(--color-system-plate-highlight), var(--color-hero-clear) 38%),
+    linear-gradient(135deg, var(--color-system-plate-soft), var(--color-system-plate-strong));
+  box-shadow:
+    0 0 0 var(--size-frame-line) var(--color-system-plate-line-strong),
+    inset 0 var(--size-frame-line) 0 var(--color-system-plate-highlight),
+    0 var(--space-16) var(--space-48) var(--color-system-shadow),
+    0 0 0 var(--space-8) var(--color-yellow-dim);
+  clip-path: polygon(10% 0, 90% 0, 100% 10%, 100% 90%, 90% 100%, 10% 100%, 0 90%, 0 10%);
+  opacity: var(--artifact-kernel-opacity);
+  transform: translate3d(-50%, -50%, var(--space-128));
+  transform-style: preserve-3d;
+}
+
+.architecture-artifact__kernel span {
+  position: relative;
+  z-index: var(--z-content);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-11);
+  font-weight: 600;
+  letter-spacing: var(--letter-spacing-mono);
+  line-height: var(--line-height-flat);
+}
+
+.architecture-artifact__kernel i {
+  position: absolute;
+  width: var(--space-8);
+  height: var(--space-8);
+  background: var(--color-yellow);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0 0 var(--space-4) var(--color-yellow-dim);
+  opacity: var(--artifact-signal-opacity);
+}
+
+.architecture-artifact__kernel i:nth-child(2) {
+  top: var(--space-16);
+  right: var(--space-24);
+}
+
+.architecture-artifact__kernel i:nth-child(3) {
+  right: var(--space-16);
+  bottom: var(--space-24);
+}
+
+.architecture-artifact__kernel i:nth-child(4) {
+  bottom: var(--space-16);
+  left: var(--space-24);
+}
+
+.architecture-artifact__module {
+  --module-left: 12%;
+  --module-top: 14%;
+  --module-width: 30%;
+  --module-height: 18%;
+  --module-x: 0px;
+  --module-y: 0px;
+  --module-z: var(--space-48);
+  --module-rotate: 0deg;
+  --module-scale: 1;
+  --module-shadow-opacity: 0.5;
+  --module-surface-strong: var(--color-system-material-core-strong);
+  --module-surface: var(--color-system-material-core);
+  --module-surface-muted: var(--color-system-material-core-muted);
+  --module-line: var(--color-system-line);
+  --module-line-soft: var(--color-system-line-soft);
+  --module-accent: var(--color-yellow);
+  --module-rail: var(--color-mint);
+  --module-glow: var(--color-yellow-dim);
+  position: absolute;
+  top: var(--module-top);
+  left: var(--module-left);
+  z-index: var(--z-content);
+  width: var(--module-width);
+  height: var(--module-height);
+  transform:
+    translate3d(var(--module-x), var(--module-y), var(--module-z))
+    rotateZ(var(--module-rotate))
+    scale(var(--module-scale));
+  transform-origin: center;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+.architecture-artifact__module::before {
+  content: '';
+  position: absolute;
+  inset: 18% 4% -12%;
+  background: var(--color-system-shadow);
+  border-radius: var(--radius-10);
+  filter: blur(var(--space-16));
+  opacity: var(--module-shadow-opacity);
+  transform: translate3d(var(--space-8), var(--space-16), calc(var(--space-32) * -1));
+  pointer-events: none;
+}
+
+.architecture-artifact__module-surface {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: var(--space-8);
+  overflow: hidden;
+  padding: var(--space-16) var(--space-24);
+  background:
+    linear-gradient(
+      135deg,
+      var(--module-surface-strong),
+      var(--module-surface) 58%,
+      var(--module-surface-muted)
+    ),
+    var(--module-surface);
+  box-shadow:
+    0 0 0 var(--size-frame-line) var(--module-line),
+    inset 0 var(--size-frame-line) 0 var(--color-white),
+    inset 0 calc(var(--space-4) * -1) var(--space-16) var(--module-line-soft),
+    0 var(--space-8) var(--space-24) var(--color-system-shadow);
+  clip-path: polygon(4% 0, 96% 0, 100% 16%, 100% 100%, 0 100%, 0 16%);
+  transform: translateZ(var(--space-16));
+  transform-style: preserve-3d;
+}
+
+.architecture-artifact__module-surface::before,
+.architecture-artifact__module-surface::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.architecture-artifact__module-surface::before {
+  background:
+    repeating-linear-gradient(
+      to right,
+      var(--module-line-soft) 0,
+      var(--module-line-soft) var(--size-frame-line),
+      var(--color-hero-clear) var(--size-frame-line),
+      var(--color-hero-clear) var(--space-32)
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      var(--module-line-soft) 0,
+      var(--module-line-soft) var(--size-frame-line),
+      var(--color-hero-clear) var(--size-frame-line),
+      var(--color-hero-clear) var(--space-32)
+    );
+  opacity: calc(var(--artifact-detail-opacity) * 0.18);
+}
+
+.architecture-artifact__module-surface::after {
+  right: auto;
+  bottom: auto;
+  height: var(--space-8);
+  background: var(--color-white);
+  opacity: 0.56;
+}
+
+.architecture-artifact__module-head {
+  position: relative;
+  z-index: var(--z-content);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+  min-width: 0;
+  color: var(--color-text-1);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-13);
+  font-weight: 600;
+  letter-spacing: var(--letter-spacing-mono);
+  line-height: var(--line-height-flat);
+  opacity: var(--artifact-label-opacity);
+}
+
+.architecture-artifact__module-head span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.architecture-artifact__module-head i {
+  display: block;
+  flex: 0 0 auto;
+  width: var(--space-8);
+  height: var(--space-8);
+  background: var(--module-accent);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0 0 var(--space-4) var(--module-glow);
+  opacity: var(--artifact-signal-opacity);
+}
+
+.architecture-artifact__module-body {
+  position: relative;
+  z-index: var(--z-content);
+  display: grid;
+  align-content: end;
+  gap: var(--space-8);
+  padding-right: var(--space-32);
+  opacity: var(--artifact-detail-opacity);
+}
+
+.architecture-artifact__trace {
+  display: grid;
+  grid-template-columns: 1fr 0.42fr 0.18fr;
+  gap: var(--space-8);
+  align-items: center;
+}
+
+.architecture-artifact__trace:nth-child(2) {
+  grid-template-columns: 0.74fr 0.5fr 0.18fr;
+}
+
+.architecture-artifact__trace:nth-child(3) {
+  grid-template-columns: 0.58fr 0.34fr 0.18fr;
+}
+
+.architecture-artifact__trace i {
+  display: block;
+  height: var(--space-4);
+  background: var(--module-line);
+  border-radius: var(--radius-3);
+  opacity: 0.72;
+}
+
+.architecture-artifact__trace i:last-child {
+  background: var(--module-rail);
+  opacity: var(--artifact-rail-opacity);
+}
+
+.architecture-artifact__port {
+  position: absolute;
+  top: 50%;
+  z-index: var(--z-content);
+  width: var(--space-8);
+  height: var(--space-24);
+  background: var(--module-accent);
+  border-radius: var(--radius-3);
+  box-shadow: 0 0 0 var(--size-frame-line) var(--module-line);
+  opacity: var(--artifact-port-opacity);
+  transform: translateY(-50%);
+}
+
+.architecture-artifact__port--in {
+  left: 0;
+}
+
+.architecture-artifact__port--out {
+  right: 0;
+}
+
+.architecture-artifact__module--northwest {
+  --module-left: 12%;
+  --module-top: 14%;
+  --module-width: 30%;
+  --module-height: 18%;
+  --module-z: var(--space-96);
+  --module-surface-strong: var(--color-system-material-plan-strong);
+  --module-surface: var(--color-system-material-plan);
+  --module-surface-muted: var(--color-system-material-plan-muted);
+}
+
+.architecture-artifact__module--northeast {
+  --module-left: 59%;
+  --module-top: 15%;
+  --module-width: 29%;
+  --module-height: 18%;
+  --module-z: var(--space-64);
+  --module-surface-strong: var(--color-system-material-data-strong);
+  --module-surface: var(--color-system-material-data);
+  --module-surface-muted: var(--color-system-material-data-muted);
+  --module-accent: var(--color-sky);
+  --module-rail: var(--color-sky);
+  --module-glow: var(--hero-glow-sky);
+}
+
+.architecture-artifact__module--west {
+  --module-left: 9%;
+  --module-top: 43%;
+  --module-width: 26%;
+  --module-height: 18%;
+  --module-z: var(--space-48);
+  --module-surface-strong: var(--color-system-material-data-strong);
+  --module-surface: var(--color-system-material-data);
+  --module-surface-muted: var(--color-system-material-data-muted);
+  --module-accent: var(--color-sky);
+  --module-rail: var(--color-sky);
+  --module-glow: var(--hero-glow-sky);
+}
+
+.architecture-artifact__module--east {
+  --module-left: 65%;
+  --module-top: 43%;
+  --module-width: 26%;
+  --module-height: 18%;
+  --module-z: var(--space-32);
+  --module-surface-strong: var(--color-system-material-healthy-strong);
+  --module-surface: var(--color-system-material-healthy);
+  --module-surface-muted: var(--color-system-material-healthy-muted);
+  --module-accent: var(--color-mint);
+  --module-rail: var(--color-mint);
+  --module-glow: var(--hero-glow-mint);
+}
+
+.architecture-artifact__module--southwest {
+  --module-left: 17%;
+  --module-top: 70%;
+  --module-width: 29%;
+  --module-height: 17%;
+  --module-z: var(--space-24);
+  --module-surface-strong: var(--color-system-material-plan-strong);
+  --module-surface: var(--color-system-material-plan);
+  --module-surface-muted: var(--color-system-material-plan-muted);
+}
+
+.architecture-artifact__module--southeast {
+  --module-left: 56%;
+  --module-top: 70%;
+  --module-width: 32%;
+  --module-height: 17%;
+  --module-z: var(--space-16);
+  --module-surface-strong: var(--color-system-material-production-strong);
+  --module-surface: var(--color-system-material-production);
+  --module-surface-muted: var(--color-system-material-production-muted);
+}
+
+.architecture-artifact--messy {
+  --artifact-detail-opacity: 0.84;
+  --artifact-label-opacity: 0.82;
+  --artifact-kernel-opacity: 0.58;
+  --artifact-rail-opacity: 0.48;
+  --artifact-port-opacity: 0.56;
+  --artifact-connector-opacity: 0.12;
+  --artifact-signal-opacity: 0.12;
+  --artifact-signal-offset: 960;
+}
+
+.architecture-artifact--messy .architecture-artifact__module--northwest {
+  --module-x: calc(var(--space-16) * -1);
+  --module-y: calc(var(--space-16) * -1);
+  --module-rotate: -2deg;
+}
+
+.architecture-artifact--messy .architecture-artifact__module--northeast {
+  --module-x: var(--space-16);
+  --module-y: calc(var(--space-8) * -1);
+  --module-rotate: 1deg;
+}
+
+.architecture-artifact--messy .architecture-artifact__module--west {
+  --module-x: calc(var(--space-16) * -1);
+  --module-y: var(--space-8);
+  --module-rotate: -1deg;
+}
+
+.architecture-artifact--messy .architecture-artifact__module--east {
+  --module-x: var(--space-16);
+  --module-y: var(--space-16);
+  --module-rotate: 1deg;
+}
+
+.architecture-artifact--messy .architecture-artifact__module--southwest {
+  --module-x: calc(var(--space-8) * -1);
+  --module-y: var(--space-16);
+  --module-rotate: 1deg;
+}
+
+.architecture-artifact--messy .architecture-artifact__module--southeast {
+  --module-x: var(--space-16);
+  --module-y: var(--space-8);
+  --module-rotate: -1deg;
+}
+
+.architecture-artifact--blueprint {
+  --artifact-detail-opacity: 0.92;
+  --artifact-label-opacity: 0.94;
+  --artifact-kernel-opacity: 0.78;
+  --artifact-rail-opacity: 0.68;
+  --artifact-port-opacity: 0.66;
+  --artifact-connector-opacity: 0.42;
+  --artifact-spine-opacity: 0.18;
+  --artifact-signal-opacity: 0.28;
+  --artifact-signal-offset: 760;
+}
+
+.architecture-artifact--blueprint .architecture-artifact__module--northwest,
+.architecture-artifact--blueprint .architecture-artifact__module--west,
+.architecture-artifact--blueprint .architecture-artifact__module--southwest {
+  --module-left: 12%;
+  --module-width: 32%;
+}
+
+.architecture-artifact--blueprint .architecture-artifact__module--northeast,
+.architecture-artifact--blueprint .architecture-artifact__module--east,
+.architecture-artifact--blueprint .architecture-artifact__module--southeast {
+  --module-left: 56%;
+  --module-width: 32%;
+}
+
+.architecture-artifact--blueprint .architecture-artifact__module--northwest,
+.architecture-artifact--blueprint .architecture-artifact__module--northeast {
+  --module-top: 14%;
+  --module-height: 18%;
+}
+
+.architecture-artifact--blueprint .architecture-artifact__module--west,
+.architecture-artifact--blueprint .architecture-artifact__module--east {
+  --module-top: 42%;
+  --module-height: 18%;
+}
+
+.architecture-artifact--blueprint .architecture-artifact__module--southwest,
+.architecture-artifact--blueprint .architecture-artifact__module--southeast {
+  --module-top: 70%;
+  --module-height: 17%;
+}
+
+.architecture-artifact--system,
+.architecture-artifact--ready {
+  --artifact-detail-opacity: 1;
+  --artifact-label-opacity: 1;
+  --artifact-kernel-opacity: 1;
+  --artifact-rail-opacity: 0.92;
+  --artifact-port-opacity: 0.82;
+  --artifact-connector-opacity: 0.68;
+}
+
+.architecture-artifact--system .architecture-artifact__module--northwest,
+.architecture-artifact--ready .architecture-artifact__module--northwest,
+.architecture-artifact--system .architecture-artifact__module--southwest,
+.architecture-artifact--ready .architecture-artifact__module--southwest {
+  --module-left: 14%;
+  --module-width: 30%;
+}
+
+.architecture-artifact--system .architecture-artifact__module--northeast,
+.architecture-artifact--ready .architecture-artifact__module--northeast,
+.architecture-artifact--system .architecture-artifact__module--southeast,
+.architecture-artifact--ready .architecture-artifact__module--southeast {
+  --module-left: 56%;
+  --module-width: 30%;
+}
+
+.architecture-artifact--system .architecture-artifact__module--west,
+.architecture-artifact--ready .architecture-artifact__module--west {
+  --module-left: 14%;
+  --module-width: 28%;
+}
+
+.architecture-artifact--system .architecture-artifact__module--east,
+.architecture-artifact--ready .architecture-artifact__module--east {
+  --module-left: 58%;
+  --module-width: 28%;
+}
+
+.architecture-artifact--system .architecture-artifact__module--northwest,
+.architecture-artifact--system .architecture-artifact__module--northeast,
+.architecture-artifact--ready .architecture-artifact__module--northwest,
+.architecture-artifact--ready .architecture-artifact__module--northeast {
+  --module-top: 14%;
+  --module-height: 17%;
+}
+
+.architecture-artifact--system .architecture-artifact__module--west,
+.architecture-artifact--system .architecture-artifact__module--east,
+.architecture-artifact--ready .architecture-artifact__module--west,
+.architecture-artifact--ready .architecture-artifact__module--east {
+  --module-top: 42%;
+  --module-height: 17%;
+}
+
+.architecture-artifact--system .architecture-artifact__module--southwest,
+.architecture-artifact--system .architecture-artifact__module--southeast,
+.architecture-artifact--ready .architecture-artifact__module--southwest,
+.architecture-artifact--ready .architecture-artifact__module--southeast {
+  --module-top: 70%;
+  --module-height: 17%;
+}
+
+.architecture-artifact--system {
+  --artifact-spine-opacity: 0.56;
+  --artifact-signal-opacity: 0.74;
+  --artifact-signal-offset: 420;
+}
+
+.architecture-artifact--ready {
+  --artifact-connector-opacity: 0.74;
+  --artifact-spine-opacity: 1;
+  --artifact-signal-opacity: 1;
+  --artifact-signal-offset: 0;
+}
+
+.architecture-artifact--ready .architecture-artifact__module {
+  --module-surface-strong: var(--color-system-material-core-strong);
+  --module-surface: var(--color-system-material-core);
+  --module-surface-muted: var(--color-system-material-core-muted);
+  --module-accent: var(--color-yellow);
+  --module-rail: var(--color-mint);
+  --module-glow: var(--color-yellow-dim);
+}
+
+.architecture-artifact--ready .architecture-artifact__module--southwest,
+.architecture-artifact--ready .architecture-artifact__module--southeast {
+  --module-surface-strong: var(--color-system-material-production-strong);
+  --module-surface: var(--color-system-material-production);
+  --module-surface-muted: var(--color-system-material-production-muted);
+}
+
+@media (min-width: 1440px) {
+  .architecture-artifact__stage {
+    min-height: calc((var(--space-192) * 2) + var(--space-32));
+  }
+}
+
+@media (max-width: 767px) {
+  .architecture-artifact__stage {
+    min-height: calc((var(--space-192) * 2) + var(--space-32));
+    max-height: none;
+  }
+
+  .architecture-artifact__object {
+    width: 98%;
+    transform:
+      translateY(var(--artifact-y))
+      scale(0.82)
+      rotateX(var(--artifact-rotate-x))
+      rotateZ(var(--artifact-rotate-z));
+  }
+
+  .architecture-artifact__module-surface {
+    padding: var(--space-8);
+  }
+
+  .architecture-artifact__module-body {
+    padding-right: var(--space-16);
+  }
+
+  .architecture-artifact__module-head {
+    font-size: var(--font-size-11);
+  }
+
+  .architecture-artifact__trace {
+    gap: var(--space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .architecture-artifact__object,
+  .architecture-artifact__module {
+    will-change: auto;
+  }
+}

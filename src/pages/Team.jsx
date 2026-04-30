@@ -1,24 +1,83 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useSEO } from '@/hooks/useSEO';
 import './Team.css';
 
 const stats = [
-  ['14', 'Engineers on staff'],
-  ['9.4yr', 'Average production seniority'],
-  ['0', 'Juniors on client code'],
-  ['6yr', 'Median tenure at TSH'],
+  { n: '14', label: 'Engineers on staff' },
+  { n: '9.4yr', label: 'Average production seniority' },
+  { n: '0', label: 'Juniors on client code' },
+  { n: '6yr', label: 'Median tenure at TSH' },
+];
+
+const leadership = [
+  {
+    initials: 'SS',
+    handle: 'cto',
+    name: 'Snehal Shah',
+    title: 'CTO & Co-Founder',
+    bio: '15+ years building enterprise SaaS and consumer tech. Previously led engineering at high-growth startups and specializes in production AI, HIPAA-compliant architectures, and scalable cloud systems.',
+  },
+  {
+    initials: 'AS',
+    handle: 'coo',
+    name: 'Ash Saniesales',
+    title: 'COO & Co-Founder',
+    bio: 'Leads operations and strategic growth roadmaps. Expert in conversion-first technical marketing, business data intelligence, and ensuring every project delivers measurable ROI for our partners.',
+  },
 ];
 
 const principals = [
-  ['Rk', 'Rohit Kumar', 'Principal · SEO & Marketing', 'Expert in technical SEO, conversion optimization, and high-performance digital marketing for e-commerce and scaling brands.'],
+  {
+    initials: 'RK',
+    handle: 'principal',
+    name: 'Rohit Kumar',
+    title: 'Principal · SEO & Marketing',
+    bio: 'Expert in technical SEO, conversion optimization, and high-performance digital marketing for e-commerce and scaling brands.',
+  },
 ];
 
-const policies = [
-  ['01', 'No juniors on your codebase.', 'Our minimum bar is seven years of production experience in a domain where regressions are expensive.'],
-  ['02', 'No subcontracting.', 'Every engineer on your project is a full member of the team, not a hidden second-tier vendor.'],
-  ['03', 'Principal stays until handoff.', 'The principal you meet on the first call stays in kickoff, architecture review, and retro.'],
-  ['04', 'We say no in writing.', 'If diligence says you should not hire us, we document it and send it.'],
+const rules = [
+  { n: '01', title: 'No juniors on your codebase.', body: 'Our minimum bar is seven years of production experience in a domain where regressions are expensive.' },
+  { n: '02', title: 'No subcontracting.', body: 'Every engineer on your project is a full member of the team, not a hidden second-tier vendor.' },
+  { n: '03', title: 'Principal stays until handoff.', body: 'The principal you meet on the first call stays in kickoff, architecture review, and retro.' },
+  { n: '04', title: 'We say no in writing.', body: 'If diligence says you should not hire us, we document it and send it.' },
 ];
+
+function Avatar({ initials, size = 60 }) {
+  return (
+    <div className="team-avatar" style={{ width: size, height: size }}>
+      <span className="team-avatar__initials" style={{ fontSize: size * 0.28 }}>{initials}</span>
+    </div>
+  );
+}
+
+function PersonCard({ person, large }) {
+  return (
+    <div className={`team-card${large ? ' team-card--large' : ''}`}>
+      <div className="team-card__header">
+        <Avatar initials={person.initials} size={large ? 72 : 60} />
+        <div>
+          <div className="team-card__handle">// {person.handle}</div>
+          <div className={`team-card__name${large ? ' team-card__name--large' : ''}`}>{person.name}</div>
+          <div className="team-card__title">{person.title}</div>
+        </div>
+      </div>
+      <p className="team-card__bio">{person.bio}</p>
+    </div>
+  );
+}
+
+function PlaceholderCard() {
+  return (
+    <div className="team-card team-card--placeholder">
+      <div className="team-placeholder__circle">
+        <span>+</span>
+      </div>
+      <span className="team-placeholder__label">Principal · TBD</span>
+    </div>
+  );
+}
 
 const Team = () => {
   useSEO({
@@ -29,104 +88,116 @@ const Team = () => {
   });
 
   return (
-    <div className="studio-page team-page">
-      <section className="studio-page-hero studio-section-shell">
-        <div>
-          <div className="eyebrow">
-            <span className="eyebrow__bar" />
-            <span className="eyebrow__tag">[ 04 / Team ]</span>
-            <span>14 engineers · 0 juniors · 0 recruiters</span>
-          </div>
-          <h1>The people in the code.</h1>
-        </div>
-        <div className="studio-page-hero__copy">
-          <strong>Everyone here has shipped production software in healthcare or fintech for at least seven years.</strong> We do not hire off LinkedIn cold. Every engineer on this page joined through someone we already worked with. You meet them on the first call.
-        </div>
-      </section>
-
-      <section className="team-stats studio-section-shell">
-        {stats.map(([value, label]) => (
-          <div key={label}>
-            <strong>{value}</strong>
-            <span>{label}</span>
-          </div>
-        ))}
-      </section>
-
-      <section className="team-grid studio-section-shell">
-        <div className="team-grid__label">
-          <span>/ leadership · 02</span>
-          <span>The founders</span>
-        </div>
-        <div className="team-grid__people">
-          <article className="team-card">
-            <div className="team-card__portrait">
-              <strong>SS</strong>
-              <span>// cto</span>
+    <div className="team-page">
+      {/* Hero */}
+      <section className="team-hero">
+        <div className="team-inner">
+          <div className="team-hero__grid">
+            <div>
+              <h1 className="team-hero__title">
+                The people<br />in the code.
+              </h1>
             </div>
-            <h2>Snehal Shah</h2>
-            <div className="team-card__role">CTO & Co-Founder</div>
-            <p>15+ years building enterprise SaaS and consumer tech. Previously led engineering at high-growth startups and specializes in production AI, HIPAA-compliant architectures, and scalable cloud systems.</p>
-          </article>
-          <article className="team-card">
-            <div className="team-card__portrait">
-              <strong>AS</strong>
-              <span>// coo</span>
+            <div className="team-hero__right">
+              <p className="team-hero__body">
+                <strong>Everyone here has shipped production software in healthcare or fintech for at least seven years.</strong> We do not hire off LinkedIn cold. Every engineer on this page joined through someone we already worked with. You meet them on the first call.
+              </p>
             </div>
-            <h2>Ash Saniesales</h2>
-            <div className="team-card__role">COO & Co-Founder</div>
-            <p>Leads operations and strategic growth roadmaps. Expert in conversion-first technical marketing, business data intelligence, and ensuring every project delivers measurable ROI for our partners.</p>
-          </article>
+          </div>
         </div>
       </section>
 
-      <section className="team-grid studio-section-shell">
-        <div className="team-grid__label">
-          <span>/ principals · 01</span>
-          <span>The people who lead engagements</span>
+      {/* Stats bar */}
+      <section className="team-stats">
+        <div className="team-inner team-stats__grid">
+          {stats.map((s, i) => (
+            <div key={s.n} className={`team-stat${i > 0 ? ' team-stat--bordered' : ''}`}>
+              <div className="team-stat__num">{s.n}</div>
+              <div className="team-stat__label">{s.label}</div>
+            </div>
+          ))}
         </div>
-        <div className="team-grid__people">
-          {principals.map(([initials, name, role, bio]) => (
-            <article key={name} className="team-card">
-              <div className="team-card__portrait">
-                <strong>{initials}</strong>
-                <span>// principal</span>
+      </section>
+
+      {/* Leadership */}
+      <section className="team-section">
+        <div className="team-inner">
+          <div className="team-section__meta">
+            <div className="team-section__eyebrow">Leadership · 02</div>
+            <div className="team-section__sub">The founders</div>
+          </div>
+          <div className="team-people team-people--2col">
+            {leadership.map((p) => (
+              <PersonCard key={p.name} person={p} large />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Principals */}
+      <section className="team-section">
+        <div className="team-inner">
+          <div className="team-section__meta">
+            <div className="team-section__eyebrow">Principals · 01</div>
+            <div className="team-section__sub">The people who lead engagements</div>
+          </div>
+          <div className="team-people team-people--3col">
+            {principals.map((p) => (
+              <PersonCard key={p.name} person={p} />
+            ))}
+            <PlaceholderCard />
+            <PlaceholderCard />
+          </div>
+        </div>
+      </section>
+
+      {/* Hiring rules */}
+      <section className="team-hiring">
+        <div className="team-inner">
+          <div className="team-hiring__header">
+            <div>
+              <div className="team-eyebrow">Hiring</div>
+              <h2 className="team-hiring__title">
+                Four rules we<br />do not break.
+              </h2>
+            </div>
+            <p className="team-hiring__note">
+              Careers currently closed. We hire through existing relationships only.
+            </p>
+          </div>
+          <div className="team-rules">
+            {rules.map((r, i) => (
+              <div
+                key={r.n}
+                className={`team-rule${i < 2 ? ' has-bottom-border' : ''}${i % 2 === 0 ? ' has-right-border' : ''}`}
+              >
+                <div className="team-rule__num">{r.n}</div>
+                <div className="team-rule__title">{r.title}</div>
+                <p className="team-rule__body">{r.body}</p>
               </div>
-              <h2>{name}</h2>
-              <div className="team-card__role">{role}</div>
-              <p>{bio}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="team-policy studio-section-shell">
-        <div>
-          <div className="eyebrow">
-            <span className="eyebrow__bar" />
-            <span className="eyebrow__tag">[ Hiring ]</span>
+            ))}
           </div>
-          <h2>Four rules we do not break.</h2>
-        </div>
-        <div className="team-policy__grid">
-          {policies.map(([number, title, body]) => (
-            <div key={number} className="team-policy__item">
-              <span>{number}</span>
-              <h3>{title}</h3>
-              <p>{body}</p>
-            </div>
-          ))}
         </div>
       </section>
 
-      <div className="studio-page-meta">
-        <div className="studio-page-meta__left">
-          <span><span className="studio-page-meta__label">IDX</span> 04 / Team</span>
-          <span><span className="studio-page-meta__label">REV</span> 2026.04.17</span>
-          <span><span className="studio-page-meta__label">HC</span> 14 eng · 9.4yr avg</span>
+      {/* CTA */}
+      <section className="team-cta">
+        <div className="team-inner team-cta__grid">
+          <div>
+            <div className="team-eyebrow">2 slots open · Q3</div>
+            <h2 className="team-cta__title">
+              You meet the team<br />on the first call.
+            </h2>
+            <p className="team-cta__body">
+              No account managers, no handoffs. The principal who reads your intake is the principal who runs your engagement.
+            </p>
+          </div>
+          <div className="team-cta__action">
+            <Link to="/contact" className="team-btn">Start a conversation ↗</Link>
+            <p className="team-cta__note">Usually respond within a few hours.</p>
+          </div>
         </div>
-        <div>Careers closed ↗</div>
-      </div>
+      </section>
     </div>
   );
 };
