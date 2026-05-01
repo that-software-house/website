@@ -67,10 +67,10 @@
   margin: 0;
   color: var(--color-footer-text-1);
   font-family: var(--font-display);
-  font-size: var(--font-size-36);
+  font-size: clamp(var(--font-size-36), 5vw, var(--font-size-72));
   font-weight: 800;
   line-height: var(--line-height-tight);
-  letter-spacing: var(--letter-spacing-heading-36);
+  letter-spacing: clamp(var(--letter-spacing-heading-36), -0.035em, var(--letter-spacing-heading-72));
   text-wrap: balance;
 }
 
@@ -82,43 +82,6 @@
   padding-top: var(--space-8);
 }
 
-.final-cta-section__cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--space-48);
-  padding: var(--space-16) var(--space-24);
-  color: var(--color-footer-text-1);
-  font-size: var(--font-size-15);
-  font-weight: 800;
-  line-height: var(--line-height-flat);
-  text-decoration: none;
-  border-radius: var(--radius-6);
-  transition:
-    background var(--duration-micro) var(--ease),
-    box-shadow var(--duration-micro) var(--ease),
-    transform var(--duration-micro) var(--ease);
-}
-
-.final-cta-section__cta:hover {
-  transform: translateY(var(--motion-lift-small));
-}
-
-.final-cta-section__cta:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-
-.final-cta-section__cta--primary {
-  background: var(--color-yellow);
-  color: var(--color-black);
-  box-shadow: 0 0 0 var(--size-frame-line) var(--color-footer-line), 0 var(--space-16) var(--space-48) var(--color-home-yellow-wash);
-}
-
-.final-cta-section__cta--secondary {
-  background: var(--color-home-dark-panel-soft);
-  box-shadow: 0 0 0 var(--size-frame-line) var(--color-footer-line);
-}
 
 @keyframes final-cta-drift {
   0%,
@@ -135,11 +98,6 @@
   .final-cta-section__inner {
     padding: var(--home-section-padding) var(--space-32);
   }
-
-  .final-cta-section__inner h2 {
-    font-size: var(--font-size-72);
-    letter-spacing: var(--letter-spacing-heading-72);
-  }
 }
 
 @media (min-width: 1280px) {
@@ -150,9 +108,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .final-cta-section::after,
-  .final-cta-section__cta {
+  .final-cta-section::after {
     animation: none;
-    transition: none;
   }
 }

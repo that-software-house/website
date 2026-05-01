@@ -26,10 +26,10 @@ function HeroSection() {
         </p>
 
         <div className="hero__actions">
-          <Link className="hero__cta hero__cta--primary" to="/contact">
+          <Link className="hero__cta cta-btn cta-btn--primary" to="/contact">
             Start a conversation
           </Link>
-          <Link className="hero__cta hero__cta--secondary" to="/approach">
+          <Link className="hero__cta cta-btn cta-btn--secondary" to="/approach">
             See how we work
           </Link>
         </div>

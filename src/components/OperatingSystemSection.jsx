@@ -96,7 +96,7 @@ function OperatingSystemSection() {
   return (
     <section className="operating-system-section">
       <div className="operating-system-section__inner">
-        <div className="operating-system-section__header">
+        <div className="operating-system-section__header motion-reveal">
           <p>TSH OPERATING SYSTEM</p>
           <h2>Business software, treated like infrastructure.</h2>
           <span>
@@ -109,12 +109,12 @@ function OperatingSystemSection() {
 
         <ChromaGrid
           className="operating-system-section__grid"
-          columns={4}
+          columns={2}
           items={serviceItems}
-          radius={360}
+          radius={480}
         />
 
-        <div className="operating-system-section__proof">
+        <div className="operating-system-section__proof motion-reveal">
           {proofItems.map((item) => (
             <SpotlightCard
               className="operating-system-section__proof-card"
@@ -128,6 +128,7 @@ function OperatingSystemSection() {
           ))}
         </div>
 
+        <div className="motion-reveal">
         <SpotlightCard
           className="operating-system-section__clients"
           spotlightColor="var(--hero-glow-mint)"
@@ -147,8 +148,13 @@ function OperatingSystemSection() {
             ))}
           </ul>
         </SpotlightCard>
+        </div>
 
-        <div className="operating-system-section__handoff">
+        <div className="motion-reveal">
+        <SpotlightCard
+          className="operating-system-section__handoff"
+          spotlightColor="var(--color-home-yellow-wash-soft)"
+        >
           <div>
             <p>HOW WE WORK WITH YOU</p>
             <h3>A senior team that stays close to the work.</h3>
@@ -158,7 +164,8 @@ function OperatingSystemSection() {
               to launch.
             </span>
           </div>
-          <Link to="/contact">Start a conversation</Link>
+          <Link className="cta-btn cta-btn--primary" to="/contact">Start a conversation</Link>
+        </SpotlightCard>
         </div>
       </div>
     </section>
