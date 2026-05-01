@@ -8,20 +8,22 @@ const filters = ['All', 'Healthcare', 'Fintech', 'Insurtech', 'Infra / AI'];
 const caseStudies = [
   {
     index: '01',
+    slug: 'vox-health',
     name: 'Vox Health',
-    subtitle: 'Clinical copilot',
-    tags: ['HIPAA', '180 clinics', 'Ambient scribing'],
+    subtitle: 'Brand identity & design system',
+    tags: ['Healthcare AI', 'Brand Identity', 'Design System'],
     domain: 'Healthcare',
-    engagement: '22wk embed',
-    result: '41% less charting time',
-    stage: 'Series A · 2025',
-    headline: 'From a founder\'s laptop to 180 clinics.',
-    story: 'Vahid came to us with a working prototype, an $8M seed, and a six-week deadline to show something to Kaiser\'s innovation group. We shipped a HIPAA-scoped ambient scribe with an independent judge model for hallucination detection, integrated with Epic via FHIR, running on-prem at the customer\'s data center. Charting time dropped 41% in the pilot. The Kaiser meeting became a Kaiser contract. The contract became a Series A.',
+    engagement: 'Brand sprint',
+    result: 'Zero to launched in 13 days',
+    stage: 'Startup · 2025',
+    headline: 'Building a brand from the ground up.',
+    story: 'The CEO of Vox Health came to us with a clear mission and nothing else — no logo, no colors, no visual direction. Just a dental AI platform that automates scheduling, insurance verification, and patient communication for dental practices. We assigned a senior designer from day one, ran a structured discovery session to anchor the strategy, explored three distinct brand systems, and delivered a complete identity, design system, and live website in under two weeks. Constant communication throughout. Zero radio silence.',
+    imageLabel: 'Brand System: Final Identity, Design Tokens & Component Library',
     stats: [
-      { n: '41%', label: 'Reduction in charting time' },
-      { n: '11wk', label: 'Pilot to production' },
-      { n: '180', label: 'Clinics live at 18mo' },
-      { n: '$22M', label: 'Series A raised post-launch' },
+      { n: '13', label: 'Days zero to launched' },
+      { n: '3+', label: 'Brand systems explored' },
+      { n: '2', label: 'Focused refinement rounds' },
+      { n: '0', label: 'Days of radio silence' },
     ],
   },
 ];
@@ -61,7 +63,18 @@ function CaseStudyCard({ cs, onClick, isActive }) {
           <div className="work-card__name">{cs.name}</div>
           <div className="work-card__subtitle">{cs.subtitle}</div>
         </div>
-        <div className="work-card__arrow">↗</div>
+        {cs.slug ? (
+          <Link
+            to={`/case-studies/${cs.slug}`}
+            className="work-card__arrow"
+            onClick={(e) => e.stopPropagation()}
+            aria-label={`Read ${cs.name} case study`}
+          >
+            ↗
+          </Link>
+        ) : (
+          <div className="work-card__arrow">↗</div>
+        )}
       </div>
       <div className="work-card__tags">
         {cs.tags.map((t) => (
@@ -103,11 +116,17 @@ function FeaturedPanel({ cs }) {
             ))}
           </div>
         </div>
-        <CaseStudyImage label="Clinical Dashboard: Multi-site EHR Integration with Ambient Scribe Model" />
+        <CaseStudyImage label={cs.imageLabel || 'Studio preview'} />
       </div>
       <div className="work-featured__footer">
-        <span className="work-featured__date">Deployed Q1 2026</span>
-        <Link to="/contact" className="work-featured__link">Ask about NDA referrals ↗</Link>
+        <span className="work-featured__date">Deployed Q4 2025</span>
+        {cs.slug ? (
+          <Link to={`/case-studies/${cs.slug}`} className="work-featured__link">
+            Read the full case study ↗
+          </Link>
+        ) : (
+          <Link to="/contact" className="work-featured__link">Ask about NDA referrals ↗</Link>
+        )}
       </div>
     </div>
   );
