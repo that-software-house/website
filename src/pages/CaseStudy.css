@@ -236,7 +236,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 /* ── Context strip ──────────────────────────────────────────── */
@@ -483,6 +483,15 @@
   grid-template-columns: 1fr 1fr;
   gap: var(--space-64);
   align-items: center;
+}
+
+.cs-phase__content--no-image {
+  grid-template-columns: 1fr;
+  direction: ltr !important;
+}
+
+.cs-phase__content--no-image .cs-phase__copy {
+  max-width: 100%;
 }
 
 .cs-phase--flip .cs-phase__content {

@@ -32,7 +32,7 @@ const services = [
 
 const trustLogos = [
   { src: voxLogo, alt: 'Vox Health' },
-  { src: codeMinderLogo, alt: 'CodeMinder' },
+  { src: codeMinderLogo, alt: 'GoCodeMinder' },
   { src: oracleLogo, alt: 'Oracle' },
   { src: kaizenLogo, alt: 'Kaizen Health' },
   { src: microsoftLogo, alt: 'Microsoft' },

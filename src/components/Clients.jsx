@@ -10,7 +10,7 @@ import amex from '../assets/clients/amex.png';
 const Clients = () => {
   const clients = [
     { name: 'Vox Health', logo: voxHealthLogo },
-    { name: 'Code Minder', logo: codeMinderLogo },
+    { name: 'GoCodeMinder', logo: codeMinderLogo },
     { name: 'Oracle', logo: oracleLogo },
     { name: 'Kaizen Health', logo: kaizenHealthLogo },
     { name: 'Microsoft', logo: microsoftLogo },

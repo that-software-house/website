@@ -29,9 +29,32 @@ const caseStudies = [
       { n: '0', label: 'Days of radio silence' },
     ],
   },
+  {
+    index: '02',
+    slug: 'go-code-minder',
+    name: 'GoCodeMinder',
+    subtitle: 'Pitch deck, logo & admin dashboard',
+    tags: ['DevTools', 'MVP Development', 'Admin Dashboard'],
+    domain: 'Infra / AI',
+    engagement: 'MVP Build',
+    result: 'Complete startup core in 4 weeks',
+    stage: 'Startup · 2024',
+    headline: 'Investor-ready on a bootstrap budget.',
+    story: 'GoCodeMinder needed to look professional for investors while keeping costs low. We delivered a technical logo identity, a 12-slide pitch deck that bridged the technical-business gap, and a custom React-based admin dashboard built from scratch. By focusing on high-leverage deliverables, we provided a complete brand ecosystem and operational core within a limited budget and a tight 4-week timeline.',
+    image: {
+      src: '/images/case-studies/gocodeminder-hero.jpg',
+      alt: 'GoCodeMinder — Admin dashboard and brand identity',
+    },
+    stats: [
+      { n: '4', label: 'Weeks idea to MVP' },
+      { n: '100%', label: 'Custom dashboard' },
+      { n: '3', label: 'Major deliverables' },
+      { n: 'Low', label: 'Capital outlay' },
+    ],
+  },
 ];
 
-const clients = ['Vox Health', 'CodeMinder', 'orbital/', 'Ledgerwise', 'Parallel.fi', 'Harbormesa', '.insure', 'Keystone', 'Northwind', 'finch.run', 'Aperture', 'Atlas Rad'];
+const clients = ['Vox Health', 'GoCodeMinder', 'orbital/', 'Ledgerwise', 'Parallel.fi', 'Harbormesa', '.insure', 'Keystone', 'Northwind', 'finch.run', 'Aperture', 'Atlas Rad'];
 
 function WorkImagePlaceholder({ alt }) {
   return (
@@ -218,12 +241,32 @@ const Work = () => {
   const [activeFilter, setActiveFilter] = useState('All');
   const [selectedCase, setSelectedCase] = useState(0);
 
+  const filteredCaseStudies = activeFilter === 'All'
+    ? caseStudies
+    : caseStudies.filter(cs => cs.domain === activeFilter);
+
+  // Auto-select first in filtered list if current selected is not present
+  React.useEffect(() => {
+    const isCurrentInFiltered = filteredCaseStudies.some(cs => {
+      const originalIndex = caseStudies.findIndex(c => c.slug === cs.slug);
+      return originalIndex === selectedCase;
+    });
+
+    if (!isCurrentInFiltered && filteredCaseStudies.length > 0) {
+      const firstInFilteredIndex = caseStudies.findIndex(c => c.slug === filteredCaseStudies[0].slug);
+      setSelectedCase(firstInFilteredIndex);
+    }
+  }, [activeFilter, filteredCaseStudies, selectedCase]);
+
   useSEO({
     title: 'Work | That Software House',
     description: 'Selected healthcare, fintech, and AI product engagements from That Software House.',
     keywords: 'software studio case studies, healthcare AI work, fintech engineering portfolio',
     canonicalUrl: 'https://thatsoftwarehouse.com/work',
   });
+
+  const totalGridSlots = 6;
+  const placeholdersCount = Math.max(0, totalGridSlots - filteredCaseStudies.length);
 
   return (
     <div className="work-page">
@@ -275,29 +318,38 @@ const Work = () => {
               ))}
             </div>
             <div className="work-filter-count">
-              Showing 1 of 38 · <strong>Sort: most recent</strong>
+              Showing {filteredCaseStudies.length} of 38 · <strong>Sort: most recent</strong>
             </div>
           </div>
 
           {/* Case study grid */}
           <div className="work-grid">
-            <CaseStudyCard
-              cs={caseStudies[0]}
-              onClick={() => setSelectedCase(0)}
-              isActive={selectedCase === 0}
-            />
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="work-placeholder">
-                <div className="work-placeholder__index">Case study {String(i + 2).padStart(2, '0')}</div>
-                <div className="work-placeholder__note">
-                  Under NDA or pre-launch.<br />Ask on a call.
+            {filteredCaseStudies.map((cs) => {
+              const originalIndex = caseStudies.findIndex(c => c.slug === cs.slug);
+              return (
+                <CaseStudyCard
+                  key={cs.slug}
+                  cs={cs}
+                  onClick={() => setSelectedCase(originalIndex)}
+                  isActive={selectedCase === originalIndex}
+                />
+              );
+            })}
+            {[...Array(placeholdersCount)].map((_, i) => {
+              const displayIndex = filteredCaseStudies.length + i + 1;
+              return (
+                <div key={i} className="work-placeholder">
+                  <div className="work-placeholder__index">Case study {String(displayIndex).padStart(2, '0')}</div>
+                  <div className="work-placeholder__note">
+                    Under NDA or pre-launch.<br />Ask on a call.
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Featured panel */}
-          <FeaturedPanel cs={caseStudies[selectedCase]} />
+          {caseStudies[selectedCase] && <FeaturedPanel cs={caseStudies[selectedCase]} />}
         </div>
       </section>
 

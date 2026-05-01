@@ -126,6 +126,10 @@ function CaseStudyImage({ image, images, carousel, alt, className = '', ratio = 
   const imageAlt = image?.alt || alt || '';
 
   if (!image?.src || hasError) {
+    // If it's a phase image and it's missing, we return null to allow full-width text
+    if (className.includes('cs-phase__img') && !image?.placeholder) {
+      return null;
+    }
     return <ImagePlaceholder alt={imageAlt} className={className} ratio={ratio} />;
   }
 
@@ -358,27 +362,32 @@ const CaseStudy = () => {
           </div>
 
           <div className="cs-phases">
-            {cs.process.map((phase, i) => (
-              <div key={i} className={`cs-phase cs-reveal${i % 2 === 1 ? ' cs-phase--flip' : ''}`}>
-                <div className="cs-phase__bar">
-                  <span className="cs-phase__num cs-mono">Phase {phase.phase}</span>
-                  <span className="cs-phase__label cs-mono">{phase.label}</span>
-                </div>
-                <div className="cs-phase__content">
-                  <div className="cs-phase__copy">
-                    <h3 className="cs-phase__heading">{phase.heading}</h3>
-                    <p className="cs-phase__body">{phase.body}</p>
+            {cs.process.map((phase, i) => {
+              const hasImage = phase.image?.src || (phase.carousel && phase.images?.length > 0) || (phase.images?.length > 0);
+              return (
+                <div key={i} className={`cs-phase cs-reveal${i % 2 === 1 ? ' cs-phase--flip' : ''}`}>
+                  <div className="cs-phase__bar">
+                    <span className="cs-phase__num cs-mono">Phase {phase.phase}</span>
+                    <span className="cs-phase__label cs-mono">{phase.label}</span>
                   </div>
-                  <CaseStudyImage
-                    image={phase.image}
-                    images={phase.images}
-                    carousel={phase.carousel}
-                    alt={phase.image?.alt}
-                    className="cs-phase__img"
-                  />
+                  <div className={`cs-phase__content ${!hasImage ? 'cs-phase__content--no-image' : ''}`}>
+                    <div className="cs-phase__copy">
+                      <h3 className="cs-phase__heading">{phase.heading}</h3>
+                      <p className="cs-phase__body">{phase.body}</p>
+                    </div>
+                    {hasImage && (
+                      <CaseStudyImage
+                        image={phase.image}
+                        images={phase.images}
+                        carousel={phase.carousel}
+                        alt={phase.image?.alt}
+                        className="cs-phase__img"
+                      />
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

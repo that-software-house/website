@@ -162,4 +162,132 @@ export const caseStudies = {
       canonicalUrl: 'https://thatsoftwarehouse.com/case-studies/vox-health',
     },
   },
+  'go-code-minder': {
+    slug: 'go-code-minder',
+    client: 'GoCodeMinder',
+    tagline: 'Pitch deck, brand identity, and a full-featured admin dashboard built from scratch on a bootstrap budget.',
+    category: 'DevTools · MVP Development',
+    industry: 'Developer Tools / EdTech',
+    services: ['Pitch Deck', 'Logo Design', 'Admin Dashboard'],
+    timeline: '4 weeks',
+    year: '2024',
+    engagement: 'MVP Build',
+
+    heroImage: {
+      src: '/images/case-studies/gocodeminder-hero.png',
+      alt: 'GoCodeMinder — Admin dashboard and brand identity',
+      placeholder: true,
+    },
+
+    heroStats: [
+      { value: '4', unit: 'weeks', label: 'Idea to MVP' },
+      { value: '100%', unit: null, label: 'Custom Dashboard' },
+      { value: 'Low', unit: null, label: 'Capital Outlay' },
+    ],
+
+    brief: {
+      heading: 'The Brief',
+      paragraphs: [
+        'GoCodeMinder approached TSH with a classic startup challenge: a great idea, technical expertise in-house, but a need for professional design and a robust administrative interface to manage their growing user base. They needed to look "investor-ready" while keeping their burn rate as low as possible.',
+        'The project required a multi-disciplinary approach: a logo that captured their technical essence, a pitch deck that told their story to VCs, and a functional admin dashboard that could handle complex data management without the enterprise price tag.',
+      ],
+      callout: 'Investor-ready design on a bootstrap budget.',
+    },
+
+    challenge: {
+      heading: 'The Challenge',
+      intro: 'The primary challenge was resource allocation. Every dollar needed to contribute directly to either credibility (the brand and deck) or utility (the dashboard).',
+      tensions: [
+        {
+          label: 'Aesthetic vs. Cost',
+          body: 'Creating a high-end, modern "dev-tool" aesthetic without the luxury of a long-term design engagement.',
+        },
+        {
+          label: 'Functionality vs. Speed',
+          body: 'Building a custom dashboard from scratch that needed to be fully functional for internal operations immediately.',
+        },
+      ],
+      needle: 'Maximizing impact by focusing on high-leverage design and development tasks.',
+    },
+
+    process: [
+      {
+        phase: '01',
+        label: 'Branding',
+        heading: 'Identity first.',
+        body: 'We started with a rapid logo design sprint. The goal was to create a mark that felt technical, reliable, and "code-focused." We delivered a clean, minimalist identity that provided the foundation for everything else.',
+        image: {
+          src: '/images/case-studies/gocodeminder-logo.png',
+          alt: 'GoCodeMinder logo design process',
+          placeholder: true,
+        },
+      },
+      {
+        phase: '02',
+        label: 'Pitch Deck',
+        heading: 'Telling the story.',
+        body: 'With the brand established, we moved to the pitch deck. We worked closely with the founders to distill their technical vision into a 12-slide deck designed to bridge the gap between deep-tech functionality and business-value outcomes.',
+      },
+      {
+        phase: '03',
+        label: 'Dashboard',
+        heading: 'Building the engine.',
+        body: 'The bulk of the engagement was the admin dashboard. We utilized a modern, lightweight tech stack to build a custom interface that allowed the GoCodeMinder team to manage users, monitor system health, and handle subscription data without the overhead of a generic CMS.',
+        image: {
+          src: '/images/case-studies/gocodeminder-dashboard.jpg',
+          alt: 'GoCodeMinder Admin Dashboard UI',
+          placeholder: true,
+        },
+      },
+    ],
+
+    outcomes: {
+      heading: 'The Result',
+      subheading: 'A complete brand ecosystem and a functional operational core delivered in a month.',
+      body: [
+        'Custom Logo & Identity — A professional mark that established immediate market credibility.',
+        'Investor-Ready Pitch Deck — High-impact slides that effectively communicate the startup value prop.',
+        'Custom Admin Dashboard — A tailored operational tool built from scratch to meet specific business needs.',
+        'Strategic Cost Management — All deliverables achieved within a strict, limited budget.',
+      ],
+      metrics: [
+        { value: '1', label: 'Month timeline' },
+        { value: '3', label: 'Major deliverables' },
+        { value: '100%', label: 'Budget compliance' },
+        { value: '0', label: 'Compromise on quality' },
+      ],
+      images: [
+        {
+          src: '/images/case-studies/gocodeminder-hero.png',
+          alt: 'GoCodeMinder brand and dashboard overview',
+          placeholder: true,
+        },
+      ],
+    },
+
+    deliverables: [
+      { item: 'Logo Design', detail: 'Primary mark and brand guidelines' },
+      { item: 'Pitch Deck', detail: 'Investor-ready presentation design' },
+      { item: 'Admin Dashboard', detail: 'Custom React-based internal tool' },
+      { item: 'Visual Language', detail: 'Consistent aesthetic across all touchpoints' },
+    ],
+
+    tshDifference: {
+      heading: 'The TSH Difference',
+      body: "We understand that startups don't always have unlimited runways. For GoCodeMinder, we prioritized 'ruthless pragmatism'—focusing our senior talent on the pieces that would move the needle for them most. We didn't just build what they asked for; we built what they needed to get to their next milestone.",
+    },
+
+    testimonial: {
+      quote: "TSH delivered exactly what we needed to get our startup off the ground. They managed to give us a premium look and a functional dashboard even with our tight budget constraints.",
+      author: 'Founding Team',
+      company: 'GoCodeMinder',
+    },
+
+    seo: {
+      title: 'GoCodeMinder Case Study | That Software House',
+      description: 'How TSH helped GoCodeMinder launch with a professional brand, investor pitch deck, and custom admin dashboard on a limited budget.',
+      keywords: 'startup MVP development, affordable logo design, pitch deck design, custom admin dashboard, TSH case study, bootstrap startup support',
+      canonicalUrl: 'https://thatsoftwarehouse.com/case-studies/go-code-minder',
+    },
+  },
 };
