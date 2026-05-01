@@ -30,54 +30,20 @@ function useScrollReveal() {
   return containerRef;
 }
 
-function ImagePlaceholder({ alt, label, className = '', ratio = '16/9' }) {
+function ImagePlaceholder({ alt, className = '', ratio = '16/9' }) {
   return (
     <figure
       className={`cs-img-placeholder ${className}`}
       style={{ aspectRatio: ratio }}
-      aria-label={alt}
       role="img"
+      aria-label={alt}
     >
-      <svg
-        className="cs-img-placeholder__grid"
-        viewBox="0 0 800 450"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        {[...Array(9)].map((_, i) => (
-          <line key={`v${i}`} x1={i * 100} y1="0" x2={i * 100} y2="450" />
-        ))}
-        {[...Array(5)].map((_, i) => (
-          <line key={`h${i}`} x1="0" y1={i * 112} x2="800" y2={i * 112} />
-        ))}
-      </svg>
-      <div className="cs-img-placeholder__inner">
-        <svg
-          className="cs-img-placeholder__icon"
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          aria-hidden="true"
-        >
-          <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="1.5" stroke="currentColor" />
-          <circle cx="8.5" cy="8.5" r="1.5" strokeWidth="1.5" stroke="currentColor" />
-          <path
-            d="M21 15l-5-5-4 4-2-2-4 4"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            stroke="currentColor"
-          />
-        </svg>
-        {label && <span className="cs-img-placeholder__label">{label}</span>}
-        <figcaption className="cs-img-placeholder__alt">{alt}</figcaption>
-      </div>
+      <figcaption className="cs-img-placeholder__alt">{alt}</figcaption>
     </figure>
   );
 }
 
-function PhaseCarousel({ images, phaseNum }) {
+function PhaseCarousel({ images, className = '' }) {
   const trackRef = useRef(null);
   const [current, setCurrent] = useState(0);
   const total = images.length;
@@ -103,8 +69,7 @@ function PhaseCarousel({ images, phaseNum }) {
             <CaseStudyImage
               image={img}
               alt={img?.alt}
-              label={`Phase ${phaseNum} · Image ${i + 1} unavailable`}
-              className="cs-phase__img"
+              className={className || 'cs-phase__img'}
             />
           </div>
         ))}
@@ -151,32 +116,22 @@ function PhaseCarousel({ images, phaseNum }) {
   );
 }
 
-function CaseStudyImage({ image, alt, label, className = '', ratio = '16/9' }) {
+function CaseStudyImage({ image, images, carousel, alt, className = '', ratio = '16/9' }) {
   const [hasError, setHasError] = useState(false);
+
+  if (carousel && images?.length > 0) {
+    return <PhaseCarousel images={images} className={className} />;
+  }
+
   const imageAlt = image?.alt || alt || '';
 
   if (!image?.src || hasError) {
-    return (
-      <ImagePlaceholder
-        alt={imageAlt}
-        label={label}
-        className={className}
-        ratio={ratio}
-      />
-    );
+    return <ImagePlaceholder alt={imageAlt} className={className} ratio={ratio} />;
   }
 
   return (
-    <figure
-      className={`cs-image ${className}`}
-      style={{ aspectRatio: ratio }}
-    >
-      <img
-        src={image.src}
-        alt={imageAlt}
-        loading="lazy"
-        onError={() => setHasError(true)}
-      />
+    <figure className={`cs-image ${className}`} style={{ aspectRatio: ratio }}>
+      <img src={image.src} alt={imageAlt} loading="lazy" onError={() => setHasError(true)} />
     </figure>
   );
 }
@@ -414,16 +369,13 @@ const CaseStudy = () => {
                     <h3 className="cs-phase__heading">{phase.heading}</h3>
                     <p className="cs-phase__body">{phase.body}</p>
                   </div>
-                  {phase.carousel && phase.images?.length > 0 ? (
-                    <PhaseCarousel images={phase.images} phaseNum={phase.phase} />
-                  ) : (
-                    <CaseStudyImage
-                      image={phase.image}
-                      alt={phase.image?.alt}
-                      label={`Phase ${phase.phase} image unavailable`}
-                      className="cs-phase__img"
-                    />
-                  )}
+                  <CaseStudyImage
+                    image={phase.image}
+                    images={phase.images}
+                    carousel={phase.carousel}
+                    alt={phase.image?.alt}
+                    className="cs-phase__img"
+                  />
                 </div>
               </div>
             ))}
@@ -457,15 +409,18 @@ const CaseStudy = () => {
         </div>
 
         <div className="cs-outcomes__img cs-reveal">
-          {(cs.outcomes.images?.length ? cs.outcomes.images : [null]).map((image, index) => (
-            <CaseStudyImage
-              key={image?.src || index}
-              image={image}
-              alt={image?.alt}
-              label="Result image unavailable"
-              ratio="16/9"
-            />
-          ))}
+          {cs.outcomes.carousel && cs.outcomes.images?.length > 0 ? (
+            <CaseStudyImage images={cs.outcomes.images} carousel ratio="16/9" />
+          ) : (
+            (cs.outcomes.images?.length ? cs.outcomes.images : [null]).map((image, index) => (
+              <CaseStudyImage
+                key={image?.src || index}
+                image={image}
+                alt={image?.alt}
+                ratio="16/9"
+              />
+            ))
+          )}
         </div>
       </section>
 

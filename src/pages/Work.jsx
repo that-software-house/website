@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useSEO } from '@/hooks/useSEO';
 import './Work.css';
@@ -18,7 +18,10 @@ const caseStudies = [
     stage: 'Startup · 2025',
     headline: 'Building a brand from the ground up.',
     story: 'The CEO of Vox Health came to us with a clear mission and nothing else — no logo, no colors, no visual direction. Just a dental AI platform that automates scheduling, insurance verification, and patient communication for dental practices. We assigned a senior designer from day one, ran a structured discovery session to anchor the strategy, explored three distinct brand systems, and delivered a complete identity, design system, and live website in under two weeks. Constant communication throughout. Zero radio silence.',
-    imageLabel: 'Brand System: Final Identity, Design Tokens & Component Library',
+    image: {
+      src: '/images/case-studies/voxhealth-hero.jpg',
+      alt: 'Vox Health — final brand identity, design system, and website',
+    },
     stats: [
       { n: '13', label: 'Days zero to launched' },
       { n: '3+', label: 'Brand systems explored' },
@@ -30,21 +33,100 @@ const caseStudies = [
 
 const clients = ['Vox Health', 'CodeMinder', 'orbital/', 'Ledgerwise', 'Parallel.fi', 'Harbormesa', '.insure', 'Keystone', 'Northwind', 'finch.run', 'Aperture', 'Atlas Rad'];
 
-function CaseStudyImage({ label }) {
+function WorkImagePlaceholder({ alt }) {
   return (
-    <div className="work-cs-image">
-      <svg className="work-cs-image__grid" viewBox="0 0 800 450" preserveAspectRatio="none">
-        {[...Array(9)].map((_, i) => (
-          <line key={`v${i}`} x1={i * 100} y1="0" x2={i * 100} y2="450" stroke="white" strokeWidth="1" />
-        ))}
-        {[...Array(5)].map((_, i) => (
-          <line key={`h${i}`} x1="0" y1={i * 112} x2="800" y2={i * 112} stroke="white" strokeWidth="1" />
-        ))}
-      </svg>
-      <div className="work-cs-image__label">Studio Review</div>
-      <div className="work-cs-image__desc">{label}</div>
-      <div className="work-cs-image__sub">Screen capture</div>
+    <div className="work-cs-image work-cs-image--placeholder">
+      <span className="work-cs-image__alt">{alt}</span>
     </div>
+  );
+}
+
+function WorkCarousel({ images }) {
+  const trackRef = useRef(null);
+  const [current, setCurrent] = useState(0);
+  const total = images.length;
+
+  const scrollTo = (index) => {
+    const track = trackRef.current;
+    if (!track) return;
+    track.scrollTo({ left: index * track.offsetWidth, behavior: 'smooth' });
+    setCurrent(index);
+  };
+
+  const onScroll = () => {
+    const track = trackRef.current;
+    if (!track) return;
+    setCurrent(Math.round(track.scrollLeft / track.offsetWidth));
+  };
+
+  return (
+    <div className="work-carousel">
+      <div className="work-carousel__track" ref={trackRef} onScroll={onScroll}>
+        {images.map((img, i) => (
+          <div key={i} className="work-carousel__slide">
+            <CaseStudyImage image={img} alt={img?.alt} />
+          </div>
+        ))}
+      </div>
+      {total > 1 && (
+        <>
+          <div className="work-carousel__controls" aria-hidden="true">
+            <button
+              className="work-carousel__btn"
+              onClick={() => scrollTo(Math.max(0, current - 1))}
+              disabled={current === 0}
+              aria-label="Previous image"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            <button
+              className="work-carousel__btn"
+              onClick={() => scrollTo(Math.min(total - 1, current + 1))}
+              disabled={current === total - 1}
+              aria-label="Next image"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M6 12l4-4-4-4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>
+          <div className="work-carousel__dots" role="tablist" aria-label="Image slides">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                className={`work-carousel__dot${i === current ? ' work-carousel__dot--active' : ''}`}
+                onClick={() => scrollTo(i)}
+                role="tab"
+                aria-selected={i === current}
+                aria-label={`Image ${i + 1} of ${total}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function CaseStudyImage({ image, images, carousel, alt }) {
+  const [hasError, setHasError] = useState(false);
+
+  if (carousel && images?.length > 0) {
+    return <WorkCarousel images={images} />;
+  }
+
+  const imageAlt = image?.alt || alt || '';
+
+  if (!image?.src || hasError) {
+    return <WorkImagePlaceholder alt={imageAlt} />;
+  }
+
+  return (
+    <figure className="work-cs-image work-cs-image--real">
+      <img src={image.src} alt={imageAlt} loading="lazy" onError={() => setHasError(true)} />
+    </figure>
   );
 }
 
@@ -116,7 +198,7 @@ function FeaturedPanel({ cs }) {
             ))}
           </div>
         </div>
-        <CaseStudyImage label={cs.imageLabel || 'Studio preview'} />
+        <CaseStudyImage image={cs.image} images={cs.images} carousel={cs.carousel} />
       </div>
       <div className="work-featured__footer">
         <span className="work-featured__date">Deployed Q4 2025</span>

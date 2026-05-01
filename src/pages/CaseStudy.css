@@ -580,12 +580,6 @@
   box-shadow: 0 0 0 1px rgba(249, 248, 246, 0.06);
 }
 
-.cs-outcomes__img .cs-img-placeholder__grid line {
-  stroke: rgba(249, 248, 246, 0.12);
-}
-
-.cs-outcomes__img .cs-img-placeholder__icon,
-.cs-outcomes__img .cs-img-placeholder__label,
 .cs-outcomes__img .cs-img-placeholder__alt {
   color: rgba(249, 248, 246, 0.2);
 }
@@ -757,47 +751,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
   overflow: hidden;
-}
-
-.cs-img-placeholder__grid {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  fill: none;
-}
-
-.cs-img-placeholder__grid line {
-  stroke: var(--color-border);
-  stroke-width: 1;
-}
-
-.cs-img-placeholder__inner {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-8);
-  padding: var(--space-32);
-  text-align: center;
-}
-
-.cs-img-placeholder__icon {
-  color: var(--color-text-3);
-  margin-bottom: var(--space-4);
-  opacity: 0.6;
-}
-
-.cs-img-placeholder__label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--color-text-3);
 }
 
 .cs-img-placeholder__alt {
@@ -806,6 +760,8 @@
   color: var(--color-text-3);
   max-width: 380px;
   line-height: 1.5;
+  text-align: center;
+  padding: var(--space-32);
 }
 
 /* ── Phase carousel ─────────────────────────────────────────── */
