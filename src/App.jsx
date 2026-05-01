@@ -34,6 +34,7 @@ import SeoMarketing from './pages/SeoMarketing'
 import SMBWebsites from './pages/SMBWebsites'
 import WebsiteCostEstimator from './pages/WebsiteCostEstimator'
 import LaunchReadiness from './pages/LaunchReadiness'
+import CaseStudy from './pages/CaseStudy'
 import NotFound from './pages/NotFound'
 import './App.css'
 
@@ -77,6 +78,7 @@ function App() {
           <Route path="/website-cost-estimator" element={<WebsiteCostEstimator />} />
           <Route path="/launch-readiness-checker" element={<LaunchReadiness />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/case-studies/:slug" element={<CaseStudy />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Footer />
