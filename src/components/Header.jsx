@@ -7,7 +7,7 @@ const navigationLinks = [
   { label: 'Services', path: '/services' },
   { label: 'Approach', path: '/approach' },
   { label: 'Team', path: '/team' },
-  { label: 'Vault', path: '/vault' },
+  { label: 'Vault', path: 'https://labs.thatsoftwarehouse.com' },
 ]
 
 const getNavLinkClassName = ({ isActive }) =>
